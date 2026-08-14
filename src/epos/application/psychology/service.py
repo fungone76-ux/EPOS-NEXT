@@ -97,7 +97,11 @@ class PsychologyService:
         profile: PsychologyProfile,
     ) -> EmotionalState:
         return EmotionalState(
-            joy=_clamp(state.joy + _scaled(effect.joy, intensity, profile.joy_sensitivity), 0.0, 10.0),
+            joy=_clamp(
+                state.joy + _scaled(effect.joy, intensity, profile.joy_sensitivity),
+                0.0,
+                10.0,
+            ),
             anger=_clamp(
                 state.anger + _scaled(effect.anger, intensity, profile.anger_sensitivity),
                 0.0,
