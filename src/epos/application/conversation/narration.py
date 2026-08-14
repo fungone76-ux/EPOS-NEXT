@@ -1,8 +1,11 @@
-"""Narration LLM use case plus deterministic player-facing composition."""
+"""Narration LLM use case plus semantic audit and deterministic composition."""
 
 from __future__ import annotations
 
+from epos.application.conversation.audit import NarrationAuditValidator
 from epos.application.conversation.models import (
+    NarrationAuditContext,
+    NarrationAuditProposal,
     NarrationContext,
     NarrationProposal,
     NarrationResult,
@@ -29,22 +32,32 @@ class NarrationComposer:
 
 
 class NarrationService:
-    """Generate natural language from safe context, then validate before exposing it."""
+    """Generate, structurally validate, semantically audit, then expose narration."""
 
     def __init__(
         self,
         *,
         port: LLMPort[NarrationContext, NarrationProposal],
+        audit_port: LLMPort[NarrationAuditContext, NarrationAuditProposal],
         validator: NarrationValidator,
+        audit_validator: NarrationAuditValidator,
         composer: NarrationComposer | None = None,
     ) -> None:
         self._port = port
+        self._audit_port = audit_port
         self._validator = validator
+        self._audit_validator = audit_validator
         self._composer = composer or NarrationComposer()
 
     async def generate(self, context: NarrationContext) -> NarrationResult:
         proposal = await self._port.invoke(context)
         validated = self._validator.validate(proposal, context)
+        audit_context = NarrationAuditContext(
+            narration_context=context.model_copy(deep=True),
+            candidate=validated.model_copy(deep=True),
+        )
+        audit = await self._audit_port.invoke(audit_context)
+        self._audit_validator.validate(audit, validated)
         text = self._composer.compose(validated, context)
         return NarrationResult(
             focus=context.focus.model_copy(deep=True),
