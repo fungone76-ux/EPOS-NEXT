@@ -125,6 +125,28 @@ class ResolvedSceneAction(DomainModel):
     action: ValidatedAction
     resolved_check: ResolvedCheck | None = None
 
+    @model_validator(mode="after")
+    def validate_resolved_check(self) -> ResolvedSceneAction:
+        if self.resolved_check is None:
+            return self
+        if self.action.check is None:
+            raise ValueError(
+                "resolved check exists but validated action has no check proposal"
+            )
+        if (
+            self.resolved_check.skill_id != self.action.check.skill_id
+            or self.resolved_check.difficulty != self.action.check.difficulty
+        ):
+            raise ValueError("resolved check does not match validated action check")
+        if (
+            self.action.skill_rating is not None
+            and self.resolved_check.rating != self.action.skill_rating
+        ):
+            raise ValueError(
+                "resolved check rating does not match validated action skill rating"
+            )
+        return self
+
 
 class VisualFocusCandidate(DomainModel):
     subject_ids: tuple[EntityId, ...]
@@ -168,3 +190,74 @@ class ObservableSceneState(DomainModel):
     observable_consequences: tuple[ObservableConsequence, ...] = ()
     authorized_dialogue: tuple[AuthorizedDialogueLine, ...] = ()
     visual_focus_candidate: VisualFocusCandidate | None = None
+
+    @model_validator(mode="after")
+    def validate_scene_integrity(self) -> ObservableSceneState:
+        subject_ids = tuple(subject.entity_id for subject in self.visible_subjects)
+        if len(subject_ids) != len(set(subject_ids)):
+            raise ValueError("visible subject ids must be unique")
+
+        player_subjects = tuple(
+            subject
+            for subject in self.visible_subjects
+            if subject.kind is SubjectKind.PLAYER
+        )
+        if len(player_subjects) != 1:
+            raise ValueError("observable scene must contain exactly one visible player subject")
+
+        visible_ids = set(subject_ids)
+        visible_npc_ids = {
+            subject.entity_id
+            for subject in self.visible_subjects
+            if subject.kind is SubjectKind.NPC
+        }
+
+        consequence_ids = tuple(
+            consequence.consequence_id
+            for consequence in self.observable_consequences
+        )
+        if len(consequence_ids) != len(set(consequence_ids)):
+            raise ValueError("observable consequence ids must be unique")
+        for consequence in self.observable_consequences:
+            invalid_subjects = tuple(
+                subject_id
+                for subject_id in consequence.subject_ids
+                if subject_id not in visible_ids
+            )
+            if invalid_subjects:
+                raise ValueError(
+                    "observable consequence references non-visible subject "
+                    f"{invalid_subjects[0]}"
+                )
+
+        focus = self.visual_focus_candidate
+        if focus is not None:
+            invalid_focus_subjects = tuple(
+                subject_id
+                for subject_id in focus.subject_ids
+                if subject_id not in visible_ids
+            )
+            if invalid_focus_subjects:
+                raise ValueError(
+                    "visual focus references non-visible subject "
+                    f"{invalid_focus_subjects[0]}"
+                )
+
+        for line in self.authorized_dialogue:
+            if line.speaker_id not in visible_npc_ids:
+                raise ValueError(
+                    "authorized dialogue speaker must be a visible NPC: "
+                    f"{line.speaker_id}"
+                )
+            invalid_targets = tuple(
+                target_id
+                for target_id in line.target_ids
+                if target_id not in visible_ids
+            )
+            if invalid_targets:
+                raise ValueError(
+                    "authorized dialogue target is not visible: "
+                    f"{invalid_targets[0]}"
+                )
+
+        return self
