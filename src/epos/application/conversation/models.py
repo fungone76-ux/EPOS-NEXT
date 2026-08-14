@@ -235,9 +235,36 @@ class NarrationProposal(DomainModel):
 
 
 class ValidatedNarration(DomainModel):
-    """Narration units accepted by Python authority checks."""
+    """Narration units accepted by Python structural authority checks."""
 
     units: tuple[NarrationUnit, ...]
+
+
+class NarrationViolationKind(StrEnum):
+    PLAYER_CONTROL = "player_control"
+    UNSUPPORTED_WORLD_CLAIM = "unsupported_world_claim"
+    UNAUTHORIZED_PRIVATE_INFO = "unauthorized_private_info"
+    FOCUS_VIOLATION = "focus_violation"
+
+
+class NarrationAuditFinding(DomainModel):
+    """Semantic violation classified by the audit LLM; Python decides rejection."""
+
+    kind: NarrationViolationKind
+    unit_index: int = Field(ge=0)
+
+
+class NarrationAuditContext(DomainModel):
+    """Safe narration context plus the structurally validated candidate prose."""
+
+    narration_context: NarrationContext
+    candidate: ValidatedNarration
+
+
+class NarrationAuditProposal(DomainModel):
+    """Untrusted audit classification. Any valid finding causes Python rejection."""
+
+    findings: tuple[NarrationAuditFinding, ...] = ()
 
 
 class NarrationResult(DomainModel):
