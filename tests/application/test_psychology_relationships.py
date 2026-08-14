@@ -97,4 +97,10 @@ def test_zero_elapsed_time_does_not_change_emotions() -> None:
     service = PsychologyService.default()
     state = EmotionalState(anger=5.0, joy=2.0)
 
-    assert service.decay_emotions(state, elapsed_time_units=0.0, profile=PsychologyProfile()) == state
+    unchanged = service.decay_emotions(
+        state,
+        elapsed_time_units=0.0,
+        profile=PsychologyProfile(),
+    )
+
+    assert unchanged == state
