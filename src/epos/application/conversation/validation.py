@@ -6,12 +6,12 @@ import re
 
 from epos.application.cognition.models import ValidatedNPCReaction
 from epos.application.conversation.models import (
-    NPCDialogueDraft,
     NarrationContext,
     NarrationEvidence,
     NarrationEvidenceKind,
     NarrationMode,
     NarrationProposal,
+    NPCDialogueDraft,
     ValidatedNarration,
     WorldNarrationDraft,
 )
@@ -144,7 +144,8 @@ class NarrationValidator:
             item = NarrationValidator._evidence(evidence, evidence_id)
             if item.owner_id is not None and item.owner_id != unit.speaker_id:
                 raise NarrationValidationError(
-                    f"private evidence owner {item.owner_id} does not match speaker {unit.speaker_id}"
+                    f"private evidence owner {item.owner_id} does not match "
+                    f"speaker {unit.speaker_id}"
                 )
 
     @staticmethod
