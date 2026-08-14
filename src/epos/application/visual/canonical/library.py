@@ -82,6 +82,19 @@ class SemanticLibraryResolver:
             if exact_alias:
                 return self._require_single(exact_alias, library_name, "exact alias")
 
+            exact_positive_fragment = [
+                entry
+                for entry in library.entries
+                if entry.positive_fragment.strip()
+                and self._normalize_text(entry.positive_fragment) == descriptions[0]
+            ]
+            if exact_positive_fragment:
+                return self._require_single(
+                    exact_positive_fragment,
+                    library_name,
+                    "exact positive fragment",
+                )
+
         exact_description = [
             entry
             for entry in library.entries
@@ -98,7 +111,9 @@ class SemanticLibraryResolver:
         for entry in library.entries:
             entry_tags = {tag.casefold() for tag in entry.tags}
             tag_overlap = len(combined_tags & entry_tags)
-            authored_text = " ".join((entry.description, *entry.aliases))
+            authored_text = " ".join(
+                (entry.description, *entry.aliases, entry.positive_fragment)
+            )
             lexical_overlap = len(query_words & self._words(authored_text))
             if tag_overlap == 0 and lexical_overlap < 2:
                 continue
