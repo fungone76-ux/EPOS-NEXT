@@ -94,9 +94,10 @@ class SemanticLibraryResolver:
             entry_tags = {tag.casefold() for tag in entry.tags}
             tag_overlap = len(combined_tags & entry_tags)
             lexical_overlap = len(query_words & self._words(entry.description))
+            if tag_overlap == 0 and lexical_overlap < 2:
+                continue
             score = (tag_overlap * 10) + lexical_overlap
-            if score > 0:
-                scored.append((score, entry))
+            scored.append((score, entry))
 
         if not scored:
             raise SemanticLibraryResolutionError(
