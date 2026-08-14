@@ -5,7 +5,7 @@ from epos.application.visual.rendering.errors import (
     RendererExecutionError,
     RendererProtocolError,
 )
-from epos.application.visual.rendering.models import RenderResult, RendererHealth
+from epos.application.visual.rendering.models import RendererHealth, RenderResult
 from epos.application.visual.rendering.ports import RendererPort
 
 __all__ = [
