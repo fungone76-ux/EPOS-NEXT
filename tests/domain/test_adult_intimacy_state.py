@@ -27,7 +27,7 @@ def test_intimacy_state_has_bounded_npc_owned_dimensions() -> None:
     )
 
     assert state.completed_sexual_encounters == 0
-    assert "consent" not in state.model_fields
+    assert "consent" not in IntimacyState.model_fields
 
     with pytest.raises(ValidationError):
         IntimacyState(desire=10.01)
