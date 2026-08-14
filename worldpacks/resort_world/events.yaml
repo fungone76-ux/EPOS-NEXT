@@ -1,0 +1,6 @@
+events:
+  - event_id: arrival
+    status: pending
+    npc_ids: [victoria]
+    location_id: lobby
+    mission_id: welcome

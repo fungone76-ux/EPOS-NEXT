@@ -1,0 +1,14 @@
+npcs:
+  - entity_id: victoria
+    name: Victoria
+    role: director
+    location_id: lobby
+    adult_verified: true
+    personality: [controlled, observant]
+    speech_style: formal
+    desires: [protect the resort]
+    goals: [understand the player]
+    knowledge:
+      facts:
+        resort_role: director
+    starting_outfit_id: victoria_day

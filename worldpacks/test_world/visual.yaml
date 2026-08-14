@@ -1,0 +1,12 @@
+loras:
+  theron_main: theron.safetensors
+characters:
+  - entity_id: theron
+    base_prompt: adult man, weathered face
+    role_prompt: bronze age strategos
+    negative_prompt: modern clothing
+    lora_alias: theron_main
+    visual_gender: man
+    canonical_traits: [short dark hair]
+world_positive: [bronze age Aegean city]
+world_negative: [modern objects]

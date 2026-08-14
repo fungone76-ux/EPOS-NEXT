@@ -1,0 +1,6 @@
+events:
+  - event_id: assembly
+    status: pending
+    npc_ids: [theron]
+    location_id: agora
+    mission_id: hold_gate

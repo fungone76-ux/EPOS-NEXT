@@ -1,0 +1,13 @@
+npcs:
+  - entity_id: theron
+    name: Theron
+    role: strategos
+    location_id: agora
+    adult_verified: true
+    personality: [severe, disciplined]
+    speech_style: laconic
+    goals: [defend the city]
+    knowledge:
+      facts:
+        command_role: strategos
+    starting_outfit_id: theron_armor
