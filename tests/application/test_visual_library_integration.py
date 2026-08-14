@@ -200,7 +200,8 @@ async def test_world_bound_library_rejects_wrong_world_id(tmp_path: Path) -> Non
         await FileSystemWorldpackLoader().load(copied, session_id="wrong-world-library")
 
 
-def test_adult_library_schema_is_gated_and_not_part_of_standard_worldpack() -> None:
+@pytest.mark.asyncio
+async def test_adult_library_schema_is_gated_and_not_part_of_standard_worldpack() -> None:
     adult = AdultSemanticLibraryDocument.model_validate(
         {
             "schema_version": 1,
@@ -213,7 +214,12 @@ def test_adult_library_schema_is_gated_and_not_part_of_standard_worldpack() -> N
 
     assert adult.content_rating == "adult_18_plus"
     assert adult.library_id == "adult_visual_library"
-    assert "sex_library" not in FileSystemWorldpackLoader.__annotations__
+
+    loaded = await FileSystemWorldpackLoader().load(
+        RESORT_ROOT,
+        session_id="adult-library-gating",
+    )
+    assert "sex_library" not in type(loaded).model_fields
 
 
 def _canonical_with_outfit(item: OutfitItem) -> CanonicalVST:
