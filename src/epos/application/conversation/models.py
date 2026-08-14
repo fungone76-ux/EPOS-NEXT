@@ -8,8 +8,9 @@ from typing import Annotated, Literal
 
 from pydantic import Field, field_validator
 
-from epos.application.actions.models import ResolvedCheck, ValidatedAction
-from epos.application.cognition.models import CognitionScene, ValidatedNPCReaction
+from epos.application.actions.models import ValidatedAction
+from epos.application.cognition.models import ValidatedNPCReaction
+from epos.application.visual.models import ObservableSceneState
 from epos.domain.base import DomainModel
 from epos.domain.ids import EntityId, LocationId
 from epos.domain.memory import MemoryEntryState
@@ -186,9 +187,7 @@ class NarrationContext(DomainModel):
     player_id: EntityId
     player_input: str
     focus: ConversationFocus
-    scene: CognitionScene
-    action: ValidatedAction
-    resolved_check: ResolvedCheck | None = None
+    scene: ObservableSceneState
     reactions: tuple[ValidatedNPCReaction, ...] = ()
     voices: tuple[NPCNarrationVoice, ...] = ()
     evidence: tuple[NarrationEvidence, ...] = ()
