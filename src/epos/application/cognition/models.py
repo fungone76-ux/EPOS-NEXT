@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import re
+
 from pydantic import field_validator
 
 from epos.application.actions.models import ResolvedCheck, ValidatedAction
@@ -14,6 +16,15 @@ from epos.domain.knowledge import KnowledgeState
 from epos.domain.memory import MemoryEntryState
 from epos.domain.psychology import EmotionalState
 from epos.domain.relationships import RelationshipState
+
+_TOKEN_PATTERN = re.compile(r"^[a-z0-9][a-z0-9_.:-]*$")
+
+
+def _normalize_token(value: str, *, field_name: str) -> str:
+    normalized = value.strip().casefold()
+    if not _TOKEN_PATTERN.fullmatch(normalized):
+        raise ValueError(f"{field_name} must be one semantic token")
+    return normalized
 
 
 class CognitionScene(DomainModel):
@@ -66,24 +77,34 @@ class PrivateCognitiveContext(DomainModel):
 
 
 class NPCReactionProposal(DomainModel):
-    """Untrusted semantic LLM proposal; no dialogue, state mutation, or player control."""
+    """Token-only semantic LLM proposal; it has no player-facing prose channel."""
 
     npc_id: EntityId
     intent: str
-    communication_goal: str
+    speech_act: str
+    topic_tags: tuple[str, ...] = ()
     emotional_tone: tuple[str, ...] = ()
-    observable_action: str | None = None
+    action_intent: str | None = None
     target_ids: tuple[EntityId, ...] = ()
     referenced_memory_ids: tuple[MemoryId, ...] = ()
     requested_secret_disclosures: tuple[str, ...] = ()
 
-    @field_validator("intent", "communication_goal")
+    @field_validator("intent", "speech_act")
     @classmethod
-    def non_empty_text(cls, value: str) -> str:
-        normalized = value.strip()
-        if not normalized:
-            raise ValueError("cognition text fields must not be empty")
-        return normalized
+    def semantic_token(cls, value: str) -> str:
+        return _normalize_token(value, field_name="reaction token")
+
+    @field_validator("action_intent")
+    @classmethod
+    def optional_semantic_token(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        return _normalize_token(value, field_name="action_intent")
+
+    @field_validator("topic_tags", "emotional_tone")
+    @classmethod
+    def semantic_token_tuple(cls, values: tuple[str, ...]) -> tuple[str, ...]:
+        return tuple(_normalize_token(value, field_name="reaction tag") for value in values)
 
 
 class ValidatedNPCReaction(DomainModel):
@@ -91,9 +112,10 @@ class ValidatedNPCReaction(DomainModel):
 
     npc_id: EntityId
     intent: str
-    communication_goal: str
+    speech_act: str
+    topic_tags: tuple[str, ...] = ()
     emotional_tone: tuple[str, ...] = ()
-    observable_action: str | None = None
+    action_intent: str | None = None
     target_ids: tuple[EntityId, ...] = ()
     referenced_memory_ids: tuple[MemoryId, ...] = ()
     authorized_secret_disclosures: tuple[str, ...] = ()

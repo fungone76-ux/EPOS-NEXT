@@ -28,6 +28,12 @@ subject. Python separately derives `disclosure_allowed`. Module 07 supports requ
 and a minimum trust threshold. A reaction requesting disclosure of a locked or unknown secret is
 rejected before narration.
 
+The reaction leaving cognition has no arbitrary natural-language field. `intent`, `speech_act`,
+`topic_tags`, `emotional_tone`, and optional `action_intent` are restricted to semantic tokens.
+This prevents a model from bypassing disclosure validation by copying a locked secret into a
+free-text communication goal or observable-action string. Final prose is owned by Module 08,
+which must receive only Python-authorized disclosure material.
+
 ## Memory use
 
 Long-term semantic recall is mandatory before present-NPC reasoning. Recalled memories are
@@ -37,10 +43,10 @@ deterministic caps.
 
 ## No raw chain of thought
 
-The reaction contract contains only semantic fields: intent, communication goal, emotional tone,
-optional observable-action proposal, targets, memory references, and requested secret disclosures.
-Pydantic `extra="forbid"` rejects fields such as `chain_of_thought`, direct state mutations, or
-player-state claims.
+The reaction contract contains only semantic fields: intent, speech act, topic tags, emotional
+tone, optional action intent, targets, memory references, and requested secret disclosures.
+Pydantic `extra="forbid"` rejects fields such as `chain_of_thought`, free-form communication
+prose, direct state mutations, or player-state claims.
 
 ## Explicit exclusions
 

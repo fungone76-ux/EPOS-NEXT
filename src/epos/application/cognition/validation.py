@@ -52,9 +52,10 @@ class NPCReactionValidator:
         return ValidatedNPCReaction(
             npc_id=proposal.npc_id,
             intent=proposal.intent,
-            communication_goal=proposal.communication_goal,
+            speech_act=proposal.speech_act,
+            topic_tags=proposal.topic_tags,
             emotional_tone=proposal.emotional_tone,
-            observable_action=proposal.observable_action,
+            action_intent=proposal.action_intent,
             target_ids=proposal.target_ids,
             referenced_memory_ids=proposal.referenced_memory_ids,
             authorized_secret_disclosures=proposal.requested_secret_disclosures,
