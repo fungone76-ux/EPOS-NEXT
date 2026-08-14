@@ -29,6 +29,7 @@ class SecretState(DomainModel):
 class DisclosureRule(DomainModel):
     secret_id: str
     required_flags: tuple[str, ...] = ()
+    trust_min: float | None = Field(default=None, ge=-10.0, le=10.0)
 
 
 class NPCState(DomainModel):
