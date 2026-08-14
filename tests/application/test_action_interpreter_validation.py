@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from collections.abc import Sequence
-
 import pytest
 from pydantic import ValidationError
 
@@ -63,7 +61,7 @@ def test_simple_dialogue_needs_no_check() -> None:
 def test_offscene_target_is_rejected() -> None:
     action = ActionInterpretation(intent="dialogue", target_ids=(EntityId("stella"),))
 
-    with pytest.raises(ActionValidationError, match="target.*stella"):
+    with pytest.raises(ActionValidationError, match=r"target.*stella"):
         ActionValidator().validate(action, _context())
 
 
@@ -73,7 +71,7 @@ def test_unknown_movement_destination_is_rejected() -> None:
         movement=MovementProposal(destination_id=LocationId("secret_lab")),
     )
 
-    with pytest.raises(ActionValidationError, match="location.*secret_lab"):
+    with pytest.raises(ActionValidationError, match=r"location.*secret_lab"):
         ActionValidator().validate(action, _context())
 
 

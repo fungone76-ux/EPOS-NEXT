@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from enum import Enum
+from enum import StrEnum
 
 from pydantic import Field, field_validator
 
@@ -87,7 +87,12 @@ class ActionInterpreterContext(DomainModel):
                 key=str,
             )
         )
-        skills = tuple(sorted(state.skill_definitions.values(), key=lambda skill: str(skill.skill_id)))
+        skills = tuple(
+            sorted(
+                state.skill_definitions.values(),
+                key=lambda skill: str(skill.skill_id),
+            )
+        )
         ratings: dict[SkillId, int] = {}
         for skill in skills:
             raw_rating = state.player.stats.get(str(skill.skill_id))
@@ -115,7 +120,7 @@ class ValidatedAction(DomainModel):
     skill_rating: int | None = Field(default=None, ge=1)
 
 
-class CheckOutcome(str, Enum):
+class CheckOutcome(StrEnum):
     CRITICAL_FAILURE = "critical_failure"
     FAILURE = "failure"
     PARTIAL_SUCCESS = "partial_success"

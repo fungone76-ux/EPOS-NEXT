@@ -2,7 +2,11 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from epos.application.actions.models import ActionInterpretation, ActionInterpreterContext, CheckProposal
+from epos.application.actions.models import (
+    ActionInterpretation,
+    ActionInterpreterContext,
+    CheckProposal,
+)
 from epos.application.actions.validation import ActionValidator
 from epos.domain.ids import EntityId, SkillId
 from epos.infrastructure.worldpacks.loader import FileSystemWorldpackLoader
