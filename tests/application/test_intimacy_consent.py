@@ -6,7 +6,6 @@ from epos.application.intimacy import (
     IntimacyService,
 )
 
-
 PLAYER_ID = "player"
 NPC_ID = "victoria"
 TURN = 12
