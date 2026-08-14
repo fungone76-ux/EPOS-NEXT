@@ -9,7 +9,7 @@ from epos.application.worldpacks.models import (
     WorldpackBundle,
 )
 from epos.domain.errors import EposValidationError
-from epos.domain.ids import EntityId, LocationId, SessionId, SkillId, TurnNumber
+from epos.domain.ids import EntityId, LocationId, MissionId, SessionId, SkillId, TurnNumber
 from epos.domain.npc import NPCIdentity, NPCState
 from epos.domain.outfit import OutfitState
 from epos.domain.player import PlayerState
@@ -164,7 +164,7 @@ class WorldpackAssembler:
         bundle: WorldpackBundle,
         npc_ids: set[EntityId],
         location_ids: set[LocationId],
-        mission_ids: set[object],
+        mission_ids: set[MissionId],
     ) -> None:
         for event in bundle.events.events:
             for npc_id in event.npc_ids:
