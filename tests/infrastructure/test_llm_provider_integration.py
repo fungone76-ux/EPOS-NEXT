@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-from collections.abc import Mapping
 
 import httpx
 import pytest
@@ -69,6 +68,23 @@ def _gemini_response(text: str) -> dict[str, object]:
     }
 
 
+def _canonical_runtime_env() -> dict[str, str]:
+    return {
+        "EPOS_PRIMARY_LLM_PROVIDER": "openai",
+        "EPOS_PRIMARY_LLM_BASE_URL": "https://openai.example/v1",
+        "EPOS_PRIMARY_LLM_MODEL": "openai-model-from-env",
+        "EPOS_PRIMARY_LLM_KEY_ENV": "OPENAI_API_KEY",
+        "OPENAI_API_KEY": "openai-secret",
+        "EPOS_SECONDARY_LLM_PROVIDER": "gemini",
+        "EPOS_SECONDARY_LLM_BASE_URL": "https://gemini-compatible.example/v1",
+        "EPOS_SECONDARY_LLM_MODEL": "gemini-model-from-env",
+        "EPOS_SECONDARY_LLM_KEY_ENV": "GEMINI_API_KEY",
+        "GEMINI_API_KEY": "gemini-secret",
+        "EPOS_LLM_FALLBACK_ENABLED": "true",
+        "EPOS_LLM_TIMEOUT_SECONDS": "180",
+    }
+
+
 def test_task_profiles_are_distinct_and_cover_required_epos_tasks() -> None:
     required = {
         LLMTask.INTERPRET_ACTION,
@@ -90,15 +106,7 @@ def test_task_profiles_are_distinct_and_cover_required_epos_tasks() -> None:
 
 
 def test_runtime_from_env_reports_selected_provider_model_and_fallback_without_secrets() -> None:
-    runtime = build_llm_runtime_from_env(
-        {
-            "EPOS_LLM_PROVIDER": "openai",
-            "OPENAI_API_KEY": "openai-secret",
-            "OPENAI_MODEL": "openai-model-from-env",
-            "GEMINI_API_KEY": "gemini-secret",
-            "GEMINI_MODEL": "gemini-model-from-env",
-        }
-    )
+    runtime = build_llm_runtime_from_env(_canonical_runtime_env())
 
     diagnostic = runtime.startup_diagnostic
     assert diagnostic.status is LLMProviderStatus.CONFIGURED
@@ -114,8 +122,10 @@ def test_runtime_from_env_reports_selected_provider_model_and_fallback_without_s
     )
 
 
-def test_runtime_without_selected_provider_configuration_is_explicitly_unavailable() -> None:
-    runtime = build_llm_runtime_from_env({"EPOS_LLM_PROVIDER": "openai"})
+def test_runtime_without_primary_secret_is_explicitly_unavailable() -> None:
+    environ = _canonical_runtime_env()
+    environ.pop("OPENAI_API_KEY")
+    runtime = build_llm_runtime_from_env(environ)
 
     assert runtime.startup_diagnostic.status is LLMProviderStatus.UNAVAILABLE
     assert runtime.startup_diagnostic.provider is LLMProviderName.OPENAI
@@ -376,13 +386,10 @@ async def test_memory_summarizer_adapter_preserves_existing_application_protocol
 
 
 def test_runtime_environment_mapping_is_read_only_input() -> None:
-    environ: Mapping[str, str] = {
-        "EPOS_LLM_PROVIDER": "gemini",
-        "GEMINI_API_KEY": "secret",
-        "GEMINI_MODEL": "model",
-    }
+    environ = _canonical_runtime_env()
 
     runtime = build_llm_runtime_from_env(environ)
 
-    assert runtime.startup_diagnostic.provider is LLMProviderName.GEMINI
-    assert runtime.startup_diagnostic.model == "model"
+    assert runtime.startup_diagnostic.provider is LLMProviderName.OPENAI
+    assert runtime.startup_diagnostic.model == "openai-model-from-env"
+    assert environ["EPOS_PRIMARY_LLM_MODEL"] == "openai-model-from-env"
