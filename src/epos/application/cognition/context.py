@@ -134,6 +134,4 @@ class PrivateCognitiveContextBuilder:
             return False
         if any(not state.flags.get(flag, False) for flag in rule.required_flags):
             return False
-        if rule.trust_min is not None and relationship.trust < rule.trust_min:
-            return False
-        return True
+        return rule.trust_min is None or relationship.trust >= rule.trust_min

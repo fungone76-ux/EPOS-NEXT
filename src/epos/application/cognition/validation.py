@@ -36,14 +36,18 @@ class NPCReactionValidator:
         }
         for memory_id in proposal.referenced_memory_ids:
             if memory_id not in available_memory_ids:
-                raise CognitionValidationError(f"memory {memory_id} is not available to this cognition")
+                raise CognitionValidationError(
+                    f"memory {memory_id} is not available to this cognition"
+                )
 
         secret_permissions = {
             secret.secret_id: secret.disclosure_allowed for secret in context.secrets
         }
         for secret_id in proposal.requested_secret_disclosures:
             if not secret_permissions.get(secret_id, False):
-                raise CognitionValidationError(f"secret {secret_id} is not authorized for disclosure")
+                raise CognitionValidationError(
+                    f"secret {secret_id} is not authorized for disclosure"
+                )
 
         return ValidatedNPCReaction(
             npc_id=proposal.npc_id,

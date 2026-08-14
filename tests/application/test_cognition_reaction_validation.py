@@ -81,7 +81,7 @@ def test_validator_rejects_locked_secret_disclosure() -> None:
         requested_secret_disclosures=("letter",),
     )
 
-    with pytest.raises(CognitionValidationError, match="secret.*letter"):
+    with pytest.raises(CognitionValidationError, match=r"secret.*letter"):
         NPCReactionValidator().validate(proposal, _context())
 
 
@@ -93,7 +93,7 @@ def test_validator_rejects_memory_reference_not_in_recall_context() -> None:
         referenced_memory_ids=(MemoryId("unknown"),),
     )
 
-    with pytest.raises(CognitionValidationError, match="memory.*unknown"):
+    with pytest.raises(CognitionValidationError, match=r"memory.*unknown"):
         NPCReactionValidator().validate(proposal, _context())
 
 

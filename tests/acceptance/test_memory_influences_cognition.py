@@ -1,7 +1,11 @@
 from __future__ import annotations
 
 from epos.application.actions.models import ValidatedAction
-from epos.application.cognition.models import CognitionScene, NPCReactionProposal, PrivateCognitiveContext
+from epos.application.cognition.models import (
+    CognitionScene,
+    NPCReactionProposal,
+    PrivateCognitiveContext,
+)
 from epos.application.cognition.service import NPCCognitionService
 from epos.application.cognition.validation import NPCReactionValidator
 from epos.application.memory import MemoryRecallQuery, MemoryRecallResult, RankedMemory

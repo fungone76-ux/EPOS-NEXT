@@ -13,7 +13,13 @@ from epos.domain.relationships import RelationshipState
 from epos.domain.world_state import LocationState, WorldState
 
 
-def _memory(memory_id: str, summary: str, *, turn: int, kind: MemoryKind = MemoryKind.EPISODIC) -> MemoryEntryState:
+def _memory(
+    memory_id: str,
+    summary: str,
+    *,
+    turn: int,
+    kind: MemoryKind = MemoryKind.EPISODIC,
+) -> MemoryEntryState:
     return MemoryEntryState(
         memory_id=MemoryId(memory_id),
         turn=TurnNumber(turn),
@@ -49,7 +55,14 @@ def _state(*, trust: float = 6.0, unlocked: bool = False) -> WorldState:
         ),
         relationships={player_id: RelationshipState(trust=trust)},
         short_term_memory=(_memory("recent", "The player greeted Victoria.", turn=9),),
-        core_memories=(_memory("core", "The player once protected Victoria.", turn=2, kind=MemoryKind.CORE),),
+        core_memories=(
+            _memory(
+                "core",
+                "The player once protected Victoria.",
+                turn=2,
+                kind=MemoryKind.CORE,
+            ),
+        ),
     )
     stella = NPCState(
         identity=NPCIdentity(entity_id=stella_id, name="Stella", role="guest"),
