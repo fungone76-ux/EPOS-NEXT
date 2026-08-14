@@ -83,7 +83,7 @@ async def test_view_uses_remote_metadata_only_as_query_parameters() -> None:
     def handler(request: httpx.Request) -> httpx.Response:
         assert request.method == "GET"
         assert request.url.path == "/view"
-        assert request.url.params == {
+        assert dict(request.url.params) == {
             "filename": "image.png",
             "subfolder": "session/turn",
             "type": "output",
