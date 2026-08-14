@@ -77,7 +77,7 @@ class SemanticPromptCompiler:
             config.style_library,
             library_name="style",
         )
-        return () if entry is None else (self._entry_fragment(entry),)
+        return () if entry is None else (self._semantic_fragment(entry),)
 
     def _location_fragments(
         self,
@@ -103,7 +103,7 @@ class SemanticPromptCompiler:
             config.lighting_library,
             library_name="lighting",
         )
-        return () if entry is None else (self._entry_fragment(entry),)
+        return () if entry is None else (self._semantic_fragment(entry),)
 
     def _subject_fragments(
         self,
