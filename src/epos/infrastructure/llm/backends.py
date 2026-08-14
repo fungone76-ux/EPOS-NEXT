@@ -126,7 +126,7 @@ class OpenAIResponsesBackend:
         return self._model
 
     async def complete(self, request: StructuredLLMRequest) -> ProviderCompletion:
-        strict_schema = _normalize_openai_schema(request.schema)
+        strict_schema = _normalize_openai_schema(request.json_schema)
         if not isinstance(strict_schema, dict):
             raise LLMContractError("OpenAI structured output schema must be an object")
         body: JSONObject = {
@@ -236,7 +236,7 @@ class GeminiInteractionsBackend:
                 {
                     "type": "text",
                     "mime_type": "application/json",
-                    "schema": request.schema,
+                    "schema": request.json_schema,
                 }
             ],
         }
