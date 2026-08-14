@@ -1,13 +1,12 @@
 from epos.application.memory import (
     ConsolidationPolicy,
     MemoryConsolidationService,
+    MemorySummarizerPort,
     MemorySummaryDraft,
     MemorySummaryRequest,
-    MemorySummarizerPort,
 )
 from epos.domain.ids import EntityId, MemoryId, TurnNumber
 from epos.domain.memory import MemoryEntryState, MemoryKind
-
 
 NPC_ID = EntityId("victoria")
 
