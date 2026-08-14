@@ -2,53 +2,53 @@
 
 ## Purpose
 
-Module 17 supplies the physical language-model adapters required by the existing EPOS NEXT application services without moving game authority into the provider layer.
+Module 17 supplies physical language-model adapters behind the existing typed EPOS NEXT application `LLMPort` without moving game authority into infrastructure.
 
 The architectural rule remains:
 
 > The LLM interprets, reasons and narrates. Python governs the world.
 
-Application services continue to depend on the generic asynchronous `LLMPort[RequestT, ResponseT]`. OpenAI and Gemini are infrastructure adapters behind that port.
+Application services remain provider-agnostic. Provider selection, endpoints, model identifiers and secret-variable names are runtime configuration only.
 
 ## Boundaries
 
 The provider layer may:
 
 - serialize an already-built Pydantic request;
-- send it to a configured language-model provider;
+- send it to a configured provider endpoint;
 - request structured JSON output;
-- parse provider response metadata;
-- validate the returned JSON against the requested Pydantic response model;
+- validate the provider envelope;
+- validate output against the requested Pydantic response model;
 - retry in one controlled policy layer;
-- use a configured secondary provider after primary-provider failure;
-- expose a startup diagnostic containing provider/model/status.
+- fall back to a configured secondary provider;
+- expose provider/model/status diagnostics without secrets.
 
 The provider layer must not:
 
 - roll dice;
 - mutate `WorldState`;
 - decide random outcomes;
-- invent authoritative inventory, outfit or knowledge;
+- create authoritative inventory, outfit or knowledge;
 - decide love or relationship state;
 - control player thoughts, emotions, dialogue, actions or decisions;
 - bypass application validators;
 - create Stable Diffusion prompts;
-- pretend a local stub is a configured real LLM.
+- invent a provider, endpoint or model when configuration is missing.
 
 ## Existing application port
 
-Module 17 does not replace the application contract:
+Module 17 implements rather than replaces the existing boundary:
 
 ```python
 class LLMPort(Protocol[LLMRequestT, LLMResponseT]):
     async def invoke(self, request: LLMRequestT) -> LLMResponseT: ...
 ```
 
-`StructuredLLMPort[RequestT, ResponseT]` is the infrastructure implementation used to satisfy that typed port.
+`StructuredLLMPort[RequestT, ResponseT]` adapts arbitrary Pydantic request/response pairs to configured physical backends.
 
 ## Task separation
 
-A shared physical provider does not imply a shared semantic task. Each supported task has a distinct `LLMTaskProfile` and system instruction:
+One physical model may perform several tasks, but each task has its own `LLMTaskProfile` and system instruction:
 
 - `interpret_action`
 - `interpret_event`
@@ -58,138 +58,142 @@ A shared physical provider does not imply a shared semantic task. Each supported
 - `generate_vst`
 - `summarize_memory`
 
-`audit_narration` is included because the existing narration pipeline already performs a separate semantic audit call.
-
-The task profile does not grant authority. It narrows the provider's job to the context and typed response already selected by Python.
+A task profile narrows the provider's job. It never grants state authority.
 
 ## Provider-neutral request
 
-Before contacting a provider, `StructuredLLMPort` creates a strict provider-neutral request containing:
+Before contacting a backend, `StructuredLLMPort` creates a strict request containing:
 
 - task id;
 - task-specific system instruction;
 - serialized Pydantic request JSON;
 - response schema name;
-- JSON-safe response schema.
+- JSON-safe Pydantic-derived response schema.
 
-The provider backend receives this request and performs exactly one HTTP attempt.
+A physical backend performs exactly one HTTP attempt for each call made by `StructuredLLMPort`.
 
-## OpenAI adapter
+## OpenAI Responses backend
 
-`OpenAIResponsesBackend` uses the Responses API and requests JSON Schema structured output.
+`OpenAIResponsesBackend` is used for runtime entries whose provider is `openai`.
 
-Runtime fields include:
+It accepts an injected `base_url`, configured model, API key and timeout. The request is sent to:
+
+```text
+{base_url}/responses
+```
+
+It requests strict JSON Schema output, sends task-specific `instructions`, serializes the application request as `input`, and sets `store=false`.
+
+The backend itself never retries.
+
+## OpenAI-compatible Chat backend
+
+`OpenAICompatibleChatBackend` supports providers exposed through an OpenAI-compatible Chat Completions API. It is parameterized by the logical provider id, so provider identity remains visible in diagnostics and fallback ordering even though the wire protocol is compatible.
+
+For the canonical environment mapping in this module, a runtime entry whose provider is `gemini` is routed through this backend and calls:
+
+```text
+{base_url}/chat/completions
+```
+
+The request carries:
 
 - configured model;
-- task-specific `instructions`;
-- serialized request as `input`;
-- `store = false`;
-- JSON Schema response format with strict mode enabled.
+- system message from the task profile;
+- user message containing the serialized Pydantic request;
+- JSON Schema structured response format.
 
-The backend extracts assistant `output_text` and returns it to `StructuredLLMPort`; the backend itself does not retry.
-
-## Gemini adapter
-
-`GeminiInteractionsBackend` uses the Gemini Interactions API.
-
-Runtime fields include:
-
-- configured model;
-- task-specific `system_instruction`;
-- serialized request as `input`;
-- `store = false`;
-- JSON response format carrying the Pydantic-derived schema.
-
-The backend extracts text from the final model-output step and returns it to `StructuredLLMPort`; the backend itself does not retry.
+`GeminiInteractionsBackend` remains available as a native direct adapter for explicit use, but it is not selected by the canonical PRIMARY/SECONDARY environment mapping.
 
 ## Structured validation
 
-Provider output is not authoritative merely because the provider returned valid JSON.
-
-The sequence is:
+Provider output is never authoritative merely because it is valid JSON.
 
 ```text
 Pydantic request
     -> provider-neutral structured request
-    -> physical provider
-    -> provider payload validation
+    -> physical backend
+    -> provider-envelope validation
     -> output text
     -> ResponseModel.model_validate_json(...)
     -> typed proposal
-    -> existing application/domain validator
+    -> existing Python application/domain validator
 ```
 
-Malformed provider envelopes fail with a classified contract/provider error. JSON that violates the requested Pydantic response contract also fails and can participate in controlled retry/fallback.
+Malformed envelopes, invalid JSON or Pydantic contract violations fail as classified LLM errors and may participate in the controlled retry/fallback policy.
 
 ## Retry ownership
 
 There is exactly one retry owner: `StructuredLLMPort`.
 
 ```text
-StructuredLLMPort
-    primary provider attempt 1
-    primary provider attempt 2 (policy permitting)
-    secondary provider attempt 1
-    secondary provider attempt 2 (policy permitting)
-    -> classified all-providers-failed error
+primary attempt 1
+primary attempt 2  (if policy permits)
+secondary attempt 1
+secondary attempt 2  (if policy permits)
+-> all-providers-failed
 ```
 
-`OpenAIResponsesBackend` and `GeminiInteractionsBackend` never retry internally. This prevents nested retry multiplication and keeps retry behavior testable.
+Physical backends never retry internally. This prevents nested retry multiplication.
 
-`LLMRetryPolicy.max_attempts_per_provider` defaults to two and is strictly bounded from one to three.
+`LLMRetryPolicy.max_attempts_per_provider` is strictly bounded from one to three.
 
-## Provider fallback
+## Canonical environment contract
 
-`EPOS_LLM_PROVIDER` selects the primary provider.
-
-If the alternate provider also has both its API key and model configured, it becomes the secondary backend. Either direction is supported:
+Module 17 uses one PRIMARY/SECONDARY configuration scheme:
 
 ```text
-OpenAI -> Gemini fallback
-Gemini -> OpenAI fallback
+EPOS_PRIMARY_LLM_PROVIDER=
+EPOS_PRIMARY_LLM_BASE_URL=
+EPOS_PRIMARY_LLM_MODEL=
+EPOS_PRIMARY_LLM_KEY_ENV=
+
+EPOS_SECONDARY_LLM_PROVIDER=
+EPOS_SECONDARY_LLM_BASE_URL=
+EPOS_SECONDARY_LLM_MODEL=
+EPOS_SECONDARY_LLM_KEY_ENV=
+
+EPOS_LLM_FALLBACK_ENABLED=true|false
+EPOS_LLM_TIMEOUT_SECONDS=
 ```
 
-Fallback never changes game authority or validation rules; it only changes which physical model is asked to produce the same typed proposal.
+`EPOS_*_LLM_KEY_ENV` contains the **name** of the environment variable holding the secret. The runtime resolves that variable indirectly. This allows secrets to remain outside repository configuration and avoids coupling provider slots to one fixed secret-variable name.
 
-## Environment configuration
+The runtime never synthesizes a model or endpoint. PRIMARY requires provider, base URL, model, key-variable name and the referenced secret to exist.
 
-Supported variables:
+If PRIMARY is incomplete or invalid, the LLM runtime is explicitly unavailable.
 
-```text
-EPOS_LLM_PROVIDER=openai|gemini
-OPENAI_API_KEY=...
-OPENAI_MODEL=...
-GEMINI_API_KEY=...
-GEMINI_MODEL=...
-```
+SECONDARY is used only when fallback is enabled and the secondary configuration is complete. A partial secondary configuration does not invalidate a valid primary; the startup diagnostic reports that secondary is unavailable.
 
-The source code contains no default model name. Missing model configuration therefore cannot silently drift to a hardcoded model.
+`EPOS_LLM_TIMEOUT_SECONDS` is applied to physical provider calls. Invalid, non-positive or excessive timeout configuration makes startup configuration unavailable rather than silently guessing another value.
 
-API keys are never included in startup diagnostics.
+## Secret handling
+
+Real `.env` files are runtime-only and must not be committed.
+
+The repository `.env.example` contains variable names/placeholders only. API keys are never written to startup diagnostics, provider/model summaries or test fixtures containing production values.
+
+Tests use synthetic keys, models and endpoints.
 
 ## Startup diagnostic
 
-`build_llm_runtime_from_env()` exposes an explicit diagnostic with:
+`build_llm_runtime_from_env()` exposes:
 
-- selected provider;
-- selected model;
+- primary provider;
+- primary model;
 - `configured` or `unavailable` status;
-- optional configured fallback provider;
+- configured fallback provider when available;
 - human-readable detail.
 
-Examples:
+It intentionally does **not** expose:
 
-```text
-provider=openai | model=<environment value> | status=configured
-provider=openai | model=None | status=unavailable | missing OPENAI_API_KEY, OPENAI_MODEL
-status=unavailable | EPOS_LLM_PROVIDER is not configured
-```
-
-An unsupported provider is reported as unavailable. It is never guessed or mapped to a fake local implementation.
+- API key values;
+- the resolved secret value;
+- request contents.
 
 ## Memory compatibility
 
-The existing memory application layer uses `MemorySummarizerPort.summarize(...)` instead of the generic `LLMPort.invoke(...)` method name.
+The memory application layer uses `MemorySummarizerPort.summarize(...)` rather than `LLMPort.invoke(...)`.
 
 `MemorySummarizerLLMAdapter` preserves that application protocol and delegates to:
 
@@ -197,37 +201,41 @@ The existing memory application layer uses `MemorySummarizerPort.summarize(...)`
 StructuredLLMPort[MemorySummaryRequest, MemorySummaryDraft]
 ```
 
-No memory-policy decisions are moved into infrastructure.
+No memory-selection or consolidation policy is moved into infrastructure.
 
 ## Failure classification
 
 Module 17 distinguishes:
 
-- unavailable configuration;
+- unavailable/invalid runtime configuration;
 - transport failure;
-- provider HTTP/provider-status failure;
+- provider HTTP/status failure;
 - malformed provider response envelope;
 - structured/Pydantic contract violation;
 - exhaustion of all configured providers.
 
-The final exhaustion error is explicit and chained from the most recent classified cause. Provider failures are not silently replaced with fabricated local content.
+Provider failure never becomes fabricated local content.
 
 ## TDD evidence
 
-The initial RED commit was `f198f21ae669b9f951f54d1cf9a8ee412511ad79`.
+The original RED commit was `f198f21ae669b9f951f54d1cf9a8ee412511ad79`; the provider package did not yet exist.
 
-Workflow run `31849920181` failed during test collection because `epos.infrastructure.llm` did not yet exist.
+After the initial Module 17 implementation was green, the production runtime environment contract was supplied. A second regression RED was added at commit `8f8619dce23ff2740aa48fb009df34109c25db6a` before adapting production code.
 
-During implementation, workflow run `31850096632` reached 255 passing tests and exposed a Pydantic recursive-alias problem in the provider-neutral request model. The contract was corrected rather than bypassing validation.
+The new regression suite covers:
 
-Workflow run `31850204732` reached 262 passing tests; only Ruff formatting remained.
+- PRIMARY/SECONDARY ordering;
+- configurable base URLs;
+- secret-variable indirection;
+- fallback enable/disable;
+- timeout validation and propagation;
+- OpenAI-compatible Chat Completions structured output;
+- absence of secret values from diagnostics.
 
-Workflow run `31850291823` then passed pytest, Ruff and mypy strict together.
+Final pytest/Ruff/mypy evidence is recorded by the last green quality-gates run before PR #19 is returned to Ready for review.
 
-Final documented-head evidence is recorded by the last quality-gates run before the Module 17 pull request is marked ready for review.
+## Handoff
 
-## Handoff to Module 18
+The Turn Orchestrator should build one typed `StructuredLLMPort` per application task from a single `LLMRuntime`, then inject those ports into Action Interpreter, NPC Cognition, Narration, Visual Director and memory consolidation.
 
-Module 18 should compose one typed `StructuredLLMPort` per application task from a single configured `LLMRuntime`, then inject those ports into the existing Action Interpreter, NPC Cognition, Narration, Visual Director and memory-consolidation services.
-
-Module 18 must not duplicate provider HTTP code, retry policy or structured-response parsing.
+It must not duplicate provider HTTP, retry, fallback or structured-response parsing.
