@@ -171,6 +171,22 @@ class SemanticLibraryEntry(DomainModel):
 class SemanticLibraryDocument(DomainModel):
     entries: tuple[SemanticLibraryEntry, ...] = ()
 
+    @field_validator("entries")
+    @classmethod
+    def validate_unique_entry_ids(
+        cls,
+        entries: tuple[SemanticLibraryEntry, ...],
+    ) -> tuple[SemanticLibraryEntry, ...]:
+        seen: set[str] = set()
+        for entry in entries:
+            key = entry.entry_id.strip().casefold()
+            if not key:
+                raise ValueError("semantic library entry id must not be empty")
+            if key in seen:
+                raise ValueError(f"duplicate semantic library entry: {entry.entry_id}")
+            seen.add(key)
+        return entries
+
 
 class WorldpackBundle(DomainModel):
     world: WorldDocument

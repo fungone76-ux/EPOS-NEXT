@@ -1,0 +1,129 @@
+from __future__ import annotations
+
+import pytest
+from pydantic import ValidationError
+
+from epos.application.visual.canonical import (
+    SemanticLibraryResolutionError,
+    SemanticLibraryResolver,
+)
+from epos.application.visual.vst import SemanticIntent
+from epos.application.worldpacks.models import (
+    SemanticLibraryDocument,
+    SemanticLibraryEntry,
+)
+
+
+def _entry(entry_id: str, description: str, *tags: str) -> SemanticLibraryEntry:
+    return SemanticLibraryEntry(
+        entry_id=entry_id,
+        description=description,
+        tags=tuple(tags),
+    )
+
+
+def test_exact_entry_id_match_wins() -> None:
+    library = SemanticLibraryDocument(
+        entries=(
+            _entry("standing_relaxed", "relaxed standing pose", "standing", "relaxed"),
+            _entry("standing_guarded", "guarded standing pose", "standing", "guarded"),
+        )
+    )
+
+    resolved = SemanticLibraryResolver().resolve(
+        SemanticIntent(description="standing_relaxed"),
+        library,
+        library_name="pose",
+    )
+
+    assert resolved.entry_id == "standing_relaxed"
+
+
+def test_exact_description_match_is_case_and_whitespace_insensitive() -> None:
+    library = SemanticLibraryDocument(
+        entries=(
+            _entry("pool_conversation", "Conversation beside the pool", "conversation", "pool"),
+        )
+    )
+
+    resolved = SemanticLibraryResolver().resolve(
+        SemanticIntent(description="  conversation   beside THE pool  "),
+        library,
+        library_name="action",
+    )
+
+    assert resolved.entry_id == "pool_conversation"
+
+
+def test_tag_and_lexical_overlap_resolves_deterministically() -> None:
+    library = SemanticLibraryDocument(
+        entries=(
+            _entry("seated_chat", "seated conversation", "seated", "conversation"),
+            _entry("pool_chat", "conversation beside pool", "pool", "conversation"),
+        )
+    )
+
+    resolved = SemanticLibraryResolver().resolve(
+        SemanticIntent(
+            description="conversation near pool",
+            tags=("pool", "conversation"),
+        ),
+        library,
+        library_name="action",
+    )
+
+    assert resolved.entry_id == "pool_chat"
+
+
+def test_no_semantic_match_fails_closed() -> None:
+    library = SemanticLibraryDocument(
+        entries=(_entry("seated_chat", "seated conversation", "seated"),)
+    )
+
+    with pytest.raises(SemanticLibraryResolutionError, match="no match"):
+        SemanticLibraryResolver().resolve(
+            SemanticIntent(description="running through rain", tags=("running", "rain")),
+            library,
+            library_name="action",
+        )
+
+
+def test_single_generic_word_overlap_is_below_confidence_threshold() -> None:
+    library = SemanticLibraryDocument(
+        entries=(
+            _entry("standing_poolside", "standing beside pool", "standing", "pool"),
+        )
+    )
+
+    with pytest.raises(SemanticLibraryResolutionError, match="no match"):
+        SemanticLibraryResolver().resolve(
+            SemanticIntent(description="standing near doorway"),
+            library,
+            library_name="pose",
+        )
+
+
+def test_equal_best_matches_are_ambiguous() -> None:
+    library = SemanticLibraryDocument(
+        entries=(
+            _entry("camera_a", "medium shot", "medium"),
+            _entry("camera_b", "medium framing", "medium"),
+        )
+    )
+
+    with pytest.raises(SemanticLibraryResolutionError, match="ambiguous"):
+        SemanticLibraryResolver().resolve(
+            SemanticIntent(description="medium view", tags=("medium",)),
+            library,
+            library_name="camera",
+        )
+
+
+def test_semantic_library_rejects_normalized_duplicate_entry_ids() -> None:
+    with pytest.raises(ValidationError, match="duplicate semantic library entry"):
+        SemanticLibraryDocument(
+            entries=(
+                _entry("Same", "first"),
+                _entry(" same ", "second"),
+            )
+        )
