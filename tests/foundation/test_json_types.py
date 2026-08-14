@@ -1,5 +1,5 @@
-from epos.domain.json_types import ensure_json_object
 from epos.domain.errors import ContractError
+from epos.domain.json_types import ensure_json_object
 
 
 def test_json_object_accepts_recursive_json_values() -> None:
