@@ -88,6 +88,21 @@ def test_no_semantic_match_fails_closed() -> None:
         )
 
 
+def test_single_generic_word_overlap_is_below_confidence_threshold() -> None:
+    library = SemanticLibraryDocument(
+        entries=(
+            _entry("standing_poolside", "standing beside pool", "standing", "pool"),
+        )
+    )
+
+    with pytest.raises(SemanticLibraryResolutionError, match="no match"):
+        SemanticLibraryResolver().resolve(
+            SemanticIntent(description="standing near doorway"),
+            library,
+            library_name="pose",
+        )
+
+
 def test_equal_best_matches_are_ambiguous() -> None:
     library = SemanticLibraryDocument(
         entries=(
@@ -104,11 +119,11 @@ def test_equal_best_matches_are_ambiguous() -> None:
         )
 
 
-def test_semantic_library_rejects_duplicate_entry_ids() -> None:
+def test_semantic_library_rejects_normalized_duplicate_entry_ids() -> None:
     with pytest.raises(ValidationError, match="duplicate semantic library entry"):
         SemanticLibraryDocument(
             entries=(
-                _entry("same", "first"),
-                _entry("same", "second"),
+                _entry("Same", "first"),
+                _entry(" same ", "second"),
             )
         )
