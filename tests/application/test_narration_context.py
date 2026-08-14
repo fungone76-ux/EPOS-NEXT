@@ -67,7 +67,11 @@ def _focus() -> ConversationFocus:
     )
 
 
-def _reaction(*, secrets: tuple[str, ...] = (), memories: tuple[MemoryId, ...] = ()) -> ValidatedNPCReaction:
+def _reaction(
+    *,
+    secrets: tuple[str, ...] = (),
+    memories: tuple[MemoryId, ...] = (),
+) -> ValidatedNPCReaction:
     return ValidatedNPCReaction(
         npc_id=EntityId("victoria"),
         intent="answer_question",
