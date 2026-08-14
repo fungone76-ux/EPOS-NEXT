@@ -133,7 +133,7 @@ def test_semantic_intent_rejects_prompt_engineering_syntax() -> None:
         "cfg=7",
     )
     for text in forbidden:
-        with pytest.raises(ValidationError, match="prompt|render"):
+        with pytest.raises(ValidationError, match=r"prompt|render"):
             SemanticIntent(description=text)
 
 
