@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
-from pydantic import Field, JsonValue, model_validator
+from pydantic import Field, JsonValue, ValidationError, model_validator
 
+from epos.application.visual.workflow.errors import WorkflowValidationError
 from epos.domain.base import DomainModel
+from epos.domain.world_state import RenderingConfig
 
 
 class ComfyInputBinding(DomainModel):
@@ -93,6 +95,21 @@ class ComfyWorkflowProfile(DomainModel):
     dimension_multiple: int = Field(default=8, ge=1)
     min_dimension: int = Field(default=64, ge=1)
     max_dimension: int = Field(default=4096, ge=1)
+
+    @classmethod
+    def from_rendering_config(cls, config: RenderingConfig) -> ComfyWorkflowProfile:
+        """Build the typed Comfy profile declared by the active Worldpack."""
+        raw = config.settings.get("comfyui")
+        if not isinstance(raw, dict):
+            raise WorkflowValidationError(
+                "Worldpack ComfyUI profile is missing from rendering_config.comfyui"
+            )
+        try:
+            return cls.model_validate(raw)
+        except ValidationError as exc:
+            raise WorkflowValidationError(
+                f"Worldpack ComfyUI profile is invalid: {exc}"
+            ) from exc
 
     @model_validator(mode="after")
     def validate_profile(self) -> ComfyWorkflowProfile:
