@@ -43,6 +43,7 @@ def _state() -> WorldState:
                         item_id="shirt",
                         name="shirt",
                         slot="body",
+                        layer=0,
                         color="blue",
                     ),
                 )
