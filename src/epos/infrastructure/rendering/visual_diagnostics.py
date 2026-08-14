@@ -37,7 +37,7 @@ class AtomicVisualDiagnosticsStore:
         ).encode("utf-8")
         try:
             await asyncio.to_thread(atomic_write_bytes, target, payload)
-        except PersistenceError as exc:
+        except (OSError, PersistenceError) as exc:
             raise VisualDiagnosticsPersistenceError(
                 f"visual diagnostics persistence failed for {snapshot.scene_id}: {exc}"
             ) from exc
