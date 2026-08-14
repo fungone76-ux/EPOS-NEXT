@@ -48,3 +48,19 @@ An LLM may summarize only the source memories selected by Python and must return
 structured summary. The LLM does not choose source IDs, cannot delete raw memories, and does
 not decide which memories are protected. Python creates the capsule provenance and keeps the
 original archive available.
+
+## DEC-005 — Fixed negative prompt and no facial-expression prompt layer
+
+The Stable Diffusion/ComfyUI negative prompt is fixed. Runtime visual modules must use the
+single canonical negative prompt defined by the approved render workflow/profile; they must
+not dynamically append world-, character-, scene-, mood-, or LLM-generated negative terms.
+
+The positive prompt must not contain a facial-expression layer. Runtime prompt compilation
+must not add facial-expression directives such as smiles, anger, sadness, seductive
+expressions, eyebrow/eye/mouth expressions, or equivalent face-emotion instructions.
+Psychological emotion remains part of the game state but is not translated automatically
+into facial prompt text.
+
+The Visual Director therefore has no dedicated facial-expression output field. Observable
+mood/expression cues are not exposed to its Module 11 context. Later canonicalization and
+prompt compilation must preserve this boundary.
