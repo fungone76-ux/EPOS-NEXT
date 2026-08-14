@@ -5,6 +5,7 @@ from pydantic import Field
 from epos.domain.base import DomainModel
 from epos.domain.bond import BondState
 from epos.domain.ids import EntityId, LocationId, TurnNumber
+from epos.domain.intimacy import IntimacyState
 from epos.domain.knowledge import KnowledgeState
 from epos.domain.memory import EmotionalMemoryState, MemoryEntryState
 from epos.domain.outfit import OutfitState
@@ -33,6 +34,7 @@ class DisclosureRule(DomainModel):
 class NPCState(DomainModel):
     identity: NPCIdentity
     location_id: LocationId
+    adult_verified: bool = False
     personality: tuple[str, ...] = ()
     speech_style: str = ""
     desires: tuple[str, ...] = ()
@@ -53,6 +55,7 @@ class NPCState(DomainModel):
     emotional_memory: tuple[EmotionalMemoryState, ...] = ()
     emotional_state: EmotionalState = Field(default_factory=EmotionalState)
     relationships: dict[EntityId, RelationshipState] = Field(default_factory=dict)
+    intimacy: dict[EntityId, IntimacyState] = Field(default_factory=dict)
     bond_state: BondState = Field(default_factory=BondState)
     intentions: tuple[str, ...] = ()
     last_player_action: str | None = None

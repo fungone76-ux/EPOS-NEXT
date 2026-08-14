@@ -14,6 +14,7 @@ class PlayerState(DomainModel):
     entity_id: EntityId
     name: str
     location_id: LocationId
+    adult_verified: bool = False
     stats: dict[str, float] = Field(default_factory=dict)
     inventory: tuple[str, ...] = ()
     outfit: OutfitState = Field(default_factory=OutfitState)
