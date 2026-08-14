@@ -6,6 +6,7 @@ from epos.application.worldpacks.models import (
     LoadedWorldpack,
     NPCDefinition,
     OutfitDefinition,
+    SemanticLibraryDocument,
     WorldpackBundle,
 )
 from epos.domain.errors import EposValidationError
@@ -57,6 +58,7 @@ class WorldpackAssembler:
         self._validate_events(bundle, npc_ids, location_ids, mission_ids)
         self._validate_visual(bundle, actor_ids)
         self._validate_schedules(bundle, npc_ids, location_ids)
+        self._validate_semantic_libraries(bundle)
 
         player = self._build_player(bundle, outfits)
         runtime_npcs = {
@@ -205,6 +207,28 @@ class WorldpackAssembler:
             for entry in schedule.entries:
                 if entry.location_id not in location_ids:
                     raise WorldpackValidationError(f"unknown location: {entry.location_id}")
+
+    @classmethod
+    def _validate_semantic_libraries(cls, bundle: WorldpackBundle) -> None:
+        libraries: tuple[tuple[str, SemanticLibraryDocument], ...] = (
+            ("action_library", bundle.action_library),
+            ("pose_library", bundle.pose_library),
+            ("camera_library", bundle.camera_library),
+            ("outfit_library", bundle.outfit_library),
+            ("lighting_library", bundle.lighting_library),
+            ("location_visual_library", bundle.location_visual_library),
+            ("style_library", bundle.style_library),
+        )
+        for expected_id, library in libraries:
+            if library.library_id is not None and library.library_id != expected_id:
+                raise WorldpackValidationError(
+                    f"semantic library id mismatch: {library.library_id} != {expected_id}"
+                )
+            if library.world_id is not None and library.world_id != bundle.world.worldpack_id:
+                raise WorldpackValidationError(
+                    "semantic library world_id mismatch: "
+                    f"{library.world_id} != {bundle.world.worldpack_id}"
+                )
 
     @staticmethod
     def _resolve_outfit(
