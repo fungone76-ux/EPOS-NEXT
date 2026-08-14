@@ -5,7 +5,7 @@ from __future__ import annotations
 from pydantic import Field
 
 from epos.application.visual.canonical import ResolvedLora
-from epos.application.worldpacks.models import SemanticLibraryDocument
+from epos.application.worldpacks.models import LoadedWorldpack, SemanticLibraryDocument
 from epos.domain.base import DomainModel
 
 
@@ -55,6 +55,23 @@ class WorldpackVisualConfig(DomainModel):
     )
     style_library: SemanticLibraryDocument = Field(default_factory=SemanticLibraryDocument)
     profile: PromptCompilerProfile = Field(default_factory=PromptCompilerProfile)
+
+    @classmethod
+    def from_loaded_worldpack(
+        cls,
+        worldpack: LoadedWorldpack,
+        *,
+        profile: PromptCompilerProfile,
+    ) -> WorldpackVisualConfig:
+        """Build an isolated compiler view from the active loaded Worldpack."""
+        return cls(
+            world_positive=tuple(worldpack.visual.world_positive),
+            outfit_library=worldpack.outfit_library.model_copy(deep=True),
+            lighting_library=worldpack.lighting_library.model_copy(deep=True),
+            location_visual_library=worldpack.location_visual_library.model_copy(deep=True),
+            style_library=worldpack.style_library.model_copy(deep=True),
+            profile=profile.model_copy(deep=True),
+        )
 
 
 class RenderPromptContract(DomainModel):
