@@ -1,6 +1,7 @@
 """Filesystem/YAML adapter for strict EPOS Worldpacks."""
 
 import asyncio
+import gzip
 from pathlib import Path
 from typing import TypeVar
 
@@ -72,11 +73,13 @@ class FileSystemWorldpackLoader:
         root: Path,
         filename: str,
     ) -> SemanticLibraryDocument:
-        return await self._optional(
-            root / filename,
-            SemanticLibraryDocument,
-            SemanticLibraryDocument(),
-        )
+        plain = root / filename
+        compressed = root / f"{filename}.gz"
+        if await asyncio.to_thread(plain.is_file):
+            return await self._load_model(plain, SemanticLibraryDocument)
+        if await asyncio.to_thread(compressed.is_file):
+            return await self._load_model(compressed, SemanticLibraryDocument)
+        return SemanticLibraryDocument()
 
     async def _required(self, path: Path, model: type[ModelT]) -> ModelT:
         if not await asyncio.to_thread(path.is_file):
@@ -92,7 +95,7 @@ class FileSystemWorldpackLoader:
 
     async def _load_model(self, path: Path, model: type[ModelT]) -> ModelT:
         try:
-            text = await asyncio.to_thread(path.read_text, encoding="utf-8")
+            text = await asyncio.to_thread(_read_text, path)
             raw = await asyncio.to_thread(_parse_yaml, text)
             return model.model_validate(raw)
         except (OSError, yaml.YAMLError, ValidationError) as exc:
@@ -100,6 +103,13 @@ class FileSystemWorldpackLoader:
                 f"worldpack schema invalid in {path.name}: {exc}",
                 code="worldpack.schema.invalid",
             ) from exc
+
+
+def _read_text(path: Path) -> str:
+    if path.suffix == ".gz":
+        with gzip.open(path, mode="rt", encoding="utf-8") as handle:
+            return handle.read()
+    return path.read_text(encoding="utf-8")
 
 
 def _parse_yaml(text: str) -> object:
