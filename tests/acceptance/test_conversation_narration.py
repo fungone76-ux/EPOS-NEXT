@@ -4,11 +4,14 @@ import pytest
 
 from epos.application.actions.models import ValidatedAction
 from epos.application.cognition.models import CognitionScene, ValidatedNPCReaction
+from epos.application.conversation.audit import NarrationAuditValidator
 from epos.application.conversation.context import NarrationContextBuilder
 from epos.application.conversation.focus import ConversationFocusService, ConversationFocusValidator
 from epos.application.conversation.models import (
     ConversationFocusContext,
     ConversationFocusProposal,
+    NarrationAuditContext,
+    NarrationAuditProposal,
     NarrationContext,
     NarrationMode,
     NarrationProposal,
@@ -48,6 +51,12 @@ class EmotionAwareNarratorPort:
                 ),
             )
         )
+
+
+class CleanNarrationAuditPort:
+    async def invoke(self, request: NarrationAuditContext) -> NarrationAuditProposal:
+        assert request.candidate.units
+        return NarrationAuditProposal()
 
 
 def _state(*, anger: float, trust: float) -> WorldState:
@@ -115,7 +124,9 @@ async def _run(*, anger: float, trust: float) -> str:
     )
     result = await NarrationService(
         port=EmotionAwareNarratorPort(),
+        audit_port=CleanNarrationAuditPort(),
         validator=NarrationValidator(),
+        audit_validator=NarrationAuditValidator(),
     ).generate(narration_context)
     return result.text
 
