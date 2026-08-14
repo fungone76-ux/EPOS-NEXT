@@ -1,2 +1,7 @@
-# EPOS-NEXT
-EPOS NEXT — Persistent AI-driven narrative RPG engine with Python-authoritative world state.
+# EPOS NEXT
+
+Authoritative Python narrative RPG engine.
+
+Core rule: **the LLM interprets/reasons/narrates; Python governs the world.**
+
+Development is module-by-module TDD. The current milestone is **Module 00 — Foundation, Architecture & Contracts**.
