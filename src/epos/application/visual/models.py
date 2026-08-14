@@ -212,6 +212,17 @@ class ObservableSceneState(DomainModel):
             if subject.kind is SubjectKind.NPC
         }
 
+        invalid_action_targets = tuple(
+            target_id
+            for target_id in self.resolved_action.action.target_ids
+            if target_id not in visible_ids
+        )
+        if invalid_action_targets:
+            raise ValueError(
+                "resolved action target is not visible in observable scene: "
+                f"{invalid_action_targets[0]}"
+            )
+
         consequence_ids = tuple(
             consequence.consequence_id
             for consequence in self.observable_consequences
