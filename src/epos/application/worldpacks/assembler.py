@@ -97,6 +97,9 @@ class WorldpackAssembler:
             pose_library=bundle.pose_library,
             camera_library=bundle.camera_library,
             outfit_library=bundle.outfit_library,
+            lighting_library=bundle.lighting_library,
+            location_visual_library=bundle.location_visual_library,
+            style_library=bundle.style_library,
         )
 
     @staticmethod

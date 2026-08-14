@@ -54,28 +54,29 @@ class FileSystemWorldpackLoader:
             schedules=await self._optional(
                 root / "schedules.yaml", SchedulesDocument, SchedulesDocument()
             ),
-            action_library=await self._optional(
-                root / "action_library.yaml",
-                SemanticLibraryDocument,
-                SemanticLibraryDocument(),
+            action_library=await self._semantic_library(root, "action_library.yaml"),
+            pose_library=await self._semantic_library(root, "pose_library.yaml"),
+            camera_library=await self._semantic_library(root, "camera_library.yaml"),
+            outfit_library=await self._semantic_library(root, "outfit_library.yaml"),
+            lighting_library=await self._semantic_library(root, "lighting_library.yaml"),
+            location_visual_library=await self._semantic_library(
+                root,
+                "location_visual_library.yaml",
             ),
-            pose_library=await self._optional(
-                root / "pose_library.yaml",
-                SemanticLibraryDocument,
-                SemanticLibraryDocument(),
-            ),
-            camera_library=await self._optional(
-                root / "camera_library.yaml",
-                SemanticLibraryDocument,
-                SemanticLibraryDocument(),
-            ),
-            outfit_library=await self._optional(
-                root / "outfit_library.yaml",
-                SemanticLibraryDocument,
-                SemanticLibraryDocument(),
-            ),
+            style_library=await self._semantic_library(root, "style_library.yaml"),
         )
         return self._assembler.build(bundle, session_id=session_id)
+
+    async def _semantic_library(
+        self,
+        root: Path,
+        filename: str,
+    ) -> SemanticLibraryDocument:
+        return await self._optional(
+            root / filename,
+            SemanticLibraryDocument,
+            SemanticLibraryDocument(),
+        )
 
     async def _required(self, path: Path, model: type[ModelT]) -> ModelT:
         if not await asyncio.to_thread(path.is_file):

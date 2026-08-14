@@ -22,6 +22,7 @@ class ResolvedSemanticEntry(DomainModel):
     entry_id: str
     description: str = ""
     tags: tuple[str, ...] = ()
+    positive_fragment: str = ""
 
 
 class CanonicalVisualIdentity(DomainModel):
