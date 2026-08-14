@@ -13,9 +13,9 @@ from epos.application.visual.canonical import (
     CanonicalCamera,
     CanonicalLocation,
     CanonicalSubject,
-    CanonicalVST,
     CanonicalVisualFocus,
     CanonicalVisualIdentity,
+    CanonicalVST,
     ResolvedSemanticEntry,
     SemanticLibraryResolutionError,
 )
@@ -42,7 +42,6 @@ from epos.domain.ids import EntityId, LocationId, SceneId, WorldpackId
 from epos.domain.outfit import OutfitItem, OutfitState
 from epos.domain.visual_state import VisualState
 from epos.infrastructure.worldpacks.loader import FileSystemWorldpackLoader
-
 
 RESORT_ROOT = Path("worldpacks/resort_world")
 
