@@ -10,6 +10,7 @@ from epos.application.visual.canonical import (
     CanonicalVST,
     ResolvedLora,
     ResolvedSemanticEntry,
+    SemanticLibraryResolutionError,
     SemanticLibraryResolver,
 )
 from epos.application.visual.prompt.constants import FIXED_NEGATIVE_PROMPT
@@ -150,6 +151,16 @@ class SemanticPromptCompiler:
         item: OutfitItem,
         library: SemanticLibraryDocument,
     ) -> SemanticLibraryEntry | None:
+        if item.visual_entry_id is not None:
+            target = item.visual_entry_id.strip().casefold()
+            for entry in library.entries:
+                if entry.entry_id.strip().casefold() == target:
+                    return entry
+            raise SemanticLibraryResolutionError(
+                "no match in outfit library for explicit visual_entry_id: "
+                f"{item.visual_entry_id}"
+            )
+
         targets = {item.item_id.strip().casefold(), item.name.strip().casefold()}
         for entry in library.entries:
             authored_names = {
