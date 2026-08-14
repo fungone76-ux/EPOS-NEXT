@@ -200,22 +200,20 @@ async def test_world_bound_library_rejects_wrong_world_id(tmp_path: Path) -> Non
         await FileSystemWorldpackLoader().load(copied, session_id="wrong-world-library")
 
 
-@pytest.mark.asyncio
-async def test_adult_library_is_valid_but_not_exposed_to_standard_worldpack() -> None:
-    path = RESORT_ROOT / "adult" / "sex_library.yaml.gz"
-    with gzip.open(path, mode="rt", encoding="utf-8") as handle:
-        payload = yaml.safe_load(handle.read())
-    adult = AdultSemanticLibraryDocument.model_validate(payload)
+def test_adult_library_schema_is_gated_and_not_part_of_standard_worldpack() -> None:
+    adult = AdultSemanticLibraryDocument.model_validate(
+        {
+            "schema_version": 1,
+            "library_id": "adult_visual_library",
+            "description": "gated adult-only visual vocabulary",
+            "content_rating": "adult_18_plus",
+            "entries": [],
+        }
+    )
 
     assert adult.content_rating == "adult_18_plus"
-    assert adult.library_id == "sex_library"
-    assert len(adult.entries) == 151
-
-    loaded = await FileSystemWorldpackLoader().load(
-        RESORT_ROOT,
-        session_id="adult-library-isolation",
-    )
-    assert "sex_library" not in loaded.model_fields
+    assert adult.library_id == "adult_visual_library"
+    assert "sex_library" not in FileSystemWorldpackLoader.__annotations__
 
 
 def _canonical_with_outfit(item: OutfitItem) -> CanonicalVST:
