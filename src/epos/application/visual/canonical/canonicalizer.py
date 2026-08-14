@@ -95,6 +95,8 @@ class VisualCanonicalizer:
 
         return CanonicalVST(
             scene_id=scene.scene_id,
+            worldpack_id=scene.worldpack_id,
+            time=scene.time.model_copy(deep=True),
             location=CanonicalLocation(
                 location_id=scene.location.location_id,
                 name=scene.location.name,
