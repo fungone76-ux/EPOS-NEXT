@@ -4,10 +4,9 @@ from __future__ import annotations
 
 from enum import StrEnum
 
-from pydantic import Field
+from pydantic import Field, JsonValue
 
 from epos.domain.base import DomainModel
-from epos.domain.json_types import JSONObject
 
 
 class LLMProviderName(StrEnum):
@@ -54,7 +53,7 @@ class StructuredLLMRequest(DomainModel):
     system_instruction: str = Field(min_length=1)
     input_json: str = Field(min_length=1)
     schema_name: str = Field(min_length=1, max_length=64)
-    schema: JSONObject
+    json_schema: dict[str, JsonValue]
 
 
 class ProviderCompletion(DomainModel):
