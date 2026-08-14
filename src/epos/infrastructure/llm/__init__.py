@@ -28,6 +28,7 @@ from epos.infrastructure.llm.runtime import LLMRuntime, build_llm_runtime_from_e
 from epos.infrastructure.llm.tasks import TASK_PROFILES
 
 __all__ = [
+    "TASK_PROFILES",
     "GeminiInteractionsBackend",
     "LLMContractError",
     "LLMError",
@@ -47,6 +48,5 @@ __all__ = [
     "StructuredLLMBackend",
     "StructuredLLMPort",
     "StructuredLLMRequest",
-    "TASK_PROFILES",
     "build_llm_runtime_from_env",
 ]
