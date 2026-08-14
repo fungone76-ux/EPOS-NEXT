@@ -9,10 +9,10 @@ from epos.application.conversation.focus import ConversationFocusService, Conver
 from epos.application.conversation.models import (
     ConversationFocusContext,
     ConversationFocusProposal,
-    NPCDialogueDraft,
     NarrationContext,
     NarrationMode,
     NarrationProposal,
+    NPCDialogueDraft,
 )
 from epos.application.conversation.narration import NarrationService
 from epos.application.conversation.validation import NarrationValidator
