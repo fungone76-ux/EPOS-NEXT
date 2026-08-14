@@ -63,7 +63,9 @@ class NarrationContextBuilder:
             focus.mode in _CONVERSATIONAL_MODES
             and focus.target_npc_id not in reactions_by_npc
         ):
-            raise NarrationContextError("focused conversation target has no authorized NPC reaction")
+            raise NarrationContextError(
+                "focused conversation target has no authorized NPC reaction"
+            )
 
         evidence: list[NarrationEvidence] = []
         if scene.summary.strip():
@@ -154,8 +156,13 @@ class NarrationContextBuilder:
             raise NarrationContextError("conversation focus speaker is not the player")
         if scene.location_id != state.player.location_id:
             raise NarrationContextError("narration scene does not match player location")
-        if focus.target_npc_id is not None and focus.target_npc_id not in scene.present_entity_ids:
-            raise NarrationContextError("conversation focus target is not present in narration scene")
+        if (
+            focus.target_npc_id is not None
+            and focus.target_npc_id not in scene.present_entity_ids
+        ):
+            raise NarrationContextError(
+                "conversation focus target is not present in narration scene"
+            )
 
     @staticmethod
     def _reaction_map(
