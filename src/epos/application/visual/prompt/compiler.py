@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from collections.abc import Iterable
 
 from epos.application.visual.canonical import (
@@ -24,6 +25,8 @@ from epos.application.worldpacks.models import (
     SemanticLibraryEntry,
 )
 from epos.domain.outfit import OutfitItem
+
+_WORD = re.compile(r"[a-z]+")
 
 
 class SemanticPromptCompiler:
@@ -272,7 +275,7 @@ class SemanticPromptCompiler:
         for fragment in fragments:
             for raw_atom in fragment.split(","):
                 atom = " ".join(raw_atom.strip().split())
-                if not atom:
+                if not atom or cls._is_facial_expression_atom(atom):
                     continue
                 key = atom.casefold()
                 if key in seen:
@@ -280,3 +283,37 @@ class SemanticPromptCompiler:
                 seen.add(key)
                 atoms.append(atom)
         return ", ".join(atoms)
+
+    @staticmethod
+    def _is_facial_expression_atom(atom: str) -> bool:
+        words = set(_WORD.findall(atom.casefold()))
+        direct_cues = {
+            "expression",
+            "expressions",
+            "smile",
+            "smiles",
+            "smiling",
+            "frown",
+            "frowning",
+            "grin",
+            "grinning",
+            "smirk",
+            "smirking",
+            "blush",
+            "blushing",
+            "mouth",
+            "eyebrow",
+            "eyebrows",
+        }
+        if words & direct_cues:
+            return True
+        if "face" in words and words & {
+            "angry",
+            "sad",
+            "happy",
+            "seductive",
+            "serious",
+            "neutral",
+        }:
+            return True
+        return "furrowed" in words and bool(words & {"brow", "brows"})
