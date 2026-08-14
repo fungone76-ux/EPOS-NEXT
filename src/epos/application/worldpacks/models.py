@@ -1,6 +1,6 @@
 """Strict Worldpack schemas kept separate from authoritative runtime state."""
 
-from pydantic import Field, JsonValue
+from pydantic import Field, JsonValue, field_validator
 
 from epos.domain.base import DomainModel
 from epos.domain.ids import EntityId, EventId, LocationId, MissionId, SkillId, WorldpackId
@@ -114,9 +114,38 @@ class CharacterVisualCanon(DomainModel):
 
 class VisualDocument(DomainModel):
     loras: dict[str, str] = Field(default_factory=dict)
-    characters: tuple[CharacterVisualCanon, ...] = ()
+    characters: dict[EntityId, CharacterVisualCanon] = Field(default_factory=dict)
     world_positive: tuple[str, ...] = ()
     world_negative: tuple[str, ...] = ()
+
+    @field_validator("characters", mode="before")
+    @classmethod
+    def index_characters(cls, value: object) -> object:
+        """Accept ergonomic YAML lists but normalize to canonical entity-id lookup."""
+        if value is None:
+            return {}
+        if isinstance(value, list):
+            indexed: dict[str, object] = {}
+            for item in value:
+                if not isinstance(item, dict):
+                    return value
+                entity_id = item.get("entity_id")
+                if not isinstance(entity_id, str):
+                    return value
+                if entity_id in indexed:
+                    raise ValueError(f"duplicate visual character: {entity_id}")
+                indexed[entity_id] = item
+            return indexed
+        if isinstance(value, dict):
+            normalized: dict[str, object] = {}
+            for key, item in value.items():
+                if not isinstance(key, str) or not isinstance(item, dict):
+                    return value
+                definition = dict(item)
+                definition.setdefault("entity_id", key)
+                normalized[key] = definition
+            return normalized
+        return value
 
 
 class ScheduleEntryDefinition(DomainModel):
