@@ -7,13 +7,13 @@ from epos.application.actions.models import ValidatedAction
 from epos.application.cognition.models import CognitionScene, ValidatedNPCReaction
 from epos.application.conversation.models import (
     ConversationFocus,
-    NPCDialogueDraft,
-    NPCNarrationVoice,
     NarrationContext,
     NarrationEvidence,
     NarrationEvidenceKind,
     NarrationMode,
     NarrationProposal,
+    NPCDialogueDraft,
+    NPCNarrationVoice,
     WorldNarrationDraft,
 )
 from epos.application.conversation.validation import NarrationValidationError, NarrationValidator
