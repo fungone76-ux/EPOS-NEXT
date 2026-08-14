@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pydantic import model_validator
 
-from epos.application.visual.models import SubjectKind
+from epos.application.visual.models import SceneTime, SubjectKind
 from epos.application.visual.vst import (
     SemanticIntent,
     VSTLightingIntent,
@@ -13,7 +13,7 @@ from epos.application.visual.vst import (
     VSTSubjectProminence,
 )
 from epos.domain.base import DomainModel
-from epos.domain.ids import EntityId, LocationId, SceneId
+from epos.domain.ids import EntityId, LocationId, SceneId, WorldpackId
 from epos.domain.outfit import OutfitState
 from epos.domain.visual_state import VisualState
 
@@ -76,6 +76,8 @@ class CanonicalCamera(DomainModel):
 
 class CanonicalVST(DomainModel):
     scene_id: SceneId
+    worldpack_id: WorldpackId
+    time: SceneTime
     location: CanonicalLocation
     subjects: tuple[CanonicalSubject, ...]
     action: CanonicalAction
