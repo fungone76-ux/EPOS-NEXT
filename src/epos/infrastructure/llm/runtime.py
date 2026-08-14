@@ -1,4 +1,4 @@
-"""Environment-driven provider selection and explicit startup diagnostics."""
+"""Environment-driven primary/secondary provider selection and diagnostics."""
 
 from __future__ import annotations
 
@@ -6,7 +6,7 @@ import os
 from collections.abc import Mapping
 
 from epos.infrastructure.llm.backends import (
-    GeminiInteractionsBackend,
+    OpenAICompatibleChatBackend,
     OpenAIResponsesBackend,
     StructuredLLMBackend,
 )
@@ -46,10 +46,38 @@ def _value(values: Mapping[str, str], name: str) -> str | None:
     return stripped or None
 
 
-def _provider_variables(provider: LLMProviderName) -> tuple[str, str]:
-    if provider is LLMProviderName.OPENAI:
-        return "OPENAI_API_KEY", "OPENAI_MODEL"
-    return "GEMINI_API_KEY", "GEMINI_MODEL"
+def _bool_value(values: Mapping[str, str], name: str, *, default: bool) -> bool | None:
+    raw = _value(values, name)
+    if raw is None:
+        return default
+    normalized = raw.casefold()
+    if normalized in {"1", "true", "yes", "on"}:
+        return True
+    if normalized in {"0", "false", "no", "off"}:
+        return False
+    return None
+
+
+def _timeout(values: Mapping[str, str]) -> float | None:
+    raw = _value(values, "EPOS_LLM_TIMEOUT_SECONDS")
+    if raw is None:
+        return 60.0
+    try:
+        value = float(raw)
+    except ValueError:
+        return None
+    if value <= 0.0 or value > 600.0:
+        return None
+    return value
+
+
+def _provider(value: str | None) -> LLMProviderName | None:
+    if value is None:
+        return None
+    try:
+        return LLMProviderName(value.casefold())
+    except ValueError:
+        return None
 
 
 def _make_backend(
@@ -57,94 +85,157 @@ def _make_backend(
     *,
     api_key: str,
     model: str,
+    base_url: str,
+    timeout_seconds: float,
 ) -> StructuredLLMBackend:
     if provider is LLMProviderName.OPENAI:
-        return OpenAIResponsesBackend(api_key=api_key, model=model)
-    return GeminiInteractionsBackend(api_key=api_key, model=model)
+        return OpenAIResponsesBackend(
+            api_key=api_key,
+            model=model,
+            base_url=base_url,
+            timeout_seconds=timeout_seconds,
+        )
+    return OpenAICompatibleChatBackend(
+        provider=provider,
+        api_key=api_key,
+        model=model,
+        base_url=base_url,
+        timeout_seconds=timeout_seconds,
+    )
 
 
-def _other_provider(provider: LLMProviderName) -> LLMProviderName:
-    if provider is LLMProviderName.OPENAI:
-        return LLMProviderName.GEMINI
-    return LLMProviderName.OPENAI
+def _configured_backend(
+    values: Mapping[str, str],
+    *,
+    prefix: str,
+    timeout_seconds: float,
+) -> tuple[StructuredLLMBackend | None, LLMProviderName | None, str | None, str]:
+    provider_name = f"EPOS_{prefix}_LLM_PROVIDER"
+    base_url_name = f"EPOS_{prefix}_LLM_BASE_URL"
+    model_name = f"EPOS_{prefix}_LLM_MODEL"
+    key_env_name = f"EPOS_{prefix}_LLM_KEY_ENV"
+
+    raw_provider = _value(values, provider_name)
+    provider = _provider(raw_provider)
+    model = _value(values, model_name)
+    base_url = _value(values, base_url_name)
+    key_env = _value(values, key_env_name)
+
+    if raw_provider is not None and provider is None:
+        return None, None, model, f"unsupported {provider_name}={raw_provider!r}"
+
+    missing = tuple(
+        name
+        for name, value in (
+            (provider_name, provider),
+            (base_url_name, base_url),
+            (model_name, model),
+            (key_env_name, key_env),
+        )
+        if value is None
+    )
+    if missing:
+        return None, provider, model, f"missing {', '.join(missing)}"
+
+    assert provider is not None
+    assert base_url is not None
+    assert model is not None
+    assert key_env is not None
+    api_key = _value(values, key_env)
+    if api_key is None:
+        return None, provider, model, f"missing secret environment variable {key_env}"
+
+    try:
+        backend = _make_backend(
+            provider,
+            api_key=api_key,
+            model=model,
+            base_url=base_url,
+            timeout_seconds=timeout_seconds,
+        )
+    except ValueError as exc:
+        return None, provider, model, str(exc)
+    return backend, provider, model, "configured"
 
 
 def build_llm_runtime_from_env(
     environ: Mapping[str, str] | None = None,
 ) -> LLMRuntime:
-    """Build configured provider order without hardcoding a model or fake local LLM."""
+    """Build primary/fallback LLM runtime using only environment configuration."""
     values = os.environ if environ is None else environ
-    raw_provider = _value(values, "EPOS_LLM_PROVIDER")
-    if raw_provider is None:
+
+    timeout_seconds = _timeout(values)
+    if timeout_seconds is None:
         return LLMRuntime(
             backends=(),
             startup_diagnostic=LLMStartupDiagnostic(
                 status=LLMProviderStatus.UNAVAILABLE,
-                detail="EPOS_LLM_PROVIDER is not configured; LLM unavailable",
+                detail="invalid EPOS_LLM_TIMEOUT_SECONDS; LLM unavailable",
             ),
         )
 
-    try:
-        provider = LLMProviderName(raw_provider.casefold())
-    except ValueError:
-        return LLMRuntime(
-            backends=(),
-            startup_diagnostic=LLMStartupDiagnostic(
-                status=LLMProviderStatus.UNAVAILABLE,
-                detail=(
-                    f"unsupported EPOS_LLM_PROVIDER={raw_provider!r}; "
-                    "expected openai or gemini"
-                ),
-            ),
-        )
-
-    key_name, model_name = _provider_variables(provider)
-    api_key = _value(values, key_name)
-    model = _value(values, model_name)
-    missing = tuple(
-        name
-        for name, value in ((key_name, api_key), (model_name, model))
-        if value is None
+    fallback_enabled = _bool_value(
+        values,
+        "EPOS_LLM_FALLBACK_ENABLED",
+        default=True,
     )
-    if missing:
+    if fallback_enabled is None:
         return LLMRuntime(
             backends=(),
             startup_diagnostic=LLMStartupDiagnostic(
-                provider=provider,
-                model=model,
                 status=LLMProviderStatus.UNAVAILABLE,
-                detail=f"missing {', '.join(missing)}; LLM unavailable",
+                detail="invalid EPOS_LLM_FALLBACK_ENABLED; LLM unavailable",
             ),
         )
 
-    assert api_key is not None
-    assert model is not None
-    backends: list[StructuredLLMBackend] = [
-        _make_backend(provider, api_key=api_key, model=model)
-    ]
-
-    fallback_provider = _other_provider(provider)
-    fallback_key_name, fallback_model_name = _provider_variables(fallback_provider)
-    fallback_key = _value(values, fallback_key_name)
-    fallback_model = _value(values, fallback_model_name)
-    configured_fallback: LLMProviderName | None = None
-    if fallback_key is not None and fallback_model is not None:
-        backends.append(
-            _make_backend(
-                fallback_provider,
-                api_key=fallback_key,
-                model=fallback_model,
-            )
+    primary, primary_provider, primary_model, primary_detail = _configured_backend(
+        values,
+        prefix="PRIMARY",
+        timeout_seconds=timeout_seconds,
+    )
+    if primary is None:
+        return LLMRuntime(
+            backends=(),
+            startup_diagnostic=LLMStartupDiagnostic(
+                provider=primary_provider,
+                model=primary_model,
+                status=LLMProviderStatus.UNAVAILABLE,
+                detail=f"primary LLM unavailable: {primary_detail}",
+            ),
         )
-        configured_fallback = fallback_provider
+
+    backends: list[StructuredLLMBackend] = [primary]
+    fallback_provider: LLMProviderName | None = None
+    detail = "primary LLM configured"
+
+    if fallback_enabled:
+        secondary, secondary_provider, _secondary_model, secondary_detail = _configured_backend(
+            values,
+            prefix="SECONDARY",
+            timeout_seconds=timeout_seconds,
+        )
+        if secondary is not None:
+            backends.append(secondary)
+            fallback_provider = secondary_provider
+            detail = "primary and secondary LLM configured"
+        elif any(
+            _value(values, name) is not None
+            for name in (
+                "EPOS_SECONDARY_LLM_PROVIDER",
+                "EPOS_SECONDARY_LLM_BASE_URL",
+                "EPOS_SECONDARY_LLM_MODEL",
+                "EPOS_SECONDARY_LLM_KEY_ENV",
+            )
+        ):
+            detail = f"primary LLM configured; secondary unavailable: {secondary_detail}"
 
     return LLMRuntime(
         backends=tuple(backends),
         startup_diagnostic=LLMStartupDiagnostic(
-            provider=provider,
-            model=model,
+            provider=primary_provider,
+            model=primary_model,
             status=LLMProviderStatus.CONFIGURED,
-            fallback_provider=configured_fallback,
-            detail="LLM configured",
+            fallback_provider=fallback_provider,
+            detail=detail,
         ),
     )

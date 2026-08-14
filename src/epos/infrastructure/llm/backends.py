@@ -1,4 +1,4 @@
-"""Single-shot HTTP backends for OpenAI Responses and Gemini Interactions."""
+"""Single-shot HTTP backends for OpenAI Responses and compatible chat APIs."""
 
 from __future__ import annotations
 
@@ -19,8 +19,8 @@ from epos.infrastructure.llm.models import (
     StructuredLLMRequest,
 )
 
-_OPENAI_RESPONSES_URL = "https://api.openai.com/v1/responses"
-_GEMINI_INTERACTIONS_URL = "https://generativelanguage.googleapis.com/v1beta/interactions"
+_DEFAULT_OPENAI_BASE_URL = "https://api.openai.com/v1"
+_DEFAULT_GEMINI_INTERACTIONS_BASE_URL = "https://generativelanguage.googleapis.com/v1beta"
 
 
 class StructuredLLMBackend(Protocol):
@@ -30,7 +30,20 @@ class StructuredLLMBackend(Protocol):
     @property
     def model(self) -> str: ...
 
+    @property
+    def base_url(self) -> str: ...
+
+    @property
+    def timeout_seconds(self) -> float: ...
+
     async def complete(self, request: StructuredLLMRequest) -> ProviderCompletion: ...
+
+
+def _normalize_base_url(value: str) -> str:
+    result = value.strip().rstrip("/")
+    if not result.startswith(("http://", "https://")):
+        raise ValueError("LLM base_url must use http:// or https://")
+    return result
 
 
 def _json_payload(response: httpx.Response) -> JSONObject:
@@ -77,8 +90,18 @@ def _usage(payload: JSONObject) -> tuple[int | None, int | None]:
     )
 
 
+def _chat_usage(payload: JSONObject) -> tuple[int | None, int | None]:
+    usage_value = payload.get("usage")
+    if not isinstance(usage_value, dict):
+        return None, None
+    return (
+        _optional_non_negative_int(usage_value.get("prompt_tokens")),
+        _optional_non_negative_int(usage_value.get("completion_tokens")),
+    )
+
+
 def _normalize_openai_schema(value: JSONValue) -> JSONValue:
-    """Return the Pydantic schema in the strict subset expected by Structured Outputs."""
+    """Return the Pydantic schema in the strict subset expected by structured output."""
     if isinstance(value, list):
         return [_normalize_openai_schema(item) for item in value]
     if not isinstance(value, dict):
@@ -97,40 +120,95 @@ def _normalize_openai_schema(value: JSONValue) -> JSONValue:
     return result
 
 
-class OpenAIResponsesBackend:
-    """One HTTP attempt against the OpenAI Responses API; no internal retry."""
+class _HTTPBackend:
+    def __init__(
+        self,
+        *,
+        api_key: str,
+        model: str,
+        base_url: str,
+        client: httpx.AsyncClient | None,
+        timeout_seconds: float,
+    ) -> None:
+        if not api_key.strip():
+            raise ValueError("LLM API key must not be empty")
+        if not model.strip():
+            raise ValueError("LLM model must not be empty")
+        if timeout_seconds <= 0.0:
+            raise ValueError("LLM timeout_seconds must be positive")
+        self._api_key = api_key
+        self._model = model.strip()
+        self._base_url = _normalize_base_url(base_url)
+        self._client = client
+        self._timeout_seconds = timeout_seconds
+
+    @property
+    def model(self) -> str:
+        return self._model
+
+    @property
+    def base_url(self) -> str:
+        return self._base_url
+
+    @property
+    def timeout_seconds(self) -> float:
+        return self._timeout_seconds
+
+    async def _post(
+        self,
+        url: str,
+        *,
+        headers: Mapping[str, str],
+        body: JSONObject,
+        provider_label: str,
+    ) -> httpx.Response:
+        try:
+            if self._client is not None:
+                response = await self._client.post(url, headers=headers, json=body)
+            else:
+                async with httpx.AsyncClient(timeout=self._timeout_seconds) as client:
+                    response = await client.post(url, headers=headers, json=body)
+        except httpx.HTTPError as exc:
+            raise LLMTransportError(
+                f"{provider_label} request failed: {type(exc).__name__}"
+            ) from exc
+        if response.status_code >= 400:
+            raise LLMProviderResponseError(
+                f"{provider_label} request failed with HTTP {response.status_code}"
+            )
+        return response
+
+
+class OpenAIResponsesBackend(_HTTPBackend):
+    """One HTTP attempt against an OpenAI Responses-compatible endpoint."""
 
     def __init__(
         self,
         *,
         api_key: str,
         model: str,
+        base_url: str = _DEFAULT_OPENAI_BASE_URL,
         client: httpx.AsyncClient | None = None,
         timeout_seconds: float = 60.0,
     ) -> None:
-        if not api_key.strip():
-            raise ValueError("OpenAI API key must not be empty")
-        if not model.strip():
-            raise ValueError("OpenAI model must not be empty")
-        self._api_key = api_key
-        self._model = model.strip()
-        self._client = client
-        self._timeout_seconds = timeout_seconds
+        super().__init__(
+            api_key=api_key,
+            model=model,
+            base_url=base_url,
+            client=client,
+            timeout_seconds=timeout_seconds,
+        )
 
     @property
     def provider(self) -> LLMProviderName:
         return LLMProviderName.OPENAI
-
-    @property
-    def model(self) -> str:
-        return self._model
 
     async def complete(self, request: StructuredLLMRequest) -> ProviderCompletion:
         strict_schema = _normalize_openai_schema(request.json_schema)
         if not isinstance(strict_schema, dict):
             raise LLMContractError("OpenAI structured output schema must be an object")
         body: JSONObject = {
-            "model": self._model,
+            "model": self.model,
             "instructions": request.system_instruction,
             "input": request.input_json,
             "store": False,
@@ -144,12 +222,13 @@ class OpenAIResponsesBackend:
             },
         }
         response = await self._post(
-            _OPENAI_RESPONSES_URL,
+            f"{self.base_url}/responses",
             headers={
                 "Authorization": f"Bearer {self._api_key}",
                 "Content-Type": "application/json",
             },
             body=body,
+            provider_label="OpenAI",
         )
         payload = _json_payload(response)
         if payload.get("status") != "completed":
@@ -164,27 +243,6 @@ class OpenAIResponsesBackend:
             output_tokens=output_tokens,
         )
 
-    async def _post(
-        self,
-        url: str,
-        *,
-        headers: Mapping[str, str],
-        body: JSONObject,
-    ) -> httpx.Response:
-        try:
-            if self._client is not None:
-                response = await self._client.post(url, headers=headers, json=body)
-            else:
-                async with httpx.AsyncClient(timeout=self._timeout_seconds) as client:
-                    response = await client.post(url, headers=headers, json=body)
-        except httpx.HTTPError as exc:
-            raise LLMTransportError(f"OpenAI request failed: {type(exc).__name__}") from exc
-        if response.status_code >= 400:
-            raise LLMProviderResponseError(
-                f"OpenAI request failed with HTTP {response.status_code}"
-            )
-        return response
-
     @staticmethod
     def _extract_text(payload: JSONObject) -> str:
         for item in _array(payload.get("output"), path="$.output"):
@@ -198,37 +256,108 @@ class OpenAIResponsesBackend:
         raise LLMContractError("OpenAI response contained no output_text content")
 
 
-class GeminiInteractionsBackend:
-    """One HTTP attempt against Gemini Interactions; no internal retry."""
+class OpenAICompatibleChatBackend(_HTTPBackend):
+    """Single-shot OpenAI-compatible Chat Completions structured-output backend."""
+
+    def __init__(
+        self,
+        *,
+        provider: LLMProviderName,
+        api_key: str,
+        model: str,
+        base_url: str,
+        client: httpx.AsyncClient | None = None,
+        timeout_seconds: float = 60.0,
+    ) -> None:
+        super().__init__(
+            api_key=api_key,
+            model=model,
+            base_url=base_url,
+            client=client,
+            timeout_seconds=timeout_seconds,
+        )
+        self._provider = provider
+
+    @property
+    def provider(self) -> LLMProviderName:
+        return self._provider
+
+    async def complete(self, request: StructuredLLMRequest) -> ProviderCompletion:
+        strict_schema = _normalize_openai_schema(request.json_schema)
+        if not isinstance(strict_schema, dict):
+            raise LLMContractError("OpenAI-compatible schema must be an object")
+        body: JSONObject = {
+            "model": self.model,
+            "messages": [
+                {"role": "system", "content": request.system_instruction},
+                {"role": "user", "content": request.input_json},
+            ],
+            "response_format": {
+                "type": "json_schema",
+                "json_schema": {
+                    "name": request.schema_name,
+                    "schema": strict_schema,
+                    "strict": True,
+                },
+            },
+        }
+        response = await self._post(
+            f"{self.base_url}/chat/completions",
+            headers={
+                "Authorization": f"Bearer {self._api_key}",
+                "Content-Type": "application/json",
+            },
+            body=body,
+            provider_label=self.provider.value,
+        )
+        payload = _json_payload(response)
+        text = self._extract_text(payload)
+        input_tokens, output_tokens = _chat_usage(payload)
+        return ProviderCompletion(
+            provider=self.provider,
+            model=self.model,
+            text=text,
+            input_tokens=input_tokens,
+            output_tokens=output_tokens,
+        )
+
+    @staticmethod
+    def _extract_text(payload: JSONObject) -> str:
+        choices = _array(payload.get("choices"), path="$.choices")
+        if not choices:
+            raise LLMContractError("OpenAI-compatible response contained no choices")
+        choice = _object(choices[0], path="$.choices[0]")
+        message = _object(choice.get("message"), path="$.choices[0].message")
+        return _string(message.get("content"), path="$.choices[0].message.content")
+
+
+class GeminiInteractionsBackend(_HTTPBackend):
+    """Direct Gemini Interactions backend retained for explicit native use."""
 
     def __init__(
         self,
         *,
         api_key: str,
         model: str,
+        base_url: str = _DEFAULT_GEMINI_INTERACTIONS_BASE_URL,
         client: httpx.AsyncClient | None = None,
         timeout_seconds: float = 60.0,
     ) -> None:
-        if not api_key.strip():
-            raise ValueError("Gemini API key must not be empty")
-        if not model.strip():
-            raise ValueError("Gemini model must not be empty")
-        self._api_key = api_key
-        self._model = model.strip()
-        self._client = client
-        self._timeout_seconds = timeout_seconds
+        super().__init__(
+            api_key=api_key,
+            model=model,
+            base_url=base_url,
+            client=client,
+            timeout_seconds=timeout_seconds,
+        )
 
     @property
     def provider(self) -> LLMProviderName:
         return LLMProviderName.GEMINI
 
-    @property
-    def model(self) -> str:
-        return self._model
-
     async def complete(self, request: StructuredLLMRequest) -> ProviderCompletion:
         body: JSONObject = {
-            "model": self._model,
+            "model": self.model,
             "input": request.input_json,
             "system_instruction": request.system_instruction,
             "store": False,
@@ -240,7 +369,15 @@ class GeminiInteractionsBackend:
                 }
             ],
         }
-        response = await self._post(body)
+        response = await self._post(
+            f"{self.base_url}/interactions",
+            headers={
+                "x-goog-api-key": self._api_key,
+                "Content-Type": "application/json",
+            },
+            body=body,
+            provider_label="Gemini",
+        )
         payload = _json_payload(response)
         status = payload.get("status")
         if status is not None and status != "completed":
@@ -254,33 +391,6 @@ class GeminiInteractionsBackend:
             input_tokens=input_tokens,
             output_tokens=output_tokens,
         )
-
-    async def _post(self, body: JSONObject) -> httpx.Response:
-        headers = {
-            "x-goog-api-key": self._api_key,
-            "Content-Type": "application/json",
-        }
-        try:
-            if self._client is not None:
-                response = await self._client.post(
-                    _GEMINI_INTERACTIONS_URL,
-                    headers=headers,
-                    json=body,
-                )
-            else:
-                async with httpx.AsyncClient(timeout=self._timeout_seconds) as client:
-                    response = await client.post(
-                        _GEMINI_INTERACTIONS_URL,
-                        headers=headers,
-                        json=body,
-                    )
-        except httpx.HTTPError as exc:
-            raise LLMTransportError(f"Gemini request failed: {type(exc).__name__}") from exc
-        if response.status_code >= 400:
-            raise LLMProviderResponseError(
-                f"Gemini request failed with HTTP {response.status_code}"
-            )
-        return response
 
     @staticmethod
     def _extract_text(payload: JSONObject) -> str:

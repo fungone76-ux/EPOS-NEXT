@@ -3,6 +3,7 @@
 from epos.infrastructure.llm.adapters import MemorySummarizerLLMAdapter
 from epos.infrastructure.llm.backends import (
     GeminiInteractionsBackend,
+    OpenAICompatibleChatBackend,
     OpenAIResponsesBackend,
     StructuredLLMBackend,
 )
@@ -43,6 +44,7 @@ __all__ = [
     "LLMTransportError",
     "LLMUnavailableError",
     "MemorySummarizerLLMAdapter",
+    "OpenAICompatibleChatBackend",
     "OpenAIResponsesBackend",
     "ProviderCompletion",
     "StructuredLLMBackend",
