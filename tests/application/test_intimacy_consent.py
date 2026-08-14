@@ -1,38 +1,38 @@
-from epos.application import intimacy
-from epos.domain.ids import EntityId, TurnNumber
-from epos.domain.intimacy import IntimacyState
+from epos.application.intimacy import (
+    ConsentScope,
+    ConsentSignal,
+    ConsentStatus,
+    IntimacyAuthorizationRequest,
+    IntimacyService,
+)
 
 
-PLAYER_ID = EntityId("player")
-NPC_ID = EntityId("victoria")
-TURN = TurnNumber(12)
+PLAYER_ID = "player"
+NPC_ID = "victoria"
+TURN = 12
 
 
-def grant(
-    actor_id: EntityId,
-    partner_id: EntityId,
-    scope: intimacy.ConsentScope,
-) -> intimacy.ConsentSignal:
-    return intimacy.ConsentSignal(
+def grant(actor_id: str, partner_id: str, scope: ConsentScope) -> ConsentSignal:
+    return ConsentSignal(
         actor_id=actor_id,
         partner_id=partner_id,
         scope=scope,
-        status=intimacy.ConsentStatus.GRANTED,
+        status=ConsentStatus.GRANTED,
         turn=TURN,
     )
 
 
 def request(
     *,
-    player_consent: intimacy.ConsentSignal | None,
-    npc_consent: intimacy.ConsentSignal | None,
+    player_consent: ConsentSignal | None,
+    npc_consent: ConsentSignal | None,
     player_adult_verified: bool = True,
     npc_adult_verified: bool = True,
-) -> intimacy.IntimacyAuthorizationRequest:
-    return intimacy.IntimacyAuthorizationRequest(
+) -> IntimacyAuthorizationRequest:
+    return IntimacyAuthorizationRequest(
         player_id=PLAYER_ID,
         npc_id=NPC_ID,
-        scope=intimacy.ConsentScope.SEXUAL_ACTIVITY,
+        scope=ConsentScope.SEXUAL_ACTIVITY,
         current_turn=TURN,
         player_adult_verified=player_adult_verified,
         npc_adult_verified=npc_adult_verified,
@@ -41,39 +41,25 @@ def request(
     )
 
 
-def test_high_desire_never_implies_consent() -> None:
-    service = intimacy.IntimacyService.default()
-    state = IntimacyState(
-        sexual_attraction=10.0,
-        desire=10.0,
-        arousal=10.0,
-        comfort=10.0,
-        tension=10.0,
-    )
+def test_authorization_never_infers_consent_from_intimacy_scores() -> None:
+    service = IntimacyService.default()
 
     authorization = service.authorize(request(player_consent=None, npc_consent=None))
 
-    assert state.desire == 10.0
+    assert "desire" not in IntimacyAuthorizationRequest.model_fields
+    assert "arousal" not in IntimacyAuthorizationRequest.model_fields
     assert authorization.allowed is False
     assert "missing_player_consent" in authorization.reasons
     assert "missing_npc_consent" in authorization.reasons
 
 
 def test_exact_current_turn_consent_from_both_participants_authorizes() -> None:
-    service = intimacy.IntimacyService.default()
+    service = IntimacyService.default()
 
     authorization = service.authorize(
         request(
-            player_consent=grant(
-                PLAYER_ID,
-                NPC_ID,
-                intimacy.ConsentScope.SEXUAL_ACTIVITY,
-            ),
-            npc_consent=grant(
-                NPC_ID,
-                PLAYER_ID,
-                intimacy.ConsentScope.SEXUAL_ACTIVITY,
-            ),
+            player_consent=grant(PLAYER_ID, NPC_ID, ConsentScope.SEXUAL_ACTIVITY),
+            npc_consent=grant(NPC_ID, PLAYER_ID, ConsentScope.SEXUAL_ACTIVITY),
         )
     )
 
@@ -82,48 +68,32 @@ def test_exact_current_turn_consent_from_both_participants_authorizes() -> None:
 
 
 def test_wrong_scope_withdrawal_or_non_adult_status_blocks_authorization() -> None:
-    service = intimacy.IntimacyService.default()
-    wrong_scope = grant(PLAYER_ID, NPC_ID, intimacy.ConsentScope.KISS)
-    withdrawn = intimacy.ConsentSignal(
+    service = IntimacyService.default()
+    wrong_scope = grant(PLAYER_ID, NPC_ID, ConsentScope.KISS)
+    withdrawn = ConsentSignal(
         actor_id=NPC_ID,
         partner_id=PLAYER_ID,
-        scope=intimacy.ConsentScope.SEXUAL_ACTIVITY,
-        status=intimacy.ConsentStatus.WITHDRAWN,
+        scope=ConsentScope.SEXUAL_ACTIVITY,
+        status=ConsentStatus.WITHDRAWN,
         turn=TURN,
     )
 
     wrong_scope_result = service.authorize(
         request(
             player_consent=wrong_scope,
-            npc_consent=grant(
-                NPC_ID,
-                PLAYER_ID,
-                intimacy.ConsentScope.SEXUAL_ACTIVITY,
-            ),
+            npc_consent=grant(NPC_ID, PLAYER_ID, ConsentScope.SEXUAL_ACTIVITY),
         )
     )
     withdrawn_result = service.authorize(
         request(
-            player_consent=grant(
-                PLAYER_ID,
-                NPC_ID,
-                intimacy.ConsentScope.SEXUAL_ACTIVITY,
-            ),
+            player_consent=grant(PLAYER_ID, NPC_ID, ConsentScope.SEXUAL_ACTIVITY),
             npc_consent=withdrawn,
         )
     )
     adult_gate_result = service.authorize(
         request(
-            player_consent=grant(
-                PLAYER_ID,
-                NPC_ID,
-                intimacy.ConsentScope.SEXUAL_ACTIVITY,
-            ),
-            npc_consent=grant(
-                NPC_ID,
-                PLAYER_ID,
-                intimacy.ConsentScope.SEXUAL_ACTIVITY,
-            ),
+            player_consent=grant(PLAYER_ID, NPC_ID, ConsentScope.SEXUAL_ACTIVITY),
+            npc_consent=grant(NPC_ID, PLAYER_ID, ConsentScope.SEXUAL_ACTIVITY),
             npc_adult_verified=False,
         )
     )
