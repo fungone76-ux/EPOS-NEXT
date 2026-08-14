@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 from copy import deepcopy
 
 import pytest
@@ -81,6 +82,14 @@ class WriteThenFailStateStore(RecordingStateStore):
         raise PersistenceError("simulated lost acknowledgement")
 
 
+class YieldingStateStore(RecordingStateStore):
+    async def save(self, session_id: SessionId, state: WorldState) -> None:
+        assert session_id == state.session_id
+        await asyncio.sleep(0)
+        self.loaded = state.model_copy(deep=True)
+        self.saved.append(state.model_copy(deep=True))
+
+
 @pytest.mark.asyncio
 async def test_commit_uses_copy_persists_then_swaps_authoritative_state() -> None:
     original = _world()
@@ -136,6 +145,38 @@ async def test_commit_reconciles_when_store_wrote_before_reporting_failure() -> 
     assert committed.flags == {"door_open": True}
     assert manager.snapshot() == committed
     assert await store.load(original.session_id) == committed
+
+
+@pytest.mark.asyncio
+async def test_concurrent_commits_are_serialized_without_lost_updates() -> None:
+    original = _world()
+    store = YieldingStateStore(original)
+    manager = AuthoritativeStateManager(initial_state=original, state_store=store)
+
+    first = MutationBatch(
+        producer=MutationAuthority.ENGINE_ONLY,
+        mutations=(SetWorldFlagMutation(key="first", value=True),),
+    )
+    second = MutationBatch(
+        producer=MutationAuthority.ENGINE_ONLY,
+        mutations=(SetWorldFlagMutation(key="second", value=True),),
+    )
+
+    await asyncio.gather(manager.commit(first), manager.commit(second))
+
+    assert manager.snapshot().flags == {"first": True, "second": True}
+    assert store.saved[-1].flags == {"first": True, "second": True}
+
+
+def test_snapshot_is_defensive_copy_of_authoritative_state() -> None:
+    original = _world()
+    store = RecordingStateStore(original)
+    manager = AuthoritativeStateManager(initial_state=original, state_store=store)
+
+    detached = manager.snapshot()
+    detached.flags["outside_mutation"] = True
+
+    assert manager.snapshot().flags == {}
 
 
 @pytest.mark.asyncio
