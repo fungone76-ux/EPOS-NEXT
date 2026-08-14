@@ -5,12 +5,94 @@ from pathlib import Path
 
 import pytest
 
-from epos.application.visual.canonical import CanonicalVST
+from epos.application.visual.canonical import (
+    CanonicalAction,
+    CanonicalCamera,
+    CanonicalLocation,
+    CanonicalVisualFocus,
+    CanonicalVST,
+    ResolvedSemanticEntry,
+)
+from epos.application.visual.models import SceneTime
 from epos.application.visual.prompt import RenderPromptContract
 from epos.application.visual.rendering import RenderResult
-from epos.application.visual.vst import RawVST
+from epos.application.visual.vst import (
+    RawVST,
+    SemanticIntent,
+    VSTActionIntent,
+    VSTCameraIntent,
+    VSTLightingIntent,
+    VSTLocationIntent,
+    VSTSafetyIntent,
+    VSTStyleIntent,
+    VSTSubjectIntent,
+    VSTSubjectProminence,
+    VSTVisualFocus,
+)
 from epos.application.visual.workflow import ComfyWorkflowRequest
-from epos.domain.ids import SceneId
+from epos.domain.ids import EntityId, LocationId, SceneId, WorldpackId
+
+
+def _raw_vst() -> RawVST:
+    victoria = EntityId("victoria")
+    return RawVST(
+        scene_id=SceneId("session:12"),
+        location=VSTLocationIntent(location_id=LocationId("pool")),
+        subjects=(
+            VSTSubjectIntent(
+                entity_id=victoria,
+                prominence=VSTSubjectProminence.PRIMARY,
+            ),
+        ),
+        action=VSTActionIntent(
+            participants=(victoria,),
+            intent=SemanticIntent(description="conversation beside pool"),
+        ),
+        visual_focus=VSTVisualFocus(
+            subject_ids=(victoria,),
+            intent=SemanticIntent(description="focus on Victoria"),
+        ),
+        camera=VSTCameraIntent(shot=SemanticIntent(description="medium shot")),
+        lighting=VSTLightingIntent(
+            intent=SemanticIntent(description="warm sunset light")
+        ),
+        style=VSTStyleIntent(intent=SemanticIntent(description="cinematic realism")),
+        safety=VSTSafetyIntent(),
+    )
+
+
+def _canonical_vst() -> CanonicalVST:
+    return CanonicalVST(
+        scene_id=SceneId("session:12"),
+        worldpack_id=WorldpackId("resort-world"),
+        time=SceneTime(turn_number=12, day=1, world_phase="sunset"),
+        location=CanonicalLocation(location_id=LocationId("pool"), name="Pool"),
+        subjects=(),
+        action=CanonicalAction(
+            participants=(),
+            semantic=ResolvedSemanticEntry(
+                entry_id="pool_conversation",
+                description="conversation beside pool",
+                positive_fragment="conversation beside the pool",
+            ),
+        ),
+        visual_focus=CanonicalVisualFocus(
+            subject_ids=(),
+            intent=SemanticIntent(description="scene focus"),
+        ),
+        camera=CanonicalCamera(
+            semantic=ResolvedSemanticEntry(
+                entry_id="medium_shot",
+                description="medium shot",
+                positive_fragment="medium shot",
+            )
+        ),
+        lighting=VSTLightingIntent(
+            intent=SemanticIntent(description="warm sunset light")
+        ),
+        style=VSTStyleIntent(intent=SemanticIntent(description="cinematic realism")),
+        safety=VSTSafetyIntent(),
+    )
 
 
 def _snapshot(*, rendered: bool):
@@ -19,8 +101,8 @@ def _snapshot(*, rendered: bool):
     return VisualPipelineDiagnostics(
         phase="rendered" if rendered else "prepared",
         scene_id=SceneId("session:12"),
-        raw_vst=RawVST.model_construct(scene_id=SceneId("session:12")),
-        canonical_vst=CanonicalVST.model_construct(scene_id=SceneId("session:12")),
+        raw_vst=_raw_vst(),
+        canonical_vst=_canonical_vst(),
         prompt_contract=RenderPromptContract(
             positive_prompt="canonical positive",
             negative_prompt="fixed negative",
