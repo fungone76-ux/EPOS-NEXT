@@ -61,7 +61,10 @@ async def test_failed_atomic_replace_keeps_previous_authoritative_file(
     second = _world(day=2)
     await store.save(first.session_id, first)
 
-    def fail_replace(src: str | bytes | os.PathLike[str] | os.PathLike[bytes], dst: str | bytes | os.PathLike[str] | os.PathLike[bytes]) -> None:
+    def fail_replace(
+        src: str | bytes | os.PathLike[str] | os.PathLike[bytes],
+        dst: str | bytes | os.PathLike[str] | os.PathLike[bytes],
+    ) -> None:
         del src, dst
         raise OSError("simulated replace failure")
 
