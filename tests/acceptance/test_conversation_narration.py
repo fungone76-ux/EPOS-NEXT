@@ -3,7 +3,7 @@ from __future__ import annotations
 import pytest
 
 from epos.application.actions.models import ValidatedAction
-from epos.application.cognition.models import CognitionScene, ValidatedNPCReaction
+from epos.application.cognition.models import ValidatedNPCReaction
 from epos.application.conversation.audit import NarrationAuditValidator
 from epos.application.conversation.context import NarrationContextBuilder
 from epos.application.conversation.focus import ConversationFocusService, ConversationFocusValidator
@@ -19,6 +19,7 @@ from epos.application.conversation.models import (
 )
 from epos.application.conversation.narration import NarrationService
 from epos.application.conversation.validation import NarrationValidator
+from epos.application.visual import ObservableSceneBuilder, SceneObservationInput
 from epos.domain.ids import EntityId, LocationId, SessionId, TurnNumber, WorldpackId
 from epos.domain.npc import NPCIdentity, NPCState
 from epos.domain.player import PlayerState
@@ -28,7 +29,10 @@ from epos.domain.world_state import LocationState, WorldState
 
 
 class GreetingFocusPort:
-    async def invoke(self, request: ConversationFocusContext) -> ConversationFocusProposal:
+    async def invoke(
+        self,
+        request: ConversationFocusContext,
+    ) -> ConversationFocusProposal:
         assert request.player_input == "Buona sera Victoria!"
         return ConversationFocusProposal(
             speaker_id=request.player_id,
@@ -40,8 +44,16 @@ class GreetingFocusPort:
 
 class EmotionAwareNarratorPort:
     async def invoke(self, request: NarrationContext) -> NarrationProposal:
-        victoria = next(voice for voice in request.voices if voice.npc_id == EntityId("victoria"))
-        text = "Buona sera." if victoria.emotional_state.anger >= 8 else "Buona sera, che piacere."
+        victoria = next(
+            voice
+            for voice in request.voices
+            if voice.npc_id == EntityId("victoria")
+        )
+        text = (
+            "Buona sera."
+            if victoria.emotional_state.anger >= 8
+            else "Buona sera, che piacere."
+        )
         return NarrationProposal(
             units=(
                 NPCDialogueDraft(
@@ -54,7 +66,10 @@ class EmotionAwareNarratorPort:
 
 
 class CleanNarrationAuditPort:
-    async def invoke(self, request: NarrationAuditContext) -> NarrationAuditProposal:
+    async def invoke(
+        self,
+        request: NarrationAuditContext,
+    ) -> NarrationAuditProposal:
         assert request.candidate.units
         return NarrationAuditProposal()
 
@@ -70,28 +85,50 @@ def _state(*, anger: float, trust: float) -> WorldState:
         turn_number=TurnNumber(12),
         day=2,
         world_phase="evening",
-        player=PlayerState(entity_id=player_id, name="Alex", location_id=lobby),
+        player=PlayerState(
+            entity_id=player_id,
+            name="Alex",
+            location_id=lobby,
+        ),
         npcs={
             victoria_id: NPCState(
-                identity=NPCIdentity(entity_id=victoria_id, name="Victoria", role="host"),
+                identity=NPCIdentity(
+                    entity_id=victoria_id,
+                    name="Victoria",
+                    role="host",
+                ),
                 location_id=lobby,
                 personality=("controlled", "elegant"),
                 speech_style="precise",
                 emotional_state=EmotionalState(anger=anger),
-                relationships={player_id: RelationshipState(trust=trust)},
+                relationships={
+                    player_id: RelationshipState(trust=trust)
+                },
             ),
             stella_id: NPCState(
-                identity=NPCIdentity(entity_id=stella_id, name="Stella", role="guest"),
+                identity=NPCIdentity(
+                    entity_id=stella_id,
+                    name="Stella",
+                    role="guest",
+                ),
                 location_id=lobby,
             ),
         },
-        locations={lobby: LocationState(location_id=lobby, name="Lobby")},
+        locations={
+            lobby: LocationState(
+                location_id=lobby,
+                name="Lobby",
+            )
+        },
     )
 
 
 async def _run(*, anger: float, trust: float) -> str:
     state = _state(anger=anger, trust=trust)
-    action = ValidatedAction(intent="dialogue", target_ids=(EntityId("victoria"),))
+    action = ValidatedAction(
+        intent="dialogue",
+        target_ids=(EntityId("victoria"),),
+    )
     focus_context = ConversationFocusContext.from_world_state(
         state,
         player_input="Buona sera Victoria!",
@@ -109,17 +146,15 @@ async def _run(*, anger: float, trust: float) -> str:
         emotional_tone=("controlled",),
         target_ids=(EntityId("player"),),
     )
+    observable_scene = ObservableSceneBuilder().build(
+        state=state,
+        observation=SceneObservationInput(action=action),
+    )
     narration_context = NarrationContextBuilder().build(
         state=state,
-        scene=CognitionScene(
-            location_id=LocationId("lobby"),
-            present_entity_ids=(EntityId("player"), EntityId("victoria"), EntityId("stella")),
-            summary="Il player saluta Victoria nella hall.",
-        ),
+        scene=observable_scene,
         focus=focus,
         player_input="Buona sera Victoria!",
-        action=action,
-        resolved_check=None,
         reactions=(reaction,),
     )
     result = await NarrationService(
