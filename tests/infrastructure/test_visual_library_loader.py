@@ -80,8 +80,11 @@ entries:
     profile = PromptCompilerProfile(checkpoint="test-model.safetensors")
     config = WorldpackVisualConfig.from_loaded_worldpack(loaded, profile=profile)
 
-    assert config.outfit_library is loaded.outfit_library
-    assert config.lighting_library is loaded.lighting_library
-    assert config.location_visual_library is loaded.location_visual_library
-    assert config.style_library is loaded.style_library
+    assert config.outfit_library == loaded.outfit_library
+    assert config.lighting_library == loaded.lighting_library
+    assert config.location_visual_library == loaded.location_visual_library
+    assert config.style_library == loaded.style_library
     assert config.profile == profile
+
+    config.outfit_library.entries = ()
+    assert loaded.outfit_library.entries[0].entry_id == "entry_3"
