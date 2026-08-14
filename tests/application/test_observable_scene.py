@@ -10,7 +10,7 @@ from epos.application.actions.models import (
     ResolvedCheck,
     ValidatedAction,
 )
-from epos.application.visual.observable_scene import (
+from epos.application.visual import (
     AuthorizedDialogueLine,
     ObservableConsequence,
     ObservableSceneBuilder,
@@ -61,11 +61,18 @@ def _world() -> WorldState:
         ),
         location_id=LocationId("pool"),
         outfit=_outfit("victoria_dress", "summer dress", "white"),
-        visual_state=VisualState(traits={"wet_clothes": False, "posture": "standing"}),
+        visual_state=VisualState(
+            traits={"wet_clothes": False, "posture": "standing"}
+        ),
         emotional_state=EmotionalState(joy=2, anger=8),
         knowledge=KnowledgeState(facts={"office_code": "4172"}),
         beliefs=KnowledgeState(facts={"rumor": "private belief"}),
-        secrets=(SecretState(secret_id="letter", fact="The letter is in the office safe."),),
+        secrets=(
+            SecretState(
+                secret_id="letter",
+                fact="The letter is in the office safe.",
+            ),
+        ),
     )
     theron = NPCState(
         identity=NPCIdentity(
@@ -88,8 +95,14 @@ def _world() -> WorldState:
             EntityId("theron"): theron,
         },
         locations={
-            LocationId("pool"): LocationState(location_id=LocationId("pool"), name="Pool"),
-            LocationId("lobby"): LocationState(location_id=LocationId("lobby"), name="Lobby"),
+            LocationId("pool"): LocationState(
+                location_id=LocationId("pool"),
+                name="Pool",
+            ),
+            LocationId("lobby"): LocationState(
+                location_id=LocationId("lobby"),
+                name="Lobby",
+            ),
         },
         world_truth=KnowledgeState(facts={"killer_identity": "secret world truth"}),
     )
@@ -112,7 +125,10 @@ def _scene_input() -> SceneObservationInput:
         action=ValidatedAction(
             intent="persuasion",
             target_ids=(EntityId("victoria"),),
-            check=CheckProposal(skill_id=SkillId("negoziazione"), difficulty=4),
+            check=CheckProposal(
+                skill_id=SkillId("negoziazione"),
+                difficulty=4,
+            ),
             skill_rating=3,
         ),
         resolved_check=_resolved_check(),
@@ -161,12 +177,14 @@ def test_builder_creates_one_local_authoritative_scene() -> None:
 def test_outfit_and_visual_state_are_copied_from_worldstate_not_observation() -> None:
     state = _world()
     scene = ObservableSceneBuilder().build(state=state, observation=_scene_input())
-    victoria = next(subject for subject in scene.visible_subjects if subject.entity_id == "victoria")
+    victoria = next(
+        subject
+        for subject in scene.visible_subjects
+        if subject.entity_id == EntityId("victoria")
+    )
 
     assert victoria.outfit == state.get_npc(EntityId("victoria")).outfit
     assert victoria.visual_state == state.get_npc(EntityId("victoria")).visual_state
-
-    state.get_npc(EntityId("victoria")).outfit.items[0].name if False else None
     assert victoria.outfit.items[0].name == "summer dress"
     assert victoria.outfit.items[0].color == "white"
     assert victoria.visual_state.traits["posture"] == "standing"
@@ -190,7 +208,10 @@ def test_remote_subject_cue_is_rejected_instead_of_teleporting_npc() -> None:
     observation = _scene_input().model_copy(
         update={
             "subject_cues": (
-                SceneSubjectCue(entity_id=EntityId("theron"), position="beside_player"),
+                SceneSubjectCue(
+                    entity_id=EntityId("theron"),
+                    position="beside_player",
+                ),
             )
         }
     )
@@ -231,7 +252,10 @@ def test_resolved_action_check_and_observable_consequences_are_preserved() -> No
     assert scene.resolved_action.action.intent == "persuasion"
     assert scene.resolved_action.resolved_check == _resolved_check()
     assert scene.observable_consequences[0].consequence_id == "access_granted"
-    assert scene.observable_consequences[0].fact == "Victoria visibly relaxes and steps aside."
+    assert (
+        scene.observable_consequences[0].fact
+        == "Victoria visibly relaxes and steps aside."
+    )
 
 
 def test_authorized_dialogue_enrichment_keeps_same_canonical_moment() -> None:
