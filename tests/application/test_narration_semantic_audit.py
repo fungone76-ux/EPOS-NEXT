@@ -3,7 +3,7 @@ from __future__ import annotations
 import pytest
 
 from epos.application.actions.models import ValidatedAction
-from epos.application.cognition.models import CognitionScene, ValidatedNPCReaction
+from epos.application.cognition.models import ValidatedNPCReaction
 from epos.application.conversation.audit import NarrationAuditValidator
 from epos.application.conversation.models import (
     ConversationFocus,
@@ -23,9 +23,59 @@ from epos.application.conversation.models import (
 )
 from epos.application.conversation.narration import NarrationService
 from epos.application.conversation.validation import NarrationValidationError, NarrationValidator
-from epos.domain.ids import EntityId, LocationId
+from epos.application.visual import (
+    ObservableSceneState,
+    ObservableSubject,
+    ResolvedSceneAction,
+    SceneLocation,
+    SceneTime,
+    SubjectKind,
+)
+from epos.domain.ids import EntityId, LocationId, SceneId, SessionId, TurnNumber, WorldpackId
+from epos.domain.outfit import OutfitState
 from epos.domain.psychology import EmotionalState
 from epos.domain.relationships import RelationshipState
+from epos.domain.visual_state import VisualState
+
+
+def _scene() -> ObservableSceneState:
+    player = EntityId("player")
+    victoria = EntityId("victoria")
+    return ObservableSceneState(
+        scene_id=SceneId("session:1"),
+        session_id=SessionId("session"),
+        worldpack_id=WorldpackId("test_world"),
+        location=SceneLocation(location_id=LocationId("lobby"), name="Lobby"),
+        time=SceneTime(
+            turn_number=TurnNumber(1),
+            day=1,
+            world_phase="evening",
+        ),
+        visible_subjects=(
+            ObservableSubject(
+                entity_id=player,
+                kind=SubjectKind.PLAYER,
+                name="Player",
+                role="player",
+                outfit=OutfitState(),
+                visual_state=VisualState(),
+            ),
+            ObservableSubject(
+                entity_id=victoria,
+                kind=SubjectKind.NPC,
+                name="Victoria",
+                role="host",
+                outfit=OutfitState(),
+                visual_state=VisualState(),
+            ),
+        ),
+        resolved_action=ResolvedSceneAction(
+            action=ValidatedAction(
+                intent="dialogue",
+                target_ids=(victoria,),
+            )
+        ),
+    )
 
 
 def _context() -> NarrationContext:
@@ -40,12 +90,7 @@ def _context() -> NarrationContext:
             topic="greeting",
             mode=NarrationMode.DIRECT_DIALOGUE,
         ),
-        scene=CognitionScene(
-            location_id=LocationId("lobby"),
-            present_entity_ids=(player, victoria),
-            summary="Il player saluta Victoria nella hall.",
-        ),
-        action=ValidatedAction(intent="dialogue", target_ids=(victoria,)),
+        scene=_scene(),
         reactions=(
             ValidatedNPCReaction(
                 npc_id=victoria,
@@ -68,7 +113,10 @@ def _context() -> NarrationContext:
                 evidence_id="reaction:victoria",
                 kind=NarrationEvidenceKind.NPC_REACTION,
                 owner_id=victoria,
-                text="intent=respond_to_greeting; speech_act=acknowledge; topics=greeting",
+                text=(
+                    "intent=respond_to_greeting; speech_act=acknowledge; "
+                    "topics=greeting"
+                ),
             ),
             NarrationEvidence(
                 evidence_id="player:declared_input",
@@ -99,7 +147,10 @@ class PlayerControlNarrator:
 
 
 class PlayerControlAuditPort:
-    async def invoke(self, request: NarrationAuditContext) -> NarrationAuditProposal:
+    async def invoke(
+        self,
+        request: NarrationAuditContext,
+    ) -> NarrationAuditProposal:
         assert request.candidate.units[1].text == "Il player decide di seguirla."
         return NarrationAuditProposal(
             findings=(
@@ -126,7 +177,10 @@ class CleanNarrator:
 
 
 class CleanAuditPort:
-    async def invoke(self, request: NarrationAuditContext) -> NarrationAuditProposal:
+    async def invoke(
+        self,
+        request: NarrationAuditContext,
+    ) -> NarrationAuditProposal:
         assert isinstance(request.candidate, ValidatedNarration)
         return NarrationAuditProposal()
 
