@@ -61,11 +61,7 @@ class SemanticLibraryResolver:
 
         descriptions = tuple(self._normalize_text(item.description) for item in intents)
         combined_description = " ".join(descriptions)
-        combined_tags = {
-            tag.casefold()
-            for item in intents
-            for tag in item.tags
-        }
+        combined_tags = {tag.casefold() for item in intents for tag in item.tags}
         query_words = self._words(combined_description)
 
         if len(intents) == 1:
@@ -76,6 +72,15 @@ class SemanticLibraryResolver:
             ]
             if exact_id:
                 return self._require_single(exact_id, library_name, "exact id")
+
+            exact_alias = [
+                entry
+                for entry in library.entries
+                if descriptions[0]
+                in {self._normalize_text(alias) for alias in entry.aliases}
+            ]
+            if exact_alias:
+                return self._require_single(exact_alias, library_name, "exact alias")
 
         exact_description = [
             entry
@@ -93,7 +98,8 @@ class SemanticLibraryResolver:
         for entry in library.entries:
             entry_tags = {tag.casefold() for tag in entry.tags}
             tag_overlap = len(combined_tags & entry_tags)
-            lexical_overlap = len(query_words & self._words(entry.description))
+            authored_text = " ".join((entry.description, *entry.aliases))
+            lexical_overlap = len(query_words & self._words(authored_text))
             if tag_overlap == 0 and lexical_overlap < 2:
                 continue
             score = (tag_overlap * 10) + lexical_overlap
@@ -140,4 +146,5 @@ class SemanticLibraryResolver:
             entry_id=entry.entry_id,
             description=entry.description,
             tags=entry.tags,
+            positive_fragment=entry.positive_fragment,
         )
