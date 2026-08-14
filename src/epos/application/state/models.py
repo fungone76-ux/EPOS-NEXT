@@ -3,9 +3,9 @@
 from __future__ import annotations
 
 from enum import StrEnum
-from typing import Annotated, Literal
+from typing import Annotated, Literal, Self
 
-from pydantic import Field, field_validator
+from pydantic import Field, field_validator, model_validator
 
 from epos.application.actions.models import CheckProposal, ResolvedCheck
 from epos.domain.base import DomainModel
@@ -118,7 +118,7 @@ class StateReference(DomainModel):
 
     session_id: SessionId
     turn_number: TurnNumber
-    fingerprint: str = Field(min_length=64, max_length=64)
+    fingerprint: str = Field(pattern=r"^[0-9a-f]{64}$")
 
 
 class DiceCheckpoint(DomainModel):
@@ -137,3 +137,22 @@ class DiceCheckpoint(DomainModel):
         if not normalized:
             raise ValueError("player_decision must not be empty")
         return normalized
+
+    @model_validator(mode="after")
+    def validate_exact_roll_integrity(self) -> Self:
+        if self.state_reference.session_id != self.session_id:
+            raise ValueError("state reference session does not match checkpoint session")
+        if self.proposal.skill_id != self.resolved_check.skill_id:
+            raise ValueError("resolved skill does not match check proposal")
+        if self.proposal.difficulty != self.resolved_check.difficulty:
+            raise ValueError("resolved difficulty does not match check proposal")
+        if len(self.resolved_check.dice) != self.resolved_check.pool_size:
+            raise ValueError("dice count does not match resolved pool size")
+        if any(die < 1 or die > 6 for die in self.resolved_check.dice):
+            raise ValueError("checkpoint dice must all be canonical d6 values")
+        expected_successes = sum(
+            die >= self.resolved_check.difficulty for die in self.resolved_check.dice
+        )
+        if self.resolved_check.success_count != expected_successes:
+            raise ValueError("success count does not match exact checkpoint dice")
+        return self
