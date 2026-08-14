@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+from contextlib import suppress
 from pathlib import Path
 
 from epos.domain.errors import PersistenceError
@@ -19,10 +20,8 @@ def atomic_write_bytes(target: Path, payload: bytes) -> None:
         os.replace(temp, target)
         _fsync_directory(target.parent)
     except OSError as exc:
-        try:
+        with suppress(OSError):
             temp.unlink(missing_ok=True)
-        except OSError:
-            pass
         raise PersistenceError(
             f"atomic write failed for {target.name}: {exc}"
         ) from exc
