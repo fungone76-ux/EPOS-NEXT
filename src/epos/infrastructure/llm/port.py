@@ -19,7 +19,11 @@ ResponseT = TypeVar("ResponseT", bound=BaseModel)
 
 
 def _schema_name(model: type[BaseModel]) -> str:
-    filtered = "".join(character for character in model.__name__ if character.isalnum() or character in "_-")
+    filtered = "".join(
+        character
+        for character in model.__name__
+        if character.isalnum() or character in "_-"
+    )
     name = filtered[:64]
     return name or "epos_response"
 
@@ -49,13 +53,13 @@ class StructuredLLMPort(Generic[RequestT, ResponseT]):
     async def invoke(self, request: RequestT) -> ResponseT:
         profile = TASK_PROFILES[self._task]
         raw_schema = self._response_model.model_json_schema()
-        schema = ensure_json_object(cast(Mapping[str, object], raw_schema))
+        json_schema = ensure_json_object(cast(Mapping[str, object], raw_schema))
         provider_request = StructuredLLMRequest(
             task=self._task,
             system_instruction=profile.system_instruction,
             input_json=request.model_dump_json(),
             schema_name=_schema_name(self._response_model),
-            schema=schema,
+            json_schema=json_schema,
         )
 
         last_error: LLMError | LLMContractError | None = None
