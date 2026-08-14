@@ -162,6 +162,21 @@ def test_deserialized_scene_rejects_non_visible_or_player_dialogue_speaker() -> 
             ObservableSceneState.model_validate(payload)
 
 
+def test_deserialized_scene_rejects_non_visible_action_target() -> None:
+    scene = _scene()
+    payload = scene.model_dump(mode="python")
+    payload["resolved_action"] = {
+        "action": ValidatedAction(
+            intent="dialogue",
+            target_ids=(EntityId("remote"),),
+        ),
+        "resolved_check": None,
+    }
+
+    with pytest.raises(ValidationError, match="action target"):
+        ObservableSceneState.model_validate(payload)
+
+
 def test_resolved_scene_action_rejects_check_inconsistent_with_validated_action() -> None:
     scene = _scene()
     payload = scene.model_dump(mode="python")
