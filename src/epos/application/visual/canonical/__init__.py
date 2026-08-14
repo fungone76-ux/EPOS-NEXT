@@ -14,9 +14,9 @@ from epos.application.visual.canonical.models import (
     CanonicalCamera,
     CanonicalLocation,
     CanonicalSubject,
-    CanonicalVST,
     CanonicalVisualFocus,
     CanonicalVisualIdentity,
+    CanonicalVST,
     ResolvedLora,
     ResolvedSemanticEntry,
 )
