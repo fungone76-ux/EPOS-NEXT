@@ -10,7 +10,6 @@ from epos.domain.memory import EmotionalMemoryState, MemoryEntryState, MemoryKin
 from epos.domain.npc import NPCIdentity, NPCState
 from epos.infrastructure.memory.simple import SimpleMemoryAdapter
 
-
 NPC_ID = EntityId("victoria")
 PLAYER_ID = EntityId("player")
 
