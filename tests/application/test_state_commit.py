@@ -74,6 +74,13 @@ class RecordingStateStore:
         self.saved.append(state.model_copy(deep=True))
 
 
+class WriteThenFailStateStore(RecordingStateStore):
+    async def save(self, session_id: SessionId, state: WorldState) -> None:
+        assert session_id == state.session_id
+        self.loaded = state.model_copy(deep=True)
+        raise PersistenceError("simulated lost acknowledgement")
+
+
 @pytest.mark.asyncio
 async def test_commit_uses_copy_persists_then_swaps_authoritative_state() -> None:
     original = _world()
@@ -111,6 +118,24 @@ async def test_failed_persistence_never_swaps_live_state() -> None:
 
     assert manager.snapshot() == original
     assert manager.snapshot().flags == {}
+
+
+@pytest.mark.asyncio
+async def test_commit_reconciles_when_store_wrote_before_reporting_failure() -> None:
+    original = _world()
+    store = WriteThenFailStateStore(original)
+    manager = AuthoritativeStateManager(initial_state=original, state_store=store)
+
+    committed = await manager.commit(
+        MutationBatch(
+            producer=MutationAuthority.ENGINE_ONLY,
+            mutations=(SetWorldFlagMutation(key="door_open", value=True),),
+        )
+    )
+
+    assert committed.flags == {"door_open": True}
+    assert manager.snapshot() == committed
+    assert await store.load(original.session_id) == committed
 
 
 @pytest.mark.asyncio
