@@ -17,3 +17,19 @@ SHA-256 at import into EPOS NEXT:
 
 Later visual modules may inject only explicitly authorized runtime parameters through a
 validated Python workflow builder. The LLM never edits or directly drives this JSON.
+
+## DEC-003 — Adult intimacy is separate from love and ordinary relationships
+
+EPOS NEXT is an adult RPG. Sexual intimacy is modeled independently from trust, affection,
+respect, general attraction, and emotional bond.
+
+The engine may track NPC sexual attraction, desire, arousal, comfort, tension, and sexual
+history per partner. The engine must never assign sexual desire, arousal, or preferences to
+the player.
+
+Sexual activity requires both participants to be adult-verified and requires explicit,
+scoped, current consent. Numeric intimacy or relationship scores never imply consent.
+Consent may be declined or withdrawn.
+
+`BondState` represents only general emotional bond depth. Love, if implemented later, is an
+optional derived state and is not the primary progression axis of the adult intimacy system.
