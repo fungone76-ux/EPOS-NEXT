@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 from epos.application.conversation.models import (
-    NPCDialogueDraft,
     NarrationContext,
     NarrationProposal,
     NarrationResult,
+    NPCDialogueDraft,
     ValidatedNarration,
 )
 from epos.application.conversation.validation import NarrationValidator
