@@ -14,6 +14,7 @@ class OutfitItem(DomainModel):
     material: str | None = None
     color: str | None = None
     state: str | None = None
+    visual_entry_id: str | None = None
 
 
 class OutfitState(DomainModel):
