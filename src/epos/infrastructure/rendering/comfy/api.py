@@ -36,9 +36,16 @@ class ComfyApiProtocol(Protocol):
 class HttpxComfyApiClient:
     """Async HTTP client for the stable ComfyUI endpoints used by EPOS."""
 
-    def __init__(self, *, endpoint: str, timeout_seconds: float) -> None:
+    def __init__(
+        self,
+        *,
+        endpoint: str,
+        timeout_seconds: float,
+        transport: httpx.AsyncBaseTransport | None = None,
+    ) -> None:
         self._endpoint = endpoint.rstrip("/")
         self._timeout_seconds = timeout_seconds
+        self._transport = transport
 
     async def get_system_stats(self) -> dict[str, JsonValue]:
         return await self._json_request("GET", "/system_stats")
@@ -111,6 +118,7 @@ class HttpxComfyApiClient:
             async with httpx.AsyncClient(
                 base_url=self._endpoint,
                 timeout=self._timeout_seconds,
+                transport=self._transport,
             ) as client:
                 return await client.request(
                     method,
