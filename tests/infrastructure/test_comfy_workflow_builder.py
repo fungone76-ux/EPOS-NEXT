@@ -288,17 +288,14 @@ def test_optional_render_settings_preserve_valid_template_values() -> None:
 
 
 def test_profile_rejects_duplicate_lora_slot_ids() -> None:
-    profile = _profile()
+    raw = _profile().model_dump()
+    raw["lora_slots"] = [
+        {"node_id": "20", "expected_class_type": "LoraLoader"},
+        {"node_id": "20", "expected_class_type": "LoraLoader"},
+    ]
 
     with pytest.raises(ValidationError, match="duplicate LoRA slot"):
-        profile.model_copy(
-            update={
-                "lora_slots": (
-                    ComfyLoraSlot(node_id="20", expected_class_type="LoraLoader"),
-                    ComfyLoraSlot(node_id="20", expected_class_type="LoraLoader"),
-                )
-            }
-        ).model_validate(profile.model_dump())
+        ComfyWorkflowProfile.model_validate(raw)
 
 
 @pytest.mark.asyncio
