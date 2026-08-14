@@ -33,3 +33,18 @@ Consent may be declined or withdrawn.
 
 `BondState` represents only general emotional bond depth. Love, if implemented later, is an
 optional derived state and is not the primary progression axis of the adult intimacy system.
+
+## DEC-004 — NPC memory has five operational levels
+
+EPOS NEXT uses five operational memory levels: short-term, long-term semantic, core,
+emotional, and consolidation capsules.
+
+Python decides when consolidation is needed and selects the eligible source memories. Core
+memories, explicitly protected memories, promises, betrayals, confessions, discovered
+secrets, irreversible decisions, and relationship milestones are excluded from ordinary
+compression.
+
+An LLM may summarize only the source memories selected by Python and must return a validated
+structured summary. The LLM does not choose source IDs, cannot delete raw memories, and does
+not decide which memories are protected. Python creates the capsule provenance and keeps the
+original archive available.
