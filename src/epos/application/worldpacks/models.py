@@ -1,5 +1,7 @@
 """Strict Worldpack schemas kept separate from authoritative runtime state."""
 
+from typing import Literal
+
 from pydantic import Field, JsonValue, field_validator
 
 from epos.domain.base import DomainModel
@@ -184,23 +186,53 @@ class SemanticLibraryEntry(DomainModel):
 
 
 class SemanticLibraryDocument(DomainModel):
+    schema_version: Literal[1] = 1
+    library_id: str | None = None
+    description: str = ""
+    world_id: WorldpackId | None = None
     entries: tuple[SemanticLibraryEntry, ...] = ()
+
+    @field_validator("library_id")
+    @classmethod
+    def validate_library_id(cls, library_id: str | None) -> str | None:
+        if library_id is None:
+            return None
+        normalized = library_id.strip()
+        if not normalized:
+            raise ValueError("semantic library id must not be empty")
+        return normalized
 
     @field_validator("entries")
     @classmethod
-    def validate_unique_entry_ids(
+    def validate_unique_entry_ids_and_aliases(
         cls,
         entries: tuple[SemanticLibraryEntry, ...],
     ) -> tuple[SemanticLibraryEntry, ...]:
-        seen: set[str] = set()
+        seen_ids: set[str] = set()
+        alias_owners: dict[str, str] = {}
         for entry in entries:
-            key = entry.entry_id.strip().casefold()
-            if not key:
+            entry_key = entry.entry_id.strip().casefold()
+            if not entry_key:
                 raise ValueError("semantic library entry id must not be empty")
-            if key in seen:
+            if entry_key in seen_ids:
                 raise ValueError(f"duplicate semantic library entry: {entry.entry_id}")
-            seen.add(key)
+            seen_ids.add(entry_key)
+            for alias in entry.aliases:
+                alias_key = " ".join(alias.strip().casefold().split())
+                owner = alias_owners.get(alias_key)
+                if owner is not None and owner != entry_key:
+                    raise ValueError(
+                        "duplicate semantic library alias across entries: "
+                        f"{alias} ({owner}, {entry.entry_id})"
+                    )
+                alias_owners[alias_key] = entry_key
         return entries
+
+
+class AdultSemanticLibraryDocument(SemanticLibraryDocument):
+    """Validated adult visual vocabulary kept outside the standard visual pipeline."""
+
+    content_rating: Literal["adult_18_plus"]
 
 
 class WorldpackBundle(DomainModel):
