@@ -13,8 +13,10 @@ The application flow implemented here is:
 2. Python validation of speaker, target, topic and narration mode;
 3. construction of a disclosure-safe `NarrationContext`;
 4. narration LLM proposal as typed units;
-5. Python validation of focus priority, evidence ownership and player-agency structure;
-6. deterministic composition of validated units.
+5. Python structural validation of focus priority, evidence ownership and player-agency shape;
+6. semantic narration audit LLM over the safe context plus candidate prose;
+7. Python validation/rejection of every reported semantic violation;
+8. deterministic composition of the accepted units.
 
 ## Conversation focus
 
@@ -68,14 +70,34 @@ Private evidence keeps an owner ID, and one NPC cannot use another NPC's private
 beliefs, memories or authorized secrets.
 
 World narration may use only already observable/player-declared/resolved action/check evidence.
-It cannot promote private NPC evidence or an uncommitted NPC action intention into world truth.
-When world narration names the player as a subject, it must be grounded in the player's own
-declaration or a resolved action/check result.
+It cannot structurally promote private NPC evidence or an uncommitted NPC action intention into
+world truth. When world narration names the player as a subject, it must be grounded in the
+player's own declaration or a resolved action/check result.
 
-This does not attempt to solve unrestricted natural-language semantic verification with brittle
-keyword filters. Instead the architecture minimizes the hallucination surface: private facts are
-withheld, possible world claims are structurally grounded, and later provider prompts can only
-realize authorized material.
+## Semantic narration audit
+
+Evidence ownership alone cannot prove that unrestricted natural-language prose faithfully realizes
+its evidence. A syntactically valid unit could still smuggle an unsupported sentence such as
+"the player decides to follow her". Module 08 therefore does not rely on brittle keyword filters
+or on the narrator grading itself implicitly.
+
+After structural validation, `NarrationService` sends the already safe `NarrationContext` and the
+candidate `ValidatedNarration` through a separate audit `LLMPort`. The audit produces only typed
+semantic findings. The supported baseline violation classes are:
+
+- `player_control`;
+- `unsupported_world_claim`;
+- `unauthorized_private_info`;
+- `focus_violation`.
+
+The audit LLM has no authority to approve mutations or make facts true. Python validates every
+finding's unit reference. If one or more valid findings exist, Python rejects the narration before
+composition. A clean audit is required; there is no production path in `NarrationService` that
+silently skips this step.
+
+This is intentionally consistent with the EPOS authority rule: the LLM interprets the semantic
+meaning of prose, while Python decides whether that prose may leave the narration boundary.
+Provider-specific prompts and structured-output adapters remain Module 17 concerns.
 
 ## Player agency
 
@@ -83,14 +105,16 @@ The narration union intentionally has only `npc_dialogue` and `world_narration` 
 `player_dialogue` unit. Pydantic `extra="forbid"` rejects an invented player-dialogue structure.
 The narration LLM may realize what the player already declared and external consequences already
 resolved by Python; it is not given a contract for inventing a new player decision, thought or
-utterance.
+utterance. The mandatory semantic audit adds a second guard against player-control statements that
+cannot be proven by structure alone.
 
 ## Pacing
 
 For `brief_social`, the focused target NPC must answer first, unrelated NPC dialogue is rejected,
 and the default validation contract keeps the result to one or two sentences. For
 `direct_dialogue` and `focused_interaction`, the target NPC must also be the first narration unit.
-Other modes allow broader externally grounded narration.
+Other modes allow broader externally grounded narration, still subject to structural validation and
+the semantic audit.
 
 ## Explicit exclusions
 
