@@ -5,7 +5,11 @@ from pydantic import ValidationError
 
 from epos.application.actions.models import ValidatedAction
 from epos.application.cognition.context import PrivateCognitiveContextBuilder
-from epos.application.cognition.models import CognitionScene, NPCReactionProposal
+from epos.application.cognition.models import (
+    CognitionScene,
+    NPCReactionProposal,
+    PrivateCognitiveContext,
+)
 from epos.application.cognition.validation import CognitionValidationError, NPCReactionValidator
 from epos.application.memory import MemoryRecallResult, RankedMemory
 from epos.domain.ids import EntityId, LocationId, MemoryId, SessionId, TurnNumber, WorldpackId
@@ -15,7 +19,7 @@ from epos.domain.player import PlayerState
 from epos.domain.world_state import LocationState, WorldState
 
 
-def _context() -> object:
+def _context() -> PrivateCognitiveContext:
     player_id = EntityId("player")
     victoria_id = EntityId("victoria")
     lobby = LocationId("lobby")
@@ -67,9 +71,30 @@ def test_reaction_contract_rejects_private_chain_of_thought_fields() -> None:
             {
                 "npc_id": "victoria",
                 "intent": "respond_to_greeting",
-                "communication_goal": "return the greeting",
+                "speech_act": "acknowledge",
                 "chain_of_thought": "I remember the promise, therefore...",
             }
+        )
+
+
+def test_reaction_contract_has_no_free_text_channel_for_secret_smuggling() -> None:
+    with pytest.raises(ValidationError):
+        NPCReactionProposal.model_validate(
+            {
+                "npc_id": "victoria",
+                "intent": "respond",
+                "speech_act": "inform",
+                "communication_goal": "Tell the player that the letter is in the office.",
+            }
+        )
+
+
+def test_reaction_tokens_reject_prose() -> None:
+    with pytest.raises(ValidationError):
+        NPCReactionProposal(
+            npc_id=EntityId("victoria"),
+            intent="tell the player where the letter is",
+            speech_act="inform",
         )
 
 
@@ -77,7 +102,8 @@ def test_validator_rejects_locked_secret_disclosure() -> None:
     proposal = NPCReactionProposal(
         npc_id=EntityId("victoria"),
         intent="respond",
-        communication_goal="mention the hidden letter",
+        speech_act="inform",
+        topic_tags=("letter",),
         requested_secret_disclosures=("letter",),
     )
 
@@ -89,7 +115,8 @@ def test_validator_rejects_memory_reference_not_in_recall_context() -> None:
     proposal = NPCReactionProposal(
         npc_id=EntityId("victoria"),
         intent="respond",
-        communication_goal="refer to a memory",
+        speech_act="acknowledge",
+        topic_tags=("memory",),
         referenced_memory_ids=(MemoryId("unknown"),),
     )
 
@@ -101,7 +128,8 @@ def test_validator_accepts_structured_non_authoritative_reaction() -> None:
     proposal = NPCReactionProposal(
         npc_id=EntityId("victoria"),
         intent="respond_to_greeting",
-        communication_goal="return the greeting with reserved warmth",
+        speech_act="acknowledge",
+        topic_tags=("greeting",),
         emotional_tone=("reserved", "warm"),
         referenced_memory_ids=(MemoryId("m1"),),
         target_ids=(EntityId("player"),),
@@ -110,4 +138,6 @@ def test_validator_accepts_structured_non_authoritative_reaction() -> None:
     validated = NPCReactionValidator().validate(proposal, _context())
 
     assert validated.intent == "respond_to_greeting"
+    assert validated.speech_act == "acknowledge"
+    assert validated.topic_tags == ("greeting",)
     assert validated.referenced_memory_ids == (MemoryId("m1"),)

@@ -31,7 +31,8 @@ class FakeCognitionPort:
         return NPCReactionProposal(
             npc_id=EntityId("victoria"),
             intent="respond",
-            communication_goal="respond locally",
+            speech_act="acknowledge",
+            topic_tags=("local_exchange",),
             target_ids=(EntityId("player"),),
         )
 
@@ -103,5 +104,6 @@ async def test_present_npc_runs_recall_then_cognition() -> None:
 
     assert result is not None
     assert result.reaction.npc_id == EntityId("victoria")
+    assert result.reaction.speech_act == "acknowledge"
     assert recall.calls == 1
     assert port.calls == 1

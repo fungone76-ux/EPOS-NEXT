@@ -42,7 +42,8 @@ class MemoryAwareCognitionPort:
         return NPCReactionProposal(
             npc_id=request.npc_id,
             intent="acknowledge_old_promise",
-            communication_goal="answer while accounting for the old promise",
+            speech_act="acknowledge",
+            topic_tags=("promise", "key"),
             referenced_memory_ids=self.seen_memory_ids,
             target_ids=(request.player_id,),
         )
@@ -91,4 +92,5 @@ async def test_recalled_memory_is_consumed_by_npc_reasoning_context() -> None:
     assert result is not None
     assert port.seen_memory_ids == (MemoryId("old_promise"),)
     assert result.reaction.intent == "acknowledge_old_promise"
+    assert result.reaction.topic_tags == ("promise", "key")
     assert result.reaction.referenced_memory_ids == (MemoryId("old_promise"),)
