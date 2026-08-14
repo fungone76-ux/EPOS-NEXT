@@ -8,10 +8,10 @@ from urllib.parse import quote
 
 from pydantic import ValidationError
 
-from epos.infrastructure.persistence.atomic_files import atomic_write_bytes
 from epos.domain.errors import PersistenceError
 from epos.domain.ids import SessionId
 from epos.domain.world_state import WorldState
+from epos.infrastructure.persistence.atomic_files import atomic_write_bytes
 
 
 class JsonFileStateStore:
