@@ -5,11 +5,18 @@ from typing import Protocol
 import pytest
 
 from epos.application.actions.models import ValidatedAction
-from epos.application.visual import ObservableSceneBuilder, SceneObservationInput, SceneSubjectCue
+from epos.application.visual import (
+    ObservableSceneBuilder,
+    SceneObservationInput,
+    SceneSubjectCue,
+)
 from epos.application.visual.vst import (
     RawVST,
     SafetySignal,
     SemanticIntent,
+    VisualDirectorContext,
+    VisualDirectorContextBuilder,
+    VisualDirectorService,
     VSTActionIntent,
     VSTCameraIntent,
     VSTLightingIntent,
@@ -18,11 +25,8 @@ from epos.application.visual.vst import (
     VSTStyleIntent,
     VSTSubjectIntent,
     VSTSubjectProminence,
-    VSTVisualFocus,
-    VisualDirectorContext,
-    VisualDirectorContextBuilder,
-    VisualDirectorService,
     VSTValidationError,
+    VSTVisualFocus,
 )
 from epos.domain.ids import EntityId, LocationId, SceneId, SessionId, WorldpackId
 from epos.domain.knowledge import KnowledgeState
@@ -128,9 +132,10 @@ def _scene():
     )
 
 
-def _raw(scene_id: SceneId = SceneId("session-visual:12")) -> RawVST:
+def _raw(scene_id: SceneId | None = None) -> RawVST:
+    actual_scene_id = SceneId("session-visual:12") if scene_id is None else scene_id
     return RawVST(
-        scene_id=scene_id,
+        scene_id=actual_scene_id,
         location=VSTLocationIntent(location_id=LocationId("pool")),
         subjects=(
             VSTSubjectIntent(
