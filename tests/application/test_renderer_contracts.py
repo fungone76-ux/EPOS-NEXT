@@ -3,7 +3,7 @@ from __future__ import annotations
 import pytest
 from pydantic import ValidationError
 
-from epos.application.visual.rendering import RenderResult, RendererHealth
+from epos.application.visual.rendering import RendererHealth, RenderResult
 
 
 def test_success_render_result_requires_image_and_prompt_id() -> None:
