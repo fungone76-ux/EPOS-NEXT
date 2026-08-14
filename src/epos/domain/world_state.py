@@ -42,6 +42,7 @@ class SkillDefinition(DomainModel):
     skill_id: SkillId
     name: str
     description: str = ""
+    check_intents: tuple[str, ...] = ()
 
 
 class RenderingConfig(DomainModel):
