@@ -4,13 +4,14 @@ from __future__ import annotations
 
 import asyncio
 import time
+from collections.abc import Mapping
 
 from epos.application.visual.rendering import (
-    RenderResult,
     RendererConnectionError,
     RendererExecutionError,
     RendererHealth,
     RendererProtocolError,
+    RenderResult,
 )
 from epos.application.visual.workflow import ComfyWorkflowRequest
 from epos.domain.errors import PersistenceError
@@ -157,7 +158,7 @@ class ComfyUIAdapter:
             await asyncio.sleep(min(self._settings.poll_interval_seconds, remaining))
 
     @staticmethod
-    def _backend_version(stats: dict[str, object]) -> str | None:
+    def _backend_version(stats: Mapping[str, object]) -> str | None:
         system = stats.get("system")
         if not isinstance(system, dict):
             return None
@@ -186,4 +187,4 @@ class ComfyUIAdapter:
 
     @staticmethod
     def _duration_ms(started: float) -> int:
-        return max(0, int(round((time.perf_counter() - started) * 1000)))
+        return max(0, round((time.perf_counter() - started) * 1000))
