@@ -2,7 +2,6 @@
 
 from epos.infrastructure.llm.models import LLMTask, LLMTaskProfile
 
-
 TASK_PROFILES: dict[LLMTask, LLMTaskProfile] = {
     LLMTask.INTERPRET_ACTION: LLMTaskProfile(
         task=LLMTask.INTERPRET_ACTION,
