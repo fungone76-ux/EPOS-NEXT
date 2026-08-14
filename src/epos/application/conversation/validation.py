@@ -15,6 +15,7 @@ from epos.application.conversation.models import (
     ValidatedNarration,
     WorldNarrationDraft,
 )
+from epos.application.visual.models import SubjectKind
 from epos.domain.errors import EposValidationError
 from epos.domain.ids import EntityId
 
@@ -66,12 +67,19 @@ class NarrationValidator:
         context: NarrationContext,
     ) -> ValidatedNarration:
         if not proposal.units:
-            raise NarrationValidationError("narration proposal must contain at least one unit")
+            raise NarrationValidationError(
+                "narration proposal must contain at least one unit"
+            )
 
         evidence = {item.evidence_id: item for item in context.evidence}
         reactions = {reaction.npc_id: reaction for reaction in context.reactions}
         voice_ids = {voice.npc_id for voice in context.voices}
-        present_ids = set(context.scene.present_entity_ids)
+        present_ids = {subject.entity_id for subject in context.scene.visible_subjects}
+        present_npc_ids = {
+            subject.entity_id
+            for subject in context.scene.visible_subjects
+            if subject.kind is SubjectKind.NPC
+        }
 
         self._validate_focus_priority(proposal, context)
         for unit in proposal.units:
@@ -81,7 +89,7 @@ class NarrationValidator:
                     evidence=evidence,
                     reactions=reactions,
                     voice_ids=voice_ids,
-                    present_ids=present_ids,
+                    present_npc_ids=present_npc_ids,
                 )
             else:
                 self._validate_world_narration(
@@ -110,7 +118,9 @@ class NarrationValidator:
             raise NarrationValidationError("focused narration has no target NPC")
         first = proposal.units[0]
         if not isinstance(first, NPCDialogueDraft):
-            raise NarrationValidationError("target NPC response must be the first narration unit")
+            raise NarrationValidationError(
+                "target NPC response must be the first narration unit"
+            )
         if first.speaker_id != target:
             raise NarrationValidationError(
                 f"conversation focus requires target NPC {target} to respond first"
@@ -123,10 +133,12 @@ class NarrationValidator:
         evidence: dict[str, NarrationEvidence],
         reactions: dict[EntityId, ValidatedNPCReaction],
         voice_ids: set[EntityId],
-        present_ids: set[EntityId],
+        present_npc_ids: set[EntityId],
     ) -> None:
-        if unit.speaker_id not in present_ids:
-            raise NarrationValidationError(f"dialogue speaker {unit.speaker_id} is not present")
+        if unit.speaker_id not in present_npc_ids:
+            raise NarrationValidationError(
+                f"dialogue speaker {unit.speaker_id} is not a present NPC"
+            )
         if unit.speaker_id not in reactions or unit.speaker_id not in voice_ids:
             raise NarrationValidationError(
                 f"dialogue speaker {unit.speaker_id} has no authorized NPC reaction"
@@ -157,15 +169,22 @@ class NarrationValidator:
         present_ids: set[EntityId],
     ) -> None:
         if not unit.evidence_ids:
-            raise NarrationValidationError("world narration must cite authorized evidence")
-        cited = tuple(NarrationValidator._evidence(evidence, item) for item in unit.evidence_ids)
+            raise NarrationValidationError(
+                "world narration must cite authorized evidence"
+            )
+        cited = tuple(
+            NarrationValidator._evidence(evidence, item)
+            for item in unit.evidence_ids
+        )
         if any(item.kind in _PRIVATE_EVIDENCE for item in cited):
             raise NarrationValidationError(
                 "world narration cannot promote private NPC evidence to world fact"
             )
         for subject_id in unit.subject_ids:
             if subject_id not in present_ids:
-                raise NarrationValidationError(f"narration subject {subject_id} is not present")
+                raise NarrationValidationError(
+                    f"narration subject {subject_id} is not present"
+                )
         if context.player_id in unit.subject_ids and not any(
             item.kind in _PLAYER_GROUNDING for item in cited
         ):
@@ -185,7 +204,8 @@ class NarrationValidator:
                     "brief_social conversation focus forbids unrelated NPC initiative"
                 )
         sentence_count = sum(
-            NarrationValidator._sentence_count(unit.text) for unit in proposal.units
+            NarrationValidator._sentence_count(unit.text)
+            for unit in proposal.units
         )
         if sentence_count < 1 or sentence_count > 2:
             raise NarrationValidationError(
@@ -204,5 +224,7 @@ class NarrationValidator:
     ) -> NarrationEvidence:
         item = evidence.get(evidence_id)
         if item is None:
-            raise NarrationValidationError(f"unknown narration evidence {evidence_id}")
+            raise NarrationValidationError(
+                f"unknown narration evidence {evidence_id}"
+            )
         return item

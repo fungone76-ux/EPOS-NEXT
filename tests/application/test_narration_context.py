@@ -3,7 +3,7 @@ from __future__ import annotations
 import pytest
 
 from epos.application.actions.models import ValidatedAction
-from epos.application.cognition.models import CognitionScene, ValidatedNPCReaction
+from epos.application.cognition.models import ValidatedNPCReaction
 from epos.application.conversation.context import NarrationContextBuilder, NarrationContextError
 from epos.application.conversation.models import (
     ConversationFocus,
@@ -12,6 +12,11 @@ from epos.application.conversation.models import (
     NarrationKnowledgeSelection,
     NarrationKnowledgeSource,
     NarrationMode,
+)
+from epos.application.visual import (
+    ObservableConsequence,
+    ObservableSceneBuilder,
+    SceneObservationInput,
 )
 from epos.domain.ids import EntityId, LocationId, MemoryId, SessionId, TurnNumber, WorldpackId
 from epos.domain.knowledge import KnowledgeState
@@ -37,24 +42,48 @@ def _state() -> WorldState:
         player=PlayerState(entity_id=player_id, name="Alex", location_id=lobby),
         npcs={
             victoria_id: NPCState(
-                identity=NPCIdentity(entity_id=victoria_id, name="Victoria", role="host"),
+                identity=NPCIdentity(
+                    entity_id=victoria_id,
+                    name="Victoria",
+                    role="host",
+                ),
                 location_id=lobby,
                 personality=("controlled", "elegant"),
                 speech_style="precise and restrained",
                 knowledge=KnowledgeState(facts={"luna_role": "Luna dirige il resort."}),
-                secrets=(SecretState(secret_id="letter", fact="La lettera è nel cassetto rosso."),),
+                secrets=(
+                    SecretState(
+                        secret_id="letter",
+                        fact="La lettera è nel cassetto rosso.",
+                    ),
+                ),
                 emotional_state=EmotionalState(anger=3.0, joy=5.0),
-                relationships={player_id: RelationshipState(trust=6.0, affection=4.0)},
+                relationships={
+                    player_id: RelationshipState(trust=6.0, affection=4.0)
+                },
             ),
             stella_id: NPCState(
-                identity=NPCIdentity(entity_id=stella_id, name="Stella", role="guest"),
+                identity=NPCIdentity(
+                    entity_id=stella_id,
+                    name="Stella",
+                    role="guest",
+                ),
                 location_id=lobby,
-                knowledge=KnowledgeState(facts={"private_stella": "Stella teme il temporale."}),
-                secrets=(SecretState(secret_id="stella_secret", fact="Solo Stella lo sa."),),
+                knowledge=KnowledgeState(
+                    facts={"private_stella": "Stella teme il temporale."}
+                ),
+                secrets=(
+                    SecretState(
+                        secret_id="stella_secret",
+                        fact="Solo Stella lo sa.",
+                    ),
+                ),
             ),
         },
         locations={lobby: LocationState(location_id=lobby, name="Lobby")},
-        world_truth=KnowledgeState(facts={"hidden_world_truth": "Il direttore mente."}),
+        world_truth=KnowledgeState(
+            facts={"hidden_world_truth": "Il direttore mente."}
+        ),
     )
 
 
@@ -84,12 +113,23 @@ def _reaction(
     )
 
 
-def _scene() -> CognitionScene:
-    return CognitionScene(
-        location_id=LocationId("lobby"),
-        present_entity_ids=(EntityId("player"), EntityId("victoria"), EntityId("stella")),
-        observable_facts=("La hall è tranquilla.",),
-        summary="Il player parla con Victoria nella hall.",
+def _scene():
+    state = _state()
+    return ObservableSceneBuilder().build(
+        state=state,
+        observation=SceneObservationInput(
+            action=ValidatedAction(
+                intent="dialogue",
+                target_ids=(EntityId("victoria"),),
+            ),
+            observable_consequences=(
+                ObservableConsequence(
+                    consequence_id="lobby_quiet",
+                    kind="environment",
+                    fact="La hall è tranquilla.",
+                ),
+            ),
+        ),
     )
 
 
@@ -104,12 +144,20 @@ def _build(
         scene=_scene(),
         focus=_focus(),
         player_input="Victoria, cosa sai di Luna?",
-        action=ValidatedAction(intent="dialogue", target_ids=(EntityId("victoria"),)),
-        resolved_check=None,
         reactions=(reaction,),
         knowledge_selections=knowledge,
         narratable_memories=memories,
     )
+
+
+def test_narration_context_uses_observable_scene_as_single_action_source() -> None:
+    context = _build(reaction=_reaction())
+
+    assert context.scene.resolved_action.action.intent == "dialogue"
+    assert context.scene.resolved_action.action.target_ids == (EntityId("victoria"),)
+    assert context.scene.resolved_action.resolved_check is None
+    assert not hasattr(context, "action")
+    assert not hasattr(context, "resolved_check")
 
 
 def test_narration_context_excludes_world_truth_other_npc_private_state_and_locked_secret() -> None:
@@ -145,6 +193,7 @@ def test_context_contains_voice_emotion_relationship_and_selected_safe_knowledge
     assert safe.kind is NarrationEvidenceKind.NPC_KNOWLEDGE
     assert safe.owner_id == EntityId("victoria")
     assert safe.text == "Luna dirige il resort."
+    assert evidence["scene:consequence:lobby_quiet"].text == "La hall è tranquilla."
 
 
 def test_only_authorized_secret_is_exposed_as_private_narration_evidence() -> None:
@@ -160,7 +209,10 @@ def test_only_authorized_secret_is_exposed_as_private_narration_evidence() -> No
 def test_memory_text_is_not_exposed_automatically_even_when_cognition_referenced_it() -> None:
     context = _build(reaction=_reaction(memories=(MemoryId("promise"),)))
 
-    assert all(item.kind is not NarrationEvidenceKind.NPC_MEMORY for item in context.evidence)
+    assert all(
+        item.kind is not NarrationEvidenceKind.NPC_MEMORY
+        for item in context.evidence
+    )
 
 
 def test_narratable_memory_must_belong_to_reaction_reference_whitelist() -> None:
@@ -173,5 +225,10 @@ def test_narratable_memory_must_belong_to_reaction_reference_whitelist() -> None
     with pytest.raises(NarrationContextError, match="memory"):
         _build(
             reaction=_reaction(memories=(MemoryId("promise"),)),
-            memories=(NarratableMemory(owner_id=EntityId("victoria"), memory=memory),),
+            memories=(
+                NarratableMemory(
+                    owner_id=EntityId("victoria"),
+                    memory=memory,
+                ),
+            ),
         )
