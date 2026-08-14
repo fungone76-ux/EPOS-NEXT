@@ -144,13 +144,11 @@ def test_raw_vst_rejects_duplicate_subjects_and_focus_ids() -> None:
     with pytest.raises(ValidationError, match="subject"):
         RawVST.model_validate(payload)
 
-    payload = raw.model_dump(mode="python")
-    payload["visual_focus"] = VSTVisualFocus(
-        subject_ids=(EntityId("victoria"), EntityId("victoria")),
-        intent=SemanticIntent(description="primary subject"),
-    )
     with pytest.raises(ValidationError, match="focus"):
-        RawVST.model_validate(payload)
+        VSTVisualFocus(
+            subject_ids=(EntityId("victoria"), EntityId("victoria")),
+            intent=SemanticIntent(description="primary subject"),
+        )
 
 
 def test_module_11_does_not_canonicalize_wrong_location_or_outfit() -> None:
