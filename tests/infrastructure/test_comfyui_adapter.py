@@ -6,10 +6,7 @@ from pathlib import Path
 import pytest
 from pydantic import JsonValue, ValidationError
 
-from epos.application.visual.rendering import (
-    RendererConnectionError,
-    RendererExecutionError,
-)
+from epos.application.visual.rendering import RendererConnectionError
 from epos.application.visual.workflow import ComfyWorkflowRequest
 from epos.infrastructure.rendering.comfy import (
     AtomicRenderImageStore,
