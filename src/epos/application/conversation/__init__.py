@@ -1,5 +1,6 @@
 """Conversation focus and disclosure-safe narration application services."""
 
+from epos.application.conversation.audit import NarrationAuditValidator
 from epos.application.conversation.context import NarrationContextBuilder, NarrationContextError
 from epos.application.conversation.focus import ConversationFocusService, ConversationFocusValidator
 from epos.application.conversation.models import (
@@ -7,6 +8,9 @@ from epos.application.conversation.models import (
     ConversationFocusContext,
     ConversationFocusProposal,
     NarratableMemory,
+    NarrationAuditContext,
+    NarrationAuditFinding,
+    NarrationAuditProposal,
     NarrationContext,
     NarrationEvidence,
     NarrationEvidenceKind,
@@ -15,6 +19,7 @@ from epos.application.conversation.models import (
     NarrationMode,
     NarrationProposal,
     NarrationResult,
+    NarrationViolationKind,
     NPCDialogueDraft,
     NPCNarrationVoice,
     ValidatedNarration,
@@ -37,6 +42,10 @@ __all__ = [
     "NPCDialogueDraft",
     "NPCNarrationVoice",
     "NarratableMemory",
+    "NarrationAuditContext",
+    "NarrationAuditFinding",
+    "NarrationAuditProposal",
+    "NarrationAuditValidator",
     "NarrationComposer",
     "NarrationContext",
     "NarrationContextBuilder",
@@ -51,6 +60,7 @@ __all__ = [
     "NarrationService",
     "NarrationValidationError",
     "NarrationValidator",
+    "NarrationViolationKind",
     "ValidatedNarration",
     "WorldNarrationDraft",
 ]
