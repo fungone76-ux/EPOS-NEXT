@@ -7,6 +7,8 @@ player:
   name: Wanderer
   location_id: agora
   adult_verified: true
+  stats:
+    sarissa: 3
 world_truth:
   facts:
     setting: Aegean city state

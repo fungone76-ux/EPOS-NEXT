@@ -2,3 +2,4 @@ skills:
   - skill_id: negoziazione
     name: Negoziazione
     description: Social bargaining and persuasion.
+    check_intents: [persuasion, bargain]

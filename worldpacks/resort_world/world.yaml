@@ -7,6 +7,8 @@ player:
   name: Alex
   location_id: lobby
   adult_verified: true
+  stats:
+    negoziazione: 4
 world_truth:
   facts:
     setting: Mediterranean resort
