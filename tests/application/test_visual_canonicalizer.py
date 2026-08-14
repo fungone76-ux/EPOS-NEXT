@@ -274,6 +274,17 @@ def test_canonicalizer_replaces_invented_outfit_and_applies_visual_state() -> No
     assert scene == before
 
 
+def test_canonical_vst_binds_worldpack_and_authoritative_scene_time() -> None:
+    scene = _scene()
+    canonical = _canonicalize()
+
+    assert canonical.worldpack_id == scene.worldpack_id
+    assert canonical.time == scene.time
+    assert canonical.time.turn_number == 12
+    assert canonical.time.day == 3
+    assert canonical.time.world_phase == "sunset"
+
+
 def test_canonical_identity_and_lora_come_only_from_worldpack() -> None:
     canonical = _canonicalize()
     subject = canonical.subjects[0]
