@@ -17,7 +17,10 @@ class FakeSyncCollection(SyncChromaMemoryCollection):
 
     def recall(self, query: MemoryRecallQuery, *, limit: int) -> list[MemoryHit]:
         self.thread_ids.append(threading.get_ident())
-        return [MemoryHit(memory=record.memory, semantic_score=1.0) for record in self.records[:limit]]
+        return [
+            MemoryHit(memory=record.memory, semantic_score=1.0)
+            for record in self.records[:limit]
+        ]
 
 
 async def test_chroma_sync_boundary_runs_outside_event_loop_thread() -> None:
