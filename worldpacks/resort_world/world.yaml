@@ -13,4 +13,61 @@ world_truth:
   facts:
     setting: Mediterranean resort
 narrative_config: {}
-rendering_config: {}
+rendering_config:
+  comfyui:
+    workflow_file: workflows/comfy_workflow_image.json
+    base_model_node_id: "1"
+    base_model_expected_class_type: CheckpointLoaderSimple
+    base_model_output_index: 0
+    base_clip_output_index: 1
+    nodes:
+      positive_prompt:
+        node_id: "2"
+        expected_class_type: CLIPTextEncode
+        input_name: text
+      negative_prompt:
+        node_id: "3"
+        expected_class_type: CLIPTextEncode
+        input_name: text
+      checkpoint:
+        node_id: "1"
+        expected_class_type: CheckpointLoaderSimple
+        input_name: ckpt_name
+      seed:
+        node_id: "4"
+        expected_class_type: SamplerCustom
+        input_name: noise_seed
+      cfg:
+        node_id: "4"
+        expected_class_type: SamplerCustom
+        input_name: cfg
+      sampler:
+        node_id: "5"
+        expected_class_type: KSamplerSelect
+        input_name: sampler_name
+      scheduler:
+        node_id: "6"
+        expected_class_type: BasicScheduler
+        input_name: scheduler
+      steps:
+        node_id: "6"
+        expected_class_type: BasicScheduler
+        input_name: steps
+      width:
+        node_id: "7"
+        expected_class_type: EmptyLatentImage
+        input_name: width
+      height:
+        node_id: "7"
+        expected_class_type: EmptyLatentImage
+        input_name: height
+    lora_slots:
+      - node_id: "20"
+        expected_class_type: LoraLoader
+      - node_id: "23"
+        expected_class_type: LoraLoader
+    default_lora_strength_model: 0.8
+    default_lora_strength_clip: 1.0
+    dimension_multiple: 8
+    min_dimension: 64
+    max_dimension: 2048
