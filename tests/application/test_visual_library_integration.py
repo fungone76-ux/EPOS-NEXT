@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import gzip
 import shutil
 from pathlib import Path
 
@@ -147,13 +148,53 @@ async def test_cleaned_resort_libraries_have_no_exact_alias_ambiguity() -> None:
 
 
 @pytest.mark.asyncio
+async def test_plain_yaml_overrides_packaged_gzip_library(tmp_path: Path) -> None:
+    copied = tmp_path / "resort_world"
+    shutil.copytree(RESORT_ROOT, copied)
+    compressed = copied / "style_library.yaml.gz"
+    assert compressed.is_file()
+
+    override = {
+        "schema_version": 1,
+        "library_id": "style_library",
+        "description": "plain override",
+        "entries": [
+            {
+                "entry_id": "test_override_style",
+                "description": "override style",
+                "aliases": ["override"],
+                "tags": ["test"],
+                "positive_fragment": "override style fragment",
+            }
+        ],
+    }
+    (copied / "style_library.yaml").write_text(
+        yaml.safe_dump(override, sort_keys=False),
+        encoding="utf-8",
+    )
+
+    loaded = await FileSystemWorldpackLoader().load(
+        copied,
+        session_id="plain-library-override",
+    )
+
+    assert tuple(entry.entry_id for entry in loaded.style_library.entries) == (
+        "test_override_style",
+    )
+
+
+@pytest.mark.asyncio
 async def test_world_bound_library_rejects_wrong_world_id(tmp_path: Path) -> None:
     copied = tmp_path / "resort_world"
     shutil.copytree(RESORT_ROOT, copied)
-    path = copied / "outfit_library.yaml"
-    payload = yaml.safe_load(path.read_text(encoding="utf-8"))
+    compressed = copied / "outfit_library.yaml.gz"
+    with gzip.open(compressed, mode="rt", encoding="utf-8") as handle:
+        payload = yaml.safe_load(handle.read())
     payload["world_id"] = "different_world"
-    path.write_text(yaml.safe_dump(payload, sort_keys=False), encoding="utf-8")
+    (copied / "outfit_library.yaml").write_text(
+        yaml.safe_dump(payload, sort_keys=False),
+        encoding="utf-8",
+    )
 
     with pytest.raises(WorldpackValidationError, match="world_id"):
         await FileSystemWorldpackLoader().load(copied, session_id="wrong-world-library")
@@ -161,8 +202,9 @@ async def test_world_bound_library_rejects_wrong_world_id(tmp_path: Path) -> Non
 
 @pytest.mark.asyncio
 async def test_adult_library_is_valid_but_not_exposed_to_standard_worldpack() -> None:
-    path = RESORT_ROOT / "adult" / "sex_library.yaml"
-    payload = yaml.safe_load(path.read_text(encoding="utf-8"))
+    path = RESORT_ROOT / "adult" / "sex_library.yaml.gz"
+    with gzip.open(path, mode="rt", encoding="utf-8") as handle:
+        payload = yaml.safe_load(handle.read())
     adult = AdultSemanticLibraryDocument.model_validate(payload)
 
     assert adult.content_rating == "adult_18_plus"
