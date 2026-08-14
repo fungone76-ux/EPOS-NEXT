@@ -4,6 +4,7 @@ from pathlib import Path
 
 import pytest
 
+from epos.application.visual.prompt import PromptCompilerProfile, WorldpackVisualConfig
 from epos.infrastructure.worldpacks.loader import FileSystemWorldpackLoader
 
 
@@ -14,13 +15,13 @@ async def test_filesystem_loader_reads_all_seven_visual_semantic_libraries(
     (tmp_path / "world.yaml").write_text(
         """
 worldpack_id: visual-test
- title: Visual Test
+title: Visual Test
 initial_phase: day
 player:
   entity_id: player
   name: Player
   location_id: room
-""".replace(" title:", "title:"),
+""",
         encoding="utf-8",
     )
     (tmp_path / "locations.yaml").write_text(
@@ -75,3 +76,12 @@ entries:
     assert tuple(library.entries[0].positive_fragment for library in libraries) == tuple(
         f"prompt fragment {index}" for index in range(7)
     )
+
+    profile = PromptCompilerProfile(checkpoint="test-model.safetensors")
+    config = WorldpackVisualConfig.from_loaded_worldpack(loaded, profile=profile)
+
+    assert config.outfit_library is loaded.outfit_library
+    assert config.lighting_library is loaded.lighting_library
+    assert config.location_visual_library is loaded.location_visual_library
+    assert config.style_library is loaded.style_library
+    assert config.profile == profile
