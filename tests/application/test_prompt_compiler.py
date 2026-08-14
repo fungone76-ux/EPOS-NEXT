@@ -234,6 +234,75 @@ def test_compiler_never_emits_facial_expression_cues() -> None:
     assert "expression" not in lowered
 
 
+def test_facial_expression_atoms_are_removed_from_any_positive_layer() -> None:
+    vst = _canonical_vst()
+    subject = vst.subjects[0]
+    contaminated_subject = subject.model_copy(
+        update={
+            "identity": subject.identity.model_copy(
+                update={"base_prompt": "adult woman, smiling, dark hair"}
+            )
+        }
+    )
+    contaminated = vst.model_copy(update={"subjects": (contaminated_subject,)})
+    config = _config().model_copy(
+        update={
+            "world_positive": (
+                "luxury Mediterranean resort",
+                "seductive expression",
+            )
+        }
+    )
+
+    prompt = SemanticPromptCompiler().compile(contaminated, config).positive_prompt.casefold()
+
+    assert "smiling" not in prompt
+    assert "seductive expression" not in prompt
+    assert "dark hair" in prompt
+    assert "brown eyes" in prompt
+
+
+def test_raw_semantic_free_text_is_never_copied_directly_to_positive_prompt() -> None:
+    vst = _canonical_vst().model_copy(
+        update={
+            "location": _canonical_vst().location.model_copy(
+                update={
+                    "environment": SemanticIntent(
+                        description="RAW_LOCATION_INJECTION never copy me"
+                    )
+                }
+            ),
+            "visual_focus": _canonical_vst().visual_focus.model_copy(
+                update={
+                    "intent": SemanticIntent(description="RAW_FOCUS_INJECTION never copy me")
+                }
+            ),
+        }
+    )
+
+    prompt = SemanticPromptCompiler().compile(vst, _config()).positive_prompt
+
+    assert "RAW_LOCATION_INJECTION" not in prompt
+    assert "RAW_FOCUS_INJECTION" not in prompt
+
+
+def test_subject_count_is_derived_from_canonical_subjects() -> None:
+    vst = _canonical_vst()
+    second = vst.subjects[0].model_copy(
+        update={
+            "entity_id": EntityId("stella"),
+            "name": "Stella",
+            "lora": None,
+        }
+    )
+    two_subjects = vst.model_copy(update={"subjects": (vst.subjects[0], second)})
+
+    prompt = SemanticPromptCompiler().compile(two_subjects, _config()).positive_prompt
+
+    assert "2women" in prompt
+    assert "1woman" not in prompt
+
+
 def test_lora_is_structured_and_not_in_positive_prompt() -> None:
     contract = SemanticPromptCompiler().compile(_canonical_vst(), _config())
 
