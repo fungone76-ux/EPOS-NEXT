@@ -179,9 +179,12 @@ class SemanticLibraryDocument(DomainModel):
     ) -> tuple[SemanticLibraryEntry, ...]:
         seen: set[str] = set()
         for entry in entries:
-            if entry.entry_id in seen:
+            key = entry.entry_id.strip().casefold()
+            if not key:
+                raise ValueError("semantic library entry id must not be empty")
+            if key in seen:
                 raise ValueError(f"duplicate semantic library entry: {entry.entry_id}")
-            seen.add(entry.entry_id)
+            seen.add(key)
         return entries
 
 
