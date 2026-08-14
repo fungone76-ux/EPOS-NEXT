@@ -165,7 +165,22 @@ class SchedulesDocument(DomainModel):
 class SemanticLibraryEntry(DomainModel):
     entry_id: str
     description: str = ""
+    aliases: tuple[str, ...] = ()
     tags: tuple[str, ...] = ()
+    positive_fragment: str = ""
+
+    @field_validator("aliases")
+    @classmethod
+    def validate_aliases(cls, aliases: tuple[str, ...]) -> tuple[str, ...]:
+        seen: set[str] = set()
+        for alias in aliases:
+            key = " ".join(alias.strip().casefold().split())
+            if not key:
+                raise ValueError("semantic library alias must not be empty")
+            if key in seen:
+                raise ValueError(f"duplicate semantic library alias: {alias}")
+            seen.add(key)
+        return aliases
 
 
 class SemanticLibraryDocument(DomainModel):
@@ -202,6 +217,11 @@ class WorldpackBundle(DomainModel):
     pose_library: SemanticLibraryDocument = Field(default_factory=SemanticLibraryDocument)
     camera_library: SemanticLibraryDocument = Field(default_factory=SemanticLibraryDocument)
     outfit_library: SemanticLibraryDocument = Field(default_factory=SemanticLibraryDocument)
+    lighting_library: SemanticLibraryDocument = Field(default_factory=SemanticLibraryDocument)
+    location_visual_library: SemanticLibraryDocument = Field(
+        default_factory=SemanticLibraryDocument
+    )
+    style_library: SemanticLibraryDocument = Field(default_factory=SemanticLibraryDocument)
 
 
 class LoadedWorldpack(DomainModel):
@@ -212,3 +232,8 @@ class LoadedWorldpack(DomainModel):
     pose_library: SemanticLibraryDocument
     camera_library: SemanticLibraryDocument
     outfit_library: SemanticLibraryDocument
+    lighting_library: SemanticLibraryDocument = Field(default_factory=SemanticLibraryDocument)
+    location_visual_library: SemanticLibraryDocument = Field(
+        default_factory=SemanticLibraryDocument
+    )
+    style_library: SemanticLibraryDocument = Field(default_factory=SemanticLibraryDocument)
