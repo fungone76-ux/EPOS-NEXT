@@ -1,0 +1,14 @@
+worldpack_id: test_world
+title: Bronze Age Test World
+initial_day: 1
+initial_phase: dawn
+player:
+  entity_id: wanderer
+  name: Wanderer
+  location_id: agora
+  adult_verified: true
+world_truth:
+  facts:
+    setting: Aegean city state
+narrative_config: {}
+rendering_config: {}

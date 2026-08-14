@@ -1,0 +1,6 @@
+missions:
+  - mission_id: hold_gate
+    status: active
+    npc_ids: [theron]
+    location_ids: [city_gate]
+    required_skill_ids: [sarissa]

@@ -1,0 +1,5 @@
+locations:
+  - location_id: lobby
+    name: Lobby
+  - location_id: pool
+    name: Pool

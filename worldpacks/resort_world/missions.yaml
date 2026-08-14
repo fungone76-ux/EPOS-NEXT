@@ -1,0 +1,6 @@
+missions:
+  - mission_id: welcome
+    status: active
+    npc_ids: [victoria]
+    location_ids: [lobby]
+    required_skill_ids: [negoziazione]

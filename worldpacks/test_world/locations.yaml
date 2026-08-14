@@ -1,0 +1,5 @@
+locations:
+  - location_id: agora
+    name: Agora
+  - location_id: city_gate
+    name: City Gate

@@ -1,0 +1,10 @@
+outfits:
+  - outfit_id: theron_armor
+    owner_id: theron
+    items:
+      - item_id: bronze_cuirass
+        name: Bronze cuirass
+        slot: torso
+        layer: 2
+        coverage: [torso]
+        material: bronze

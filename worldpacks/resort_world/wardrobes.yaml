@@ -1,0 +1,10 @@
+outfits:
+  - outfit_id: victoria_day
+    owner_id: victoria
+    items:
+      - item_id: victoria_jacket
+        name: White jacket
+        slot: torso
+        layer: 2
+        coverage: [torso]
+        color: white

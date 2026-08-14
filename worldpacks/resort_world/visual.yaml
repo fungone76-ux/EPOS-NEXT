@@ -1,0 +1,12 @@
+loras:
+  victoria_main: victoria_main.safetensors
+characters:
+  - entity_id: victoria
+    base_prompt: adult woman, dark hair
+    role_prompt: resort director
+    negative_prompt: identity drift
+    lora_alias: victoria_main
+    visual_gender: woman
+    canonical_traits: [dark hair, brown eyes]
+world_positive: [luxury Mediterranean resort]
+world_negative: [lowres]

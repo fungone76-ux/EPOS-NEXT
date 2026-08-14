@@ -1,0 +1,14 @@
+worldpack_id: resort_world
+title: Resort World
+initial_day: 1
+initial_phase: morning
+player:
+  entity_id: player
+  name: Alex
+  location_id: lobby
+  adult_verified: true
+world_truth:
+  facts:
+    setting: Mediterranean resort
+narrative_config: {}
+rendering_config: {}
