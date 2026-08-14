@@ -34,6 +34,8 @@ __all__ = [
     "ConversationFocusService",
     "ConversationFocusValidationError",
     "ConversationFocusValidator",
+    "NPCDialogueDraft",
+    "NPCNarrationVoice",
     "NarratableMemory",
     "NarrationComposer",
     "NarrationContext",
@@ -49,8 +51,6 @@ __all__ = [
     "NarrationService",
     "NarrationValidationError",
     "NarrationValidator",
-    "NPCDialogueDraft",
-    "NPCNarrationVoice",
     "ValidatedNarration",
     "WorldNarrationDraft",
 ]
