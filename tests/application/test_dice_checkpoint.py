@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import pytest
+from pydantic import ValidationError
 
 from epos.application.actions.models import (
     CheckOutcome,
@@ -11,6 +12,7 @@ from epos.application.state import (
     CheckpointStateMismatchError,
     DiceCheckpoint,
     DiceCheckpointService,
+    StateReference,
 )
 from epos.domain.ids import EntityId, LocationId, SessionId, SkillId, WorldpackId
 from epos.domain.npc import NPCIdentity, NPCState
@@ -97,6 +99,32 @@ async def test_checkpoint_preserves_exact_roll_and_player_decision_for_resume() 
     assert resumed.resolved_check.dice == (1, 4, 3)
     assert resumed.resolved_check.outcome is CheckOutcome.PARTIAL_SUCCESS
     assert resumed.player_decision == "proceed"
+
+
+def test_checkpoint_rejects_inconsistent_proposal_and_exact_roll() -> None:
+    with pytest.raises(ValidationError):
+        DiceCheckpoint(
+            session_id=SessionId("session-1"),
+            state_reference=StateReference(
+                session_id=SessionId("session-1"),
+                turn_number=8,
+                fingerprint="a" * 64,
+            ),
+            proposal=CheckProposal(
+                skill_id=SkillId("negoziazione"),
+                difficulty=4,
+            ),
+            resolved_check=ResolvedCheck(
+                skill_id=SkillId("negoziazione"),
+                difficulty=5,
+                rating=3,
+                pool_size=3,
+                dice=(1, 5),
+                success_count=2,
+                outcome=CheckOutcome.FULL_SUCCESS,
+            ),
+            player_decision="proceed",
+        )
 
 
 @pytest.mark.asyncio
