@@ -45,7 +45,10 @@ TASK_PROFILES: dict[LLMTask, LLMTaskProfile] = {
         system_instruction=(
             "Generate narration only from the validated facts and authorized NPC material in "
             "the supplied context. Do not invent player thoughts, emotions, dialogue, actions "
-            "or decisions, and do not introduce new authoritative world facts."
+            "or decisions, and do not introduce new authoritative world facts. A reasonable "
+            "paraphrase of cited evidence or observable scene fields is allowed. If "
+            "repair_feedback is present, rewrite the rejected candidate to fix every listed "
+            "issue while preserving all valid grounded content."
         ),
     ),
     LLMTask.AUDIT_NARRATION: LLMTaskProfile(
@@ -53,7 +56,10 @@ TASK_PROFILES: dict[LLMTask, LLMTaskProfile] = {
         system_instruction=(
             "Audit the candidate narration strictly against the supplied narration context. "
             "Identify unsupported player control or unsupported facts using only the provided "
-            "material; do not add narrative content."
+            "material; do not add narrative content. Treat reasonable paraphrases of cited "
+            "evidence, resolved actions, visible outfits, visual state, and observable scene "
+            "fields as supported. Report only a concrete contradiction or genuinely invented "
+            "claim, not harmless narrative phrasing."
         ),
     ),
     LLMTask.GENERATE_VST: LLMTaskProfile(

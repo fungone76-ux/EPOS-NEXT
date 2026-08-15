@@ -193,6 +193,13 @@ class NPCNarrationVoice(DomainModel):
     relationship_with_player: RelationshipState
 
 
+class NarrationRepairFeedback(DomainModel):
+    """Bounded semantic feedback for one controlled narrator regeneration."""
+
+    rejected_candidate_json: str
+    issues: tuple[str, ...] = Field(min_length=1)
+
+
 class NarrationContext(DomainModel):
     """Disclosure-safe context passed to the narration LLM."""
 
@@ -203,6 +210,7 @@ class NarrationContext(DomainModel):
     reactions: tuple[ValidatedNPCReaction, ...] = ()
     voices: tuple[NPCNarrationVoice, ...] = ()
     evidence: tuple[NarrationEvidence, ...] = ()
+    repair_feedback: NarrationRepairFeedback | None = None
 
 
 class NPCDialogueDraft(DomainModel):

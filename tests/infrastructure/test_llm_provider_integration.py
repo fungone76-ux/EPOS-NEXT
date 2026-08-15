@@ -142,6 +142,12 @@ def test_task_profiles_are_distinct_and_cover_required_epos_tasks() -> None:
     assert "observation" in focus_instruction
     assert "exploration mode" in focus_instruction
     assert "player" in TASK_PROFILES[LLMTask.REASON_NPC].system_instruction.casefold()
+    narration_instruction = TASK_PROFILES[
+        LLMTask.GENERATE_NARRATION
+    ].system_instruction.casefold()
+    assert "repair_feedback" in narration_instruction
+    audit_instruction = TASK_PROFILES[LLMTask.AUDIT_NARRATION].system_instruction.casefold()
+    assert "reasonable paraphrases" in audit_instruction
     assert "stable diffusion" in TASK_PROFILES[LLMTask.GENERATE_VST].system_instruction.casefold()
 
 

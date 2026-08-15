@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from epos.application.actions.models import ValidatedAction
+from epos.application.actions.models import ObservationIntent, ValidatedAction
 from epos.application.cognition.models import ValidatedNPCReaction
 from epos.application.conversation.audit import NarrationAuditValidator
 from epos.application.conversation.models import (
@@ -128,6 +128,40 @@ def _context() -> NarrationContext:
     )
 
 
+def _observation_context() -> NarrationContext:
+    context = _context()
+    player = context.player_id
+    victoria = EntityId("victoria")
+    action = ValidatedAction(
+        intent="observe",
+        target_ids=(victoria,),
+        observation=ObservationIntent(subject_id=victoria, region="feet"),
+    )
+    scene = context.scene.model_copy(
+        update={"resolved_action": ResolvedSceneAction(action=action)}
+    )
+    return context.model_copy(
+        update={
+            "player_input": "Guardo i piedi nudi di Victoria",
+            "focus": ConversationFocus(
+                speaker_id=player,
+                target_npc_id=victoria,
+                topic="bare_feet",
+                mode=NarrationMode.EXPLORATION,
+            ),
+            "scene": scene,
+            "evidence": (
+                *context.evidence,
+                NarrationEvidence(
+                    evidence_id="action:resolved",
+                    kind=NarrationEvidenceKind.ACTION_RESULT,
+                    text=action.model_dump_json(),
+                ),
+            ),
+        }
+    )
+
+
 class PlayerControlNarrator:
     async def invoke(self, request: NarrationContext) -> NarrationProposal:
         return NarrationProposal(
@@ -185,6 +219,111 @@ class CleanAuditPort:
         return NarrationAuditProposal()
 
 
+class RepairingObservationNarrator:
+    def __init__(self) -> None:
+        self.calls = 0
+
+    async def invoke(self, request: NarrationContext) -> NarrationProposal:
+        self.calls += 1
+        if self.calls == 1:
+            assert request.repair_feedback is None
+            text = "I piedi di Victoria brillano di una luce soprannaturale."
+        else:
+            assert request.repair_feedback is not None
+            assert "unsupported_world_claim" in request.repair_feedback.issues[0]
+            text = "Rivolgi lo sguardo verso Victoria."
+        return NarrationProposal(
+            units=(
+                WorldNarrationDraft(
+                    text=text,
+                    evidence_ids=("action:resolved",),
+                    subject_ids=(EntityId("victoria"),),
+                ),
+            )
+        )
+
+
+class RepairThenCleanAuditPort:
+    def __init__(self) -> None:
+        self.calls = 0
+
+    async def invoke(
+        self,
+        request: NarrationAuditContext,
+    ) -> NarrationAuditProposal:
+        self.calls += 1
+        if self.calls == 1:
+            return NarrationAuditProposal(
+                findings=(
+                    NarrationAuditFinding(
+                        kind=NarrationViolationKind.UNSUPPORTED_WORLD_CLAIM,
+                        unit_index=0,
+                    ),
+                )
+            )
+        assert request.candidate.units[0].text == "Rivolgi lo sguardo verso Victoria."
+        return NarrationAuditProposal()
+
+
+class AlwaysRejectedObservationNarrator:
+    async def invoke(self, request: NarrationContext) -> NarrationProposal:
+        del request
+        return NarrationProposal(
+            units=(
+                WorldNarrationDraft(
+                    text="Una luce soprannaturale avvolge Victoria.",
+                    evidence_ids=("action:resolved",),
+                    subject_ids=(EntityId("victoria"),),
+                ),
+            )
+        )
+
+
+class AlwaysRejectingAuditPort:
+    async def invoke(
+        self,
+        request: NarrationAuditContext,
+    ) -> NarrationAuditProposal:
+        del request
+        return NarrationAuditProposal(
+            findings=(
+                NarrationAuditFinding(
+                    kind=NarrationViolationKind.UNSUPPORTED_WORLD_CLAIM,
+                    unit_index=0,
+                ),
+            )
+        )
+
+
+class ReversedFocusedNarrator:
+    async def invoke(self, request: NarrationContext) -> NarrationProposal:
+        return NarrationProposal(
+            units=(
+                WorldNarrationDraft(
+                    text="Le tue parole risuonano nella hall.",
+                    evidence_ids=("player:declared_input",),
+                    subject_ids=(request.player_id,),
+                ),
+                NPCDialogueDraft(
+                    speaker_id=EntityId("victoria"),
+                    text="Benvenuto.",
+                    evidence_ids=("reaction:victoria",),
+                ),
+            )
+        )
+
+
+class TargetFirstAuditPort:
+    async def invoke(
+        self,
+        request: NarrationAuditContext,
+    ) -> NarrationAuditProposal:
+        first = request.candidate.units[0]
+        assert isinstance(first, NPCDialogueDraft)
+        assert first.speaker_id == EntityId("victoria")
+        return NarrationAuditProposal()
+
+
 @pytest.mark.asyncio
 async def test_semantic_audit_blocks_invented_player_decision() -> None:
     service = NarrationService(
@@ -210,6 +349,55 @@ async def test_clean_semantic_audit_allows_validated_narration() -> None:
     result = await service.generate(_context())
 
     assert result.text == "Victoria: Buona sera."
+
+
+@pytest.mark.asyncio
+async def test_semantic_audit_rejection_repairs_narration_before_failing_turn() -> None:
+    narrator = RepairingObservationNarrator()
+    audit = RepairThenCleanAuditPort()
+    service = NarrationService(
+        port=narrator,
+        audit_port=audit,
+        validator=NarrationValidator(),
+        audit_validator=NarrationAuditValidator(),
+    )
+
+    result = await service.generate(_observation_context())
+
+    assert result.text == "Rivolgi lo sguardo verso Victoria."
+    assert narrator.calls == 2
+    assert audit.calls == 2
+
+
+@pytest.mark.asyncio
+async def test_repeated_observation_audit_failure_uses_safe_fallback() -> None:
+    service = NarrationService(
+        port=AlwaysRejectedObservationNarrator(),
+        audit_port=AlwaysRejectingAuditPort(),
+        validator=NarrationValidator(),
+        audit_validator=NarrationAuditValidator(),
+    )
+
+    result = await service.generate(_observation_context())
+
+    assert result.text == "Osservi attentamente Victoria."
+    assert result.units[0].evidence_ids == ("action:resolved",)
+
+
+@pytest.mark.asyncio
+async def test_focused_narration_is_reordered_instead_of_failing_turn() -> None:
+    service = NarrationService(
+        port=ReversedFocusedNarrator(),
+        audit_port=TargetFirstAuditPort(),
+        validator=NarrationValidator(),
+        audit_validator=NarrationAuditValidator(),
+    )
+
+    result = await service.generate(_context())
+
+    assert result.text == (
+        "Victoria: Benvenuto.\nLe tue parole risuonano nella hall."
+    )
 
 
 def test_audit_validator_rejects_out_of_range_unit_reference() -> None:
