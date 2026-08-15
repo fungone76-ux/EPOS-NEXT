@@ -25,6 +25,7 @@ from epos.application.turn import (
     TurnActionResolution,
     TurnCommand,
     TurnMemoryContext,
+    TurnMemoryPlan,
     TurnOrchestrator,
     TurnPsychologyPlan,
 )
@@ -229,10 +230,16 @@ class RecordingMemory:
     def __init__(self, calls: list[str]) -> None:
         self.calls = calls
         self.context: TurnMemoryContext | None = None
+        self.plan = TurnMemoryPlan()
 
-    async def remember(self, context: TurnMemoryContext) -> None:
-        self.calls.append("memory")
+    async def prepare(self, context: TurnMemoryContext) -> TurnMemoryPlan:
+        self.calls.append("memory_prepare")
         self.context = context.model_copy(deep=True)
+        return self.plan.model_copy(deep=True)
+
+    async def store(self, plan: TurnMemoryPlan) -> None:
+        self.calls.append("memory_store")
+        assert plan == self.plan
 
 
 def _no_check_action() -> ValidatedAction:
@@ -322,11 +329,13 @@ async def test_turn_connects_present_npcs_once_and_reuses_one_scene_after_atomic
     assert visual.scene == result.scene
     assert memory.context is not None
     assert memory.context.scene == result.scene
-    assert memory.context.committed_state == result.committed_state
+    assert memory.context.state == result.committed_state
     assert result.memory_stored is True
     assert result.visual is None
     assert tuple(issue.phase for issue in result.post_commit_issues) == ("visual",)
-    assert calls.index("narration") < calls.index("visual") < calls.index("memory")
+    assert calls.index("narration") < calls.index("memory_prepare")
+    assert calls.index("memory_prepare") < calls.index("visual")
+    assert calls.index("visual") < calls.index("memory_store")
 
 
 @pytest.mark.asyncio
@@ -437,6 +446,7 @@ async def test_commit_failure_keeps_dice_checkpoint_and_never_runs_post_commit_w
         )
 
     assert checkpoints.value is not None
+    assert "memory_prepare" in calls
     assert "visual" not in calls
-    assert "memory" not in calls
+    assert "memory_store" not in calls
     assert store.saved == []
