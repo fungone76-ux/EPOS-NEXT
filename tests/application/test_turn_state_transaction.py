@@ -7,10 +7,13 @@ from epos.application.state import (
     AuthoritativeStateManager,
     MutationAuthority,
     MutationBatch,
+    ReplaceNPCBondStateMutation,
     SetNPCIntentionsMutation,
     SetWorldFlagMutation,
+    StaleAuthoritativeStateError,
     StateMutationError,
 )
+from epos.domain.bond import BondPhase, BondState
 from epos.domain.ids import EntityId, LocationId, SessionId, WorldpackId
 from epos.domain.npc import NPCIdentity, NPCState
 from epos.domain.player import PlayerState
@@ -86,9 +89,16 @@ async def test_turn_transaction_commits_multiple_authorities_with_one_save_and_s
             ),
             MutationBatch(
                 producer=MutationAuthority.ENGINE_ONLY,
-                mutations=(AdvanceTurnMutation(),),
+                mutations=(
+                    ReplaceNPCBondStateMutation(
+                        npc_id=EntityId("victoria"),
+                        bond_state=BondState(phase=BondPhase.FORMING),
+                    ),
+                    AdvanceTurnMutation(),
+                ),
             ),
-        )
+        ),
+        expected_state=original,
     )
 
     assert len(store.saved) == 1
@@ -96,6 +106,7 @@ async def test_turn_transaction_commits_multiple_authorities_with_one_save_and_s
     assert committed.npcs[EntityId("victoria")].intentions == (
         "continue_conversation",
     )
+    assert committed.npcs[EntityId("victoria")].bond_state.phase is BondPhase.FORMING
     assert int(committed.turn_number) == 4
     assert manager.snapshot() == committed
 
@@ -122,14 +133,52 @@ async def test_turn_transaction_rejects_late_invalid_batch_without_partial_save_
                         ),
                     ),
                 ),
-            )
+            ),
+            expected_state=original,
         )
 
     assert store.saved == []
     assert manager.snapshot() == original
 
 
-def test_turn_advance_is_engine_only_and_has_no_time_side_effect() -> None:
-    mutation = AdvanceTurnMutation()
-    assert mutation.authority is MutationAuthority.ENGINE_ONLY
-    assert mutation.kind == "advance_turn"
+@pytest.mark.asyncio
+async def test_stale_turn_plan_cannot_commit_over_newer_authoritative_state() -> None:
+    original = _world()
+    store = RecordingStore(original)
+    manager = AuthoritativeStateManager(initial_state=original, state_store=store)
+    pre_turn = manager.snapshot()
+
+    await manager.commit(
+        MutationBatch(
+            producer=MutationAuthority.ENGINE_ONLY,
+            mutations=(SetWorldFlagMutation(key="other_writer", value=True),),
+        )
+    )
+    saves_before_stale_attempt = len(store.saved)
+
+    with pytest.raises(StaleAuthoritativeStateError, match="changed while turn was planned"):
+        await manager.commit_many(
+            (
+                MutationBatch(
+                    producer=MutationAuthority.ENGINE_ONLY,
+                    mutations=(SetWorldFlagMutation(key="stale_plan", value=True),),
+                ),
+            ),
+            expected_state=pre_turn,
+        )
+
+    assert len(store.saved) == saves_before_stale_attempt
+    current = manager.snapshot()
+    assert current.flags == {"other_writer": True}
+
+
+def test_turn_advance_and_bond_replacement_are_engine_only() -> None:
+    turn = AdvanceTurnMutation()
+    bond = ReplaceNPCBondStateMutation(
+        npc_id=EntityId("victoria"),
+        bond_state=BondState(phase=BondPhase.ESTABLISHED),
+    )
+    assert turn.authority is MutationAuthority.ENGINE_ONLY
+    assert turn.kind == "advance_turn"
+    assert bond.authority is MutationAuthority.ENGINE_ONLY
+    assert bond.kind == "replace_npc_bond_state"
