@@ -11,6 +11,7 @@ from epos.application.actions.models import CheckProposal, ResolvedCheck, Valida
 from epos.domain.base import DomainModel
 from epos.domain.bond import BondState
 from epos.domain.ids import EntityId, LocationId, SessionId, TurnNumber
+from epos.domain.memory import EmotionalMemoryState, MemoryEntryState
 from epos.domain.psychology import EmotionalState
 from epos.domain.relationships import RelationshipState
 
@@ -88,6 +89,25 @@ class ReplaceNPCBondStateMutation(DomainModel):
     bond_state: BondState
 
 
+class ReplaceNPCMemoryLayersMutation(DomainModel):
+    kind: Literal["replace_npc_memory_layers"] = "replace_npc_memory_layers"
+    authority: Literal[MutationAuthority.ENGINE_ONLY] = MutationAuthority.ENGINE_ONLY
+    npc_id: EntityId
+    short_term_memory: tuple[MemoryEntryState, ...] = ()
+    core_memories: tuple[MemoryEntryState, ...] = ()
+    emotional_memory: tuple[EmotionalMemoryState, ...] = ()
+
+    @field_validator("short_term_memory")
+    @classmethod
+    def validate_short_term_bound(
+        cls,
+        values: tuple[MemoryEntryState, ...],
+    ) -> tuple[MemoryEntryState, ...]:
+        if len(values) > 20:
+            raise ValueError("short-term memory cannot exceed 20 entries")
+        return values
+
+
 class SetWorldPhaseMutation(DomainModel):
     kind: Literal["set_world_phase"] = "set_world_phase"
     authority: Literal[MutationAuthority.ENGINE_ONLY] = MutationAuthority.ENGINE_ONLY
@@ -117,6 +137,7 @@ StateMutation = Annotated[
     | ReplaceNPCEmotionalStateMutation
     | ReplaceNPCRelationshipMutation
     | ReplaceNPCBondStateMutation
+    | ReplaceNPCMemoryLayersMutation
     | SetWorldPhaseMutation
     | AdvanceTurnMutation,
     Field(discriminator="kind"),
