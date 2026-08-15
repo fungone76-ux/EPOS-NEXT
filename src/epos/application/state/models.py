@@ -9,6 +9,7 @@ from pydantic import Field, field_validator, model_validator
 
 from epos.application.actions.models import CheckProposal, ResolvedCheck, ValidatedAction
 from epos.domain.base import DomainModel
+from epos.domain.bond import BondState
 from epos.domain.ids import EntityId, LocationId, SessionId, TurnNumber
 from epos.domain.psychology import EmotionalState
 from epos.domain.relationships import RelationshipState
@@ -80,6 +81,13 @@ class ReplaceNPCRelationshipMutation(DomainModel):
     relationship: RelationshipState
 
 
+class ReplaceNPCBondStateMutation(DomainModel):
+    kind: Literal["replace_npc_bond_state"] = "replace_npc_bond_state"
+    authority: Literal[MutationAuthority.ENGINE_ONLY] = MutationAuthority.ENGINE_ONLY
+    npc_id: EntityId
+    bond_state: BondState
+
+
 class SetWorldPhaseMutation(DomainModel):
     kind: Literal["set_world_phase"] = "set_world_phase"
     authority: Literal[MutationAuthority.ENGINE_ONLY] = MutationAuthority.ENGINE_ONLY
@@ -108,6 +116,7 @@ StateMutation = Annotated[
     | SetNPCIntentionsMutation
     | ReplaceNPCEmotionalStateMutation
     | ReplaceNPCRelationshipMutation
+    | ReplaceNPCBondStateMutation
     | SetWorldPhaseMutation
     | AdvanceTurnMutation,
     Field(discriminator="kind"),
