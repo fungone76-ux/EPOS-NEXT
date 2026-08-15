@@ -333,7 +333,7 @@ class TurnMemoryCoordinator:
         self._store = store
 
     async def prepare(self, context: TurnMemoryContext) -> TurnMemoryPlan:
-        records = await self._derivation.derive(context)
+        records = await self._derivation.derive(context.derivation_context())
         self._validate_records(context, records)
 
         mutations: list[StateMutation] = []
