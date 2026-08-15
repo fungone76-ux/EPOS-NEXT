@@ -82,7 +82,7 @@ class DefaultTurnActionResolver:
         check_decision: CheckDecision | None,
         resolved_check: ResolvedCheck | None,
     ) -> TurnActionResolution:
-        del state, resolved_check
+        del state
         if action.outfit_request is not None:
             raise TurnOrchestrationError(
                 "default turn resolver has no canonical outfit mutation policy; "
@@ -91,6 +91,17 @@ class DefaultTurnActionResolver:
             )
         if action.check is not None and check_decision is CheckDecision.DECLINE:
             return TurnActionResolution()
+        if action.movement is not None and action.check is not None:
+            if check_decision is not CheckDecision.ROLL or resolved_check is None:
+                raise TurnOrchestrationError(
+                    "checked movement requires a resolved Python check",
+                    code="turn.action.checked_movement_missing_result",
+                )
+            raise TurnOrchestrationError(
+                "default turn resolver cannot map check outcomes to movement; "
+                "inject a Worldpack-specific TurnActionResolverPort",
+                code="turn.action.checked_movement_requires_policy",
+            )
 
         mutations: tuple[StateMutation, ...] = ()
         if action.movement is not None:
