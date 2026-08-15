@@ -116,7 +116,7 @@ def test_request_builder_uses_runtime_checkpoint_and_backend_lora_layer(tmp_path
     assert repeated.snapshot.request_id == built.snapshot.request_id
 
 
-def test_request_builder_rejects_duplicate_lora_weight_aliases(tmp_path: Path) -> None:
+def test_request_builder_rejects_duplicate_lora_weight_aliases() -> None:
     with pytest.raises(ValueError, match="duplicate A1111 LoRA weight alias"):
         A1111RenderProfile(
             lora_weights=(
@@ -136,9 +136,9 @@ async def test_a1111_adapter_posts_txt2img_decodes_and_atomically_saves_image(
     def handler(request: httpx.Request) -> httpx.Response:
         captured["method"] = request.method
         captured["url"] = str(request.url)
-        captured["payload"] = json.loads(request.content)
         if request.method == "GET":
             return httpx.Response(200, json={"sd_model_checkpoint": "runtime-model"})
+        captured["payload"] = json.loads(request.content)
         return httpx.Response(
             200,
             json={
