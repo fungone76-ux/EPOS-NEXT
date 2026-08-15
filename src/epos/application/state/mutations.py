@@ -17,13 +17,14 @@ from epos.application.state.models import (
     SetWorldPhaseMutation,
     StateMutation,
 )
-from epos.domain.ids import TurnNumber
+from epos.domain.ids import EntityId, TurnNumber
+from epos.domain.npc import NPCState
 from epos.domain.world_state import WorldState
 
 
-def _npc(state: WorldState, npc_id: object):
+def _npc(state: WorldState, npc_id: EntityId) -> NPCState:
     try:
-        return state.npcs[npc_id]  # type: ignore[index]
+        return state.npcs[npc_id]
     except KeyError as exc:
         raise StateMutationError(f"unknown npc {npc_id}") from exc
 
@@ -38,24 +39,23 @@ def apply_mutation(state: WorldState, mutation: StateMutation) -> None:
         state.player.location_id = mutation.destination_id
         return
     if isinstance(mutation, SetNPCLocationMutation):
-        npc = _npc(state, mutation.npc_id)
-        npc.location_id = mutation.destination_id
+        _npc(state, mutation.npc_id).location_id = mutation.destination_id
         return
     if isinstance(mutation, SetNPCIntentionsMutation):
-        npc = _npc(state, mutation.npc_id)
-        npc.intentions = mutation.intentions
+        _npc(state, mutation.npc_id).intentions = mutation.intentions
         return
     if isinstance(mutation, ReplaceNPCEmotionalStateMutation):
-        npc = _npc(state, mutation.npc_id)
-        npc.emotional_state = mutation.emotional_state.model_copy(deep=True)
+        _npc(state, mutation.npc_id).emotional_state = mutation.emotional_state.model_copy(
+            deep=True
+        )
         return
     if isinstance(mutation, ReplaceNPCRelationshipMutation):
-        npc = _npc(state, mutation.npc_id)
-        npc.relationships[mutation.partner_id] = mutation.relationship.model_copy(deep=True)
+        _npc(state, mutation.npc_id).relationships[mutation.partner_id] = (
+            mutation.relationship.model_copy(deep=True)
+        )
         return
     if isinstance(mutation, ReplaceNPCBondStateMutation):
-        npc = _npc(state, mutation.npc_id)
-        npc.bond_state = mutation.bond_state.model_copy(deep=True)
+        _npc(state, mutation.npc_id).bond_state = mutation.bond_state.model_copy(deep=True)
         return
     if isinstance(mutation, SetWorldPhaseMutation):
         state.world_phase = mutation.world_phase
