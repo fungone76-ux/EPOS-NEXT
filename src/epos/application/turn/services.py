@@ -14,6 +14,12 @@ from epos.application.conversation import (
     NarrationResult,
     NarrationService,
 )
+from epos.application.memory import (
+    LongTermMemoryRecord,
+    MemoryHit,
+    MemoryRecallQuery,
+)
+from epos.application.ports import MemoryStorePort
 from epos.application.psychology import PsychologyService
 from epos.application.state import (
     MutationAuthority,
@@ -30,16 +36,18 @@ from epos.application.turn.models import (
     BondDerivationContext,
     CheckDecision,
     TurnActionResolution,
+    TurnMemoryContext,
     TurnPsychologyPlan,
 )
 from epos.application.turn.ports import (
     BondDerivationPort,
     PsychologyProfilePort,
+    TurnMemoryDerivationPort,
     TurnPsychologicalEventPort,
     TurnVisualResourcesPort,
 )
 from epos.application.visual.bridge import VisualPipelineResult, VisualTurnPipeline
-from epos.application.visual.models import ObservableSceneState, SceneObservationInput
+from epos.application.visual.models import ObservableSceneState, SceneObservationInput, SubjectKind
 from epos.application.visual.observable_scene import ObservableSceneBuilder
 from epos.domain.ids import EntityId
 from epos.domain.relationships import RelationshipState
@@ -288,3 +296,51 @@ class VisualTurnPipelineAdapter(Generic[RequestT]):
             scene=scene,
             resources=self._resources.resources_for(scene),
         )
+
+
+class LongTermTurnMemoryWriter:
+    """Persist only validated memories for NPCs that actually perceived this scene."""
+
+    def __init__(
+        self,
+        *,
+        derivation: TurnMemoryDerivationPort,
+        store: MemoryStorePort[LongTermMemoryRecord, MemoryRecallQuery, MemoryHit],
+    ) -> None:
+        self._derivation = derivation
+        self._store = store
+
+    async def remember(self, context: TurnMemoryContext) -> None:
+        records = await self._derivation.derive(context)
+        present_npcs = {
+            subject.entity_id
+            for subject in context.scene.subjects
+            if subject.kind is SubjectKind.NPC
+        }
+        seen: set[tuple[EntityId, str]] = set()
+        for record in records:
+            if record.npc_id not in present_npcs:
+                raise TurnOrchestrationError(
+                    f"memory record targets off-scene NPC {record.npc_id}",
+                    code="turn.memory.offscene_target",
+                )
+            if record.npc_id not in context.committed_state.npcs:
+                raise TurnOrchestrationError(
+                    f"memory record targets unknown NPC {record.npc_id}",
+                    code="turn.memory.unknown_npc",
+                )
+            if record.memory.turn != context.committed_state.turn_number:
+                raise TurnOrchestrationError(
+                    "memory turn does not match committed authoritative turn",
+                    code="turn.memory.turn_mismatch",
+                )
+            key = (record.npc_id, str(record.memory.memory_id))
+            if key in seen:
+                raise TurnOrchestrationError(
+                    f"duplicate memory record {record.memory.memory_id} for {record.npc_id}",
+                    code="turn.memory.duplicate",
+                )
+            seen.add(key)
+
+        for record in records:
+            await self._store.add(record)
