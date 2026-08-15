@@ -21,6 +21,7 @@ from epos.application.turn.models import (
     TargetedPsychologicalEvent,
     TurnActionResolution,
     TurnMemoryContext,
+    TurnMemoryPlan,
     TurnPsychologyPlan,
 )
 from epos.application.visual.bridge import VisualPipelineResources, VisualPipelineResult
@@ -135,4 +136,6 @@ class TurnMemoryDerivationPort(Protocol):
 
 
 class TurnMemoryPort(Protocol):
-    async def remember(self, context: TurnMemoryContext) -> None: ...
+    async def prepare(self, context: TurnMemoryContext) -> TurnMemoryPlan: ...
+
+    async def store(self, plan: TurnMemoryPlan) -> None: ...
