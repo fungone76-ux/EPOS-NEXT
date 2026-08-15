@@ -45,7 +45,7 @@ async def test_two_worldpacks_drive_different_skill_checks_without_core_changes(
     resort_validated = ActionValidator().validate(resort_action, resort_context)
     bronze_validated = ActionValidator().validate(bronze_action, bronze_context)
 
-    assert resort_validated.skill_rating == 4
+    assert resort_validated.skill_rating == 2
     assert bronze_validated.skill_rating == 3
     assert SkillId("sarissa") not in resort_state.skill_definitions
     assert SkillId("negoziazione") not in bronze_state.skill_definitions

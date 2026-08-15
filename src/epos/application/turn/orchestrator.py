@@ -6,6 +6,7 @@ import asyncio
 
 from epos.application.actions.models import ActionInterpreterContext, ResolvedCheck, ValidatedAction
 from epos.application.cognition.models import CognitionResult, CognitionScene
+from epos.application.intimacy.turn import PythonTurnIntimacyResolver
 from epos.application.recovery import ErrorRecoveryPolicy, RecoveryAction
 from epos.application.state import (
     AdvanceTurnMutation,
@@ -36,6 +37,7 @@ from epos.application.turn.ports import (
     TurnActionResolverPort,
     TurnCheckResolverPort,
     TurnCognitionPort,
+    TurnIntimacyPort,
     TurnMemoryPort,
     TurnNarrationPort,
     TurnPsychologyPort,
@@ -43,7 +45,7 @@ from epos.application.turn.ports import (
     TurnVisualPort,
 )
 from epos.application.visual.models import ObservableConsequence
-from epos.domain.ids import EntityId
+from epos.domain.ids import EntityId, TurnNumber
 from epos.domain.world_state import WorldState
 
 
@@ -66,6 +68,7 @@ class TurnOrchestrator:
         visual: TurnVisualPort,
         memory: TurnMemoryPort,
         npc_outfits: NPCOutfitMutationPlannerPort | None = None,
+        intimacy: TurnIntimacyPort | None = None,
     ) -> None:
         self._state = state
         self._checkpoint = checkpoint
@@ -80,6 +83,7 @@ class TurnOrchestrator:
         self._visual = visual
         self._memory = memory
         self._npc_outfits = npc_outfits or PythonNPCOutfitMutationPlanner()
+        self._intimacy = intimacy or PythonTurnIntimacyResolver()
         self._turn_lock = asyncio.Lock()
 
     async def run(self, command: TurnCommand) -> TurnOrchestrationResult:
@@ -131,6 +135,12 @@ class TurnOrchestrator:
             action=action,
             resolved_check=resolved_check,
         )
+        intimacy_resolution = self._intimacy.resolve(
+            state=psychological_state,
+            action=action,
+            reactions=cognition_results,
+            turn=TurnNumber(int(pre_state.turn_number) + 1),
+        )
         reaction_batch = self._reaction_mutations.plan(cognition_results)
         outfit_batch = self._npc_outfits.plan(
             state=psychological_state,
@@ -150,11 +160,21 @@ class TurnOrchestrator:
         )
         projected_turn = self._state.project_many(base_batches, base_state=pre_state)
 
+        scene_resolution = action_resolution.model_copy(
+            update={
+                "authorized_intimacy_visual": (
+                    None
+                    if intimacy_resolution is None
+                    else intimacy_resolution.visual
+                )
+            },
+            deep=True,
+        )
         scene = self._scene_builder.build(
             state=projected_turn,
             action=action,
             resolved_check=resolved_check,
-            resolution=action_resolution,
+            resolution=scene_resolution,
         )
         narration = await self._narration.generate(
             state=projected_turn,
@@ -213,6 +233,7 @@ class TurnOrchestrator:
             resolved_check=resolved_check,
             checkpoint_reused=reused,
             cognition_results=cognition_results,
+            intimacy=intimacy_resolution,
             scene=scene,
             narration=narration,
             visual=visual_result,

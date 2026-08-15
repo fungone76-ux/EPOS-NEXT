@@ -1,5 +1,19 @@
 locations:
-  - location_id: lobby
-    name: Lobby
-  - location_id: pool
-    name: Pool
+- location_id: loc_suite
+  name: Suite presidenziale
+- location_id: loc_lobby
+  name: Lobby
+- location_id: loc_restaurant
+  name: Ristorante
+- location_id: loc_pool
+  name: Piscina infinity
+- location_id: loc_spa
+  name: Spa
+- location_id: loc_private_beach
+  name: Spiaggia privata
+- location_id: loc_wild_beach
+  name: Spiaggia selvaggia
+- location_id: loc_lounge
+  name: Lounge bar
+- location_id: loc_victoria_office
+  name: Ufficio di Victoria

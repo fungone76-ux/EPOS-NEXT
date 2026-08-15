@@ -93,6 +93,7 @@ class CanonicalVST(DomainModel):
     location: CanonicalLocation
     subjects: tuple[CanonicalSubject, ...]
     action: CanonicalAction
+    adult_action: ResolvedSemanticEntry | None = None
     visual_focus: CanonicalVisualFocus
     camera: CanonicalCamera
     lighting: VSTLightingIntent

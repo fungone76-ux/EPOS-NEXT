@@ -114,6 +114,10 @@ async def test_cleaned_resort_libraries_load_with_expected_counts_and_metadata()
 
     assert loaded.location_visual_library.world_id == WorldpackId("resort_world")
     assert loaded.outfit_library.world_id == WorldpackId("resort_world")
+    assert loaded.sex_library is not None
+    assert loaded.sex_library.library_id == "sex_library"
+    assert loaded.sex_library.content_rating == "adult_18_plus"
+    assert len(loaded.sex_library.entries) == 151
 
 
 def _assert_exact_aliases_are_unique(library: SemanticLibraryDocument) -> None:
@@ -200,7 +204,7 @@ async def test_world_bound_library_rejects_wrong_world_id(tmp_path: Path) -> Non
 
 
 @pytest.mark.asyncio
-async def test_adult_library_schema_is_gated_and_not_part_of_standard_worldpack() -> None:
+async def test_adult_library_schema_is_gated_and_loaded_separately() -> None:
     adult = AdultSemanticLibraryDocument.model_validate(
         {
             "schema_version": 1,
@@ -218,7 +222,9 @@ async def test_adult_library_schema_is_gated_and_not_part_of_standard_worldpack(
         RESORT_ROOT,
         session_id="adult-library-gating",
     )
-    assert "sex_library" not in type(loaded).model_fields
+    assert loaded.sex_library is not None
+    assert loaded.sex_library.content_rating == "adult_18_plus"
+    assert len(loaded.sex_library.entries) == 151
 
 
 def _canonical_with_outfit(item: OutfitItem) -> CanonicalVST:

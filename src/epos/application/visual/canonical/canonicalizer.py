@@ -87,6 +87,11 @@ class VisualCanonicalizer:
             ),
             shared=raw_vst.action.shared,
         )
+        adult_action = self._authorized_adult_action(
+            scene=scene,
+            rendered_ids=rendered_ids,
+            worldpack=worldpack,
+        )
         camera_components: tuple[SemanticIntent, ...]
         if requested_focus is not None and requested_focus.reason == "player_observation":
             if requested_focus.region is None:
@@ -147,11 +152,41 @@ class VisualCanonicalizer:
             ),
             subjects=subjects,
             action=action,
+            adult_action=adult_action,
             visual_focus=focus,
             camera=camera,
             lighting=raw_vst.lighting.model_copy(deep=True),
             style=raw_vst.style.model_copy(deep=True),
             safety=raw_vst.safety.model_copy(deep=True),
+        )
+
+    def _authorized_adult_action(
+        self,
+        *,
+        scene: ObservableSceneState,
+        rendered_ids: set[EntityId],
+        worldpack: LoadedWorldpack,
+    ) -> ResolvedSemanticEntry | None:
+        authorized = scene.authorized_intimacy_visual
+        if authorized is None:
+            return None
+        for participant in (authorized.player_id, authorized.npc_id):
+            if participant not in rendered_ids:
+                raise VisualCanonicalizationError(
+                    f"authorized intimacy participant is not rendered: {participant}"
+                )
+        library = worldpack.sex_library
+        if library is None:
+            raise VisualCanonicalizationError(
+                "authorized intimacy requires the Worldpack sex_library"
+            )
+        return self._resolver.resolve(
+            SemanticIntent(
+                description=authorized.visual_intent,
+                tags=authorized.visual_tags,
+            ),
+            library,
+            library_name="sex",
         )
 
     @staticmethod

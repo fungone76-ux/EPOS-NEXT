@@ -10,6 +10,10 @@ from pydantic import Field, field_validator, model_validator
 from epos.application.actions.models import ResolvedCheck, ValidatedAction
 from epos.application.cognition.models import CognitionResult, ValidatedNPCReaction
 from epos.application.conversation.models import NarrationResult
+from epos.application.intimacy.models import (
+    AuthorizedIntimacyVisual,
+    IntimacyTurnResolution,
+)
 from epos.application.memory import LongTermMemoryRecord
 from epos.application.psychology.models import PsychologicalEvent
 from epos.application.state import (
@@ -56,6 +60,7 @@ class TurnActionResolution(DomainModel):
     mutation_batches: tuple[MutationBatch, ...] = ()
     subject_cues: tuple[SceneSubjectCue, ...] = ()
     observable_consequences: tuple[ObservableConsequence, ...] = ()
+    authorized_intimacy_visual: AuthorizedIntimacyVisual | None = None
 
 
 class TargetedPsychologicalEvent(DomainModel):
@@ -152,6 +157,7 @@ class TurnOrchestrationResult(DomainModel):
     resolved_check: ResolvedCheck | None = None
     checkpoint_reused: bool = False
     cognition_results: tuple[CognitionResult, ...] = ()
+    intimacy: IntimacyTurnResolution | None = None
     scene: ObservableSceneState
     narration: NarrationResult
     visual: VisualPipelineResult | None = None

@@ -8,6 +8,7 @@ from enum import StrEnum
 from pydantic import Field, field_validator
 
 from epos.application.actions.models import ResolvedCheck, ValidatedAction
+from epos.application.intimacy.models import ConsentScope, ConsentStatus
 from epos.application.memory import RankedMemory
 from epos.domain.base import DomainModel
 from epos.domain.bond import BondState
@@ -168,6 +169,13 @@ class NPCOutfitAction(DomainModel):
         return normalized
 
 
+class NPCIntimacyResponse(DomainModel):
+    """The NPC's explicit scoped answer; Python binds actors and turn later."""
+
+    scope: ConsentScope
+    status: ConsentStatus
+
+
 class NPCReactionProposal(DomainModel):
     """Token-only semantic LLM proposal; it has no player-facing prose channel."""
 
@@ -182,6 +190,7 @@ class NPCReactionProposal(DomainModel):
     requested_secret_disclosures: tuple[str, ...] = ()
     outfit_request_response: NPCOutfitRequestResponse | None = None
     autonomous_outfit_action: NPCOutfitAction | None = None
+    intimacy_response: NPCIntimacyResponse | None = None
 
     @field_validator("intent", "speech_act")
     @classmethod
@@ -215,6 +224,7 @@ class ValidatedNPCReaction(DomainModel):
     authorized_secret_disclosures: tuple[str, ...] = ()
     outfit_request_response: NPCOutfitRequestResponse | None = None
     autonomous_outfit_action: NPCOutfitAction | None = None
+    intimacy_response: NPCIntimacyResponse | None = None
 
 
 class CognitionResult(DomainModel):

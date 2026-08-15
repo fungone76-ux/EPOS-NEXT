@@ -1,0 +1,233 @@
+schedules:
+- npc_id: victoria
+  entries:
+  - phase: day_1_mattina
+    location_id: loc_lobby
+  - phase: day_1_pomeriggio
+    location_id: loc_victoria_office
+  - phase: day_1_sera
+    location_id: loc_restaurant
+  - phase: day_1_notte
+    location_id: loc_lounge
+  - phase: day_2_mattina
+    location_id: loc_restaurant
+  - phase: day_2_pomeriggio
+    location_id: loc_victoria_office
+  - phase: day_2_sera
+    location_id: loc_lounge
+  - phase: day_2_notte
+    location_id: loc_suite
+  - phase: day_3_mattina
+    location_id: loc_lobby
+  - phase: day_3_pomeriggio
+    location_id: loc_pool
+  - phase: day_3_sera
+    location_id: loc_victoria_office
+  - phase: day_3_notte
+    location_id: loc_lounge
+  - phase: day_4_mattina
+    location_id: loc_victoria_office
+  - phase: day_4_pomeriggio
+    location_id: loc_spa
+  - phase: day_4_sera
+    location_id: loc_restaurant
+  - phase: day_4_notte
+    location_id: loc_victoria_office
+  - phase: day_5_mattina
+    location_id: loc_private_beach
+  - phase: day_5_pomeriggio
+    location_id: loc_victoria_office
+  - phase: day_5_sera
+    location_id: loc_lounge
+  - phase: day_5_notte
+    location_id: loc_suite
+  - phase: day_6_mattina
+    location_id: loc_lobby
+  - phase: day_6_pomeriggio
+    location_id: loc_restaurant
+  - phase: day_6_sera
+    location_id: loc_victoria_office
+  - phase: day_6_notte
+    location_id: loc_lounge
+  - phase: day_7_mattina
+    location_id: loc_victoria_office
+  - phase: day_7_pomeriggio
+    location_id: loc_lobby
+  - phase: day_7_sera
+    location_id: loc_victoria_office
+  - phase: day_7_notte
+    location_id: loc_suite
+- npc_id: stella
+  entries:
+  - phase: day_1_mattina
+    location_id: loc_pool
+  - phase: day_1_pomeriggio
+    location_id: loc_private_beach
+  - phase: day_1_sera
+    location_id: loc_lounge
+  - phase: day_1_notte
+    location_id: loc_suite
+  - phase: day_2_mattina
+    location_id: loc_restaurant
+  - phase: day_2_pomeriggio
+    location_id: loc_pool
+  - phase: day_2_sera
+    location_id: loc_lounge
+  - phase: day_2_notte
+    location_id: loc_private_beach
+  - phase: day_3_mattina
+    location_id: loc_private_beach
+  - phase: day_3_pomeriggio
+    location_id: loc_spa
+  - phase: day_3_sera
+    location_id: loc_restaurant
+  - phase: day_3_notte
+    location_id: loc_lounge
+  - phase: day_4_mattina
+    location_id: loc_lobby
+  - phase: day_4_pomeriggio
+    location_id: loc_pool
+  - phase: day_4_sera
+    location_id: loc_lounge
+  - phase: day_4_notte
+    location_id: loc_suite
+  - phase: day_5_mattina
+    location_id: loc_restaurant
+  - phase: day_5_pomeriggio
+    location_id: loc_private_beach
+  - phase: day_5_sera
+    location_id: loc_victoria_office
+  - phase: day_5_notte
+    location_id: loc_lounge
+  - phase: day_6_mattina
+    location_id: loc_pool
+  - phase: day_6_pomeriggio
+    location_id: loc_spa
+  - phase: day_6_sera
+    location_id: loc_restaurant
+  - phase: day_6_notte
+    location_id: loc_private_beach
+  - phase: day_7_mattina
+    location_id: loc_lobby
+  - phase: day_7_pomeriggio
+    location_id: loc_lounge
+  - phase: day_7_sera
+    location_id: loc_victoria_office
+  - phase: day_7_notte
+    location_id: loc_suite
+- npc_id: maria
+  entries:
+  - phase: day_1_mattina
+    location_id: loc_restaurant
+  - phase: day_1_pomeriggio
+    location_id: loc_suite
+  - phase: day_1_sera
+    location_id: loc_suite
+  - phase: day_1_notte
+    location_id: loc_spa
+  - phase: day_2_mattina
+    location_id: loc_lobby
+  - phase: day_2_pomeriggio
+    location_id: loc_spa
+  - phase: day_2_sera
+    location_id: loc_restaurant
+  - phase: day_2_notte
+    location_id: loc_suite
+  - phase: day_3_mattina
+    location_id: loc_suite
+  - phase: day_3_pomeriggio
+    location_id: loc_restaurant
+  - phase: day_3_sera
+    location_id: loc_spa
+  - phase: day_3_notte
+    location_id: loc_suite
+  - phase: day_4_mattina
+    location_id: loc_restaurant
+  - phase: day_4_pomeriggio
+    location_id: loc_private_beach
+  - phase: day_4_sera
+    location_id: loc_suite
+  - phase: day_4_notte
+    location_id: loc_lounge
+  - phase: day_5_mattina
+    location_id: loc_spa
+  - phase: day_5_pomeriggio
+    location_id: loc_suite
+  - phase: day_5_sera
+    location_id: loc_restaurant
+  - phase: day_5_notte
+    location_id: loc_suite
+  - phase: day_6_mattina
+    location_id: loc_lobby
+  - phase: day_6_pomeriggio
+    location_id: loc_restaurant
+  - phase: day_6_sera
+    location_id: loc_spa
+  - phase: day_6_notte
+    location_id: loc_suite
+  - phase: day_7_mattina
+    location_id: loc_suite
+  - phase: day_7_pomeriggio
+    location_id: loc_victoria_office
+  - phase: day_7_sera
+    location_id: loc_restaurant
+  - phase: day_7_notte
+    location_id: loc_suite
+- npc_id: luna
+  entries:
+  - phase: day_1_mattina
+    location_id: loc_private_beach
+  - phase: day_1_pomeriggio
+    location_id: loc_wild_beach
+  - phase: day_1_sera
+    location_id: loc_lounge
+  - phase: day_1_notte
+    location_id: loc_wild_beach
+  - phase: day_2_mattina
+    location_id: loc_pool
+  - phase: day_2_pomeriggio
+    location_id: loc_private_beach
+  - phase: day_2_sera
+    location_id: loc_restaurant
+  - phase: day_2_notte
+    location_id: loc_lounge
+  - phase: day_3_mattina
+    location_id: loc_wild_beach
+  - phase: day_3_pomeriggio
+    location_id: loc_spa
+  - phase: day_3_sera
+    location_id: loc_wild_beach
+  - phase: day_3_notte
+    location_id: loc_suite
+  - phase: day_4_mattina
+    location_id: loc_private_beach
+  - phase: day_4_pomeriggio
+    location_id: loc_lobby
+  - phase: day_4_sera
+    location_id: loc_restaurant
+  - phase: day_4_notte
+    location_id: loc_wild_beach
+  - phase: day_5_mattina
+    location_id: loc_pool
+  - phase: day_5_pomeriggio
+    location_id: loc_wild_beach
+  - phase: day_5_sera
+    location_id: loc_lounge
+  - phase: day_5_notte
+    location_id: loc_private_beach
+  - phase: day_6_mattina
+    location_id: loc_spa
+  - phase: day_6_pomeriggio
+    location_id: loc_private_beach
+  - phase: day_6_sera
+    location_id: loc_restaurant
+  - phase: day_6_notte
+    location_id: loc_wild_beach
+  - phase: day_7_mattina
+    location_id: loc_wild_beach
+  - phase: day_7_pomeriggio
+    location_id: loc_lobby
+  - phase: day_7_sera
+    location_id: loc_victoria_office
+  - phase: day_7_notte
+    location_id: loc_suite

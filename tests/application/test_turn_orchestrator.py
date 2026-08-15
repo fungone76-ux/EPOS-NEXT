@@ -7,10 +7,12 @@ from epos.application.actions.models import (
     CheckProposal,
     ResolvedCheck,
     ValidatedAction,
+    ValidatedIntimacyRequest,
     ValidatedOutfitRequest,
 )
 from epos.application.cognition.models import (
     CognitionResult,
+    NPCIntimacyResponse,
     NPCOutfitRequestResponse,
     OutfitRequestDisposition,
     ValidatedNPCReaction,
@@ -21,6 +23,7 @@ from epos.application.conversation.models import (
     NarrationResult,
     WorldNarrationDraft,
 )
+from epos.application.intimacy import ConsentScope, ConsentStatus
 from epos.application.state import AuthoritativeStateManager, DiceCheckpoint, DiceCheckpointService
 from epos.application.turn import (
     CheckDecision,
@@ -238,6 +241,23 @@ class AcceptingOutfitCognition:
         )
 
 
+class GrantingIntimacyCognition:
+    async def react(self, **kwargs) -> CognitionResult:
+        npc_id = kwargs["npc_id"]
+        return CognitionResult(
+            reaction=ValidatedNPCReaction(
+                npc_id=npc_id,
+                intent="accept_intimacy",
+                speech_act="agree",
+                target_ids=(EntityId("player"),),
+                intimacy_response=NPCIntimacyResponse(
+                    scope=ConsentScope.KISS,
+                    status=ConsentStatus.GRANTED,
+                ),
+            )
+        )
+
+
 class FakeNarration:
     def __init__(self, calls: list[str]) -> None:
         self.calls = calls
@@ -389,6 +409,46 @@ async def test_accepted_npc_outfit_is_committed_before_shared_scene_and_render()
         subject for subject in result.scene.visible_subjects if subject.entity_id == "victoria"
     )
     assert tuple(item.item_id for item in victoria.outfit.items) == expected
+    assert narration.scene == result.scene
+    assert visual.scene == result.scene
+    assert memory.context is not None and memory.context.scene == result.scene
+
+
+@pytest.mark.asyncio
+async def test_explicit_two_party_consent_reaches_the_shared_visual_scene() -> None:
+    calls: list[str] = []
+    world = _world()
+    world.player.adult_verified = True
+    world.npcs[EntityId("victoria")].adult_verified = True
+    store = RecordingStateStore(world)
+    checkpoints = MemoryCheckpointStore()
+    action = ValidatedAction(
+        intent="intimacy_request",
+        target_ids=(EntityId("victoria"),),
+        intimacy_request=ValidatedIntimacyRequest(
+            target_id=EntityId("victoria"),
+            scope=ConsentScope.KISS,
+            visual_intent="passionate kiss",
+            visual_tags=("kiss", "passionate"),
+        ),
+    )
+    orchestrator, _, _, _, narration, visual, memory = _orchestrator(
+        action=action,
+        state_store=store,
+        checkpoint_store=checkpoints,
+        calls=calls,
+        cognition=GrantingIntimacyCognition(),
+    )
+
+    result = await orchestrator.run(
+        TurnCommand(player_input="Chiedo a Victoria un bacio appassionato")
+    )
+
+    assert result.intimacy is not None
+    assert result.intimacy.authorization.allowed is True
+    assert result.scene.authorized_intimacy_visual == result.intimacy.visual
+    assert result.scene.authorized_intimacy_visual is not None
+    assert result.scene.authorized_intimacy_visual.authorization.turn == 2
     assert narration.scene == result.scene
     assert visual.scene == result.scene
     assert memory.context is not None and memory.context.scene == result.scene

@@ -1,0 +1,1733 @@
+schema_version: 1
+library_id: sex_library
+description: Posizioni, stati di nudità e azioni intime visibili per EPOS NEXT. Tutti i personaggi sono adulti. Il consenso
+  è governato dal modulo Intimacy.
+content_rating: adult_18_plus
+entries:
+- entry_id: fully_clothed
+  description: subject fully clothed
+  aliases:
+  - fully dressed
+  - completely clothed
+  - all clothes on
+  tags:
+  - nudity
+  - clothed
+  - full
+  positive_fragment: fully clothed
+- entry_id: partially_unbuttoned
+  description: shirt or dress partially unbuttoned
+  aliases:
+  - unbuttoned
+  - open shirt
+  - partially open
+  tags:
+  - nudity
+  - partial
+  - unbuttoned
+  positive_fragment: partially unbuttoned top
+- entry_id: open_blazer_no_blouse
+  description: open blazer with no blouse underneath
+  aliases:
+  - open blazer
+  - blazer only
+  - bare under blazer
+  tags:
+  - nudity
+  - partial
+  - blazer
+  positive_fragment: open blazer, no blouse
+- entry_id: shoulders_exposed
+  description: shoulders exposed, off-shoulder
+  aliases:
+  - bare shoulders
+  - off shoulder
+  - shoulders showing
+  tags:
+  - nudity
+  - partial
+  - shoulders
+  positive_fragment: bare shoulders
+- entry_id: back_exposed
+  description: back exposed, backless outfit
+  aliases:
+  - bare back
+  - backless
+  - exposed back
+  tags:
+  - nudity
+  - partial
+  - back
+  positive_fragment: bare back
+- entry_id: midriff_exposed
+  description: midriff exposed
+  aliases:
+  - bare midriff
+  - stomach showing
+  - exposed belly
+  tags:
+  - nudity
+  - partial
+  - midriff
+  positive_fragment: bare midriff
+- entry_id: side_boob_visible
+  description: side of breast visible
+  aliases:
+  - side breast
+  - side boob
+  - breast side visible
+  tags:
+  - nudity
+  - partial
+  - breast
+  positive_fragment: side breast visible
+- entry_id: underboob_visible
+  description: underboob visible
+  aliases:
+  - under breast
+  - underboob
+  - breast underside
+  tags:
+  - nudity
+  - partial
+  - breast
+  positive_fragment: underboob visible
+- entry_id: cleavage_visible
+  description: deep cleavage visible
+  aliases:
+  - cleavage
+  - deep cleavage
+  - breast cleavage
+  tags:
+  - nudity
+  - partial
+  - cleavage
+  positive_fragment: deep cleavage
+- entry_id: one_breast_exposed
+  description: one breast exposed
+  aliases:
+  - one breast out
+  - single breast exposed
+  tags:
+  - nudity
+  - partial
+  - breast
+  positive_fragment: one breast exposed
+- entry_id: both_breasts_exposed
+  description: both breasts exposed, topless
+  aliases:
+  - topless
+  - bare breasts
+  - both breasts out
+  tags:
+  - nudity
+  - topless
+  - breasts
+  positive_fragment: topless, bare breasts
+- entry_id: nipples_visible
+  description: nipples visible
+  aliases:
+  - bare nipples
+  - nipples exposed
+  - nipples showing
+  tags:
+  - nudity
+  - explicit
+  - nipples
+  positive_fragment: nipples visible
+- entry_id: thighs_exposed
+  description: thighs exposed, short hem
+  aliases:
+  - bare thighs
+  - thighs showing
+  - exposed legs
+  tags:
+  - nudity
+  - partial
+  - thighs
+  positive_fragment: bare thighs
+- entry_id: high_slit_exposed_leg
+  description: high slit exposing leg
+  aliases:
+  - leg through slit
+  - slit exposing leg
+  - thigh through slit
+  tags:
+  - nudity
+  - partial
+  - leg
+  positive_fragment: high slit exposing leg
+- entry_id: panties_visible
+  description: panties visible under skirt
+  aliases:
+  - visible panties
+  - panties showing
+  - underwear visible
+  tags:
+  - nudity
+  - partial
+  - panties
+  positive_fragment: panties visible
+- entry_id: g_string_visible
+  description: g-string visible
+  aliases:
+  - visible g-string
+  - thong visible
+  - gstring showing
+  tags:
+  - nudity
+  - partial
+  - gstring
+  positive_fragment: g-string visible
+- entry_id: bottomless
+  description: bottomless, no lower garments
+  aliases:
+  - no panties
+  - bare bottom
+  - bottomless
+  tags:
+  - nudity
+  - bottomless
+  - exposed
+  positive_fragment: bottomless
+- entry_id: fully_nude
+  description: fully nude, no clothing
+  aliases:
+  - completely nude
+  - fully naked
+  - nude
+  tags:
+  - nudity
+  - full
+  - nude
+  positive_fragment: fully nude
+- entry_id: nude_from_behind
+  description: nude seen from behind
+  aliases:
+  - nude back view
+  - naked from behind
+  - rear nude
+  tags:
+  - nudity
+  - full
+  - rear
+  positive_fragment: nude from behind
+- entry_id: nude_side_view
+  description: nude in side view
+  aliases:
+  - lateral nude
+  tags:
+  - nudity
+  - full
+  - side
+  positive_fragment: nude side view
+- entry_id: topless_bottom_on
+  description: topless with bottom garments on
+  aliases:
+  - topless skirt
+  - topless panties
+  - bare breasts clothed bottom
+  tags:
+  - nudity
+  - topless
+  - partial
+  positive_fragment: topless, bottom on
+- entry_id: lingerie_only
+  description: wearing only lingerie
+  aliases:
+  - in lingerie
+  - lingerie only
+  - underwear only
+  tags:
+  - nudity
+  - lingerie
+  - partial
+  positive_fragment: wearing only lingerie
+- entry_id: bra_and_panties
+  description: bra and panties only
+  aliases:
+  - in bra and panties
+  - underwear set
+  - bra panties
+  tags:
+  - nudity
+  - lingerie
+  - partial
+  positive_fragment: bra and panties
+- entry_id: sheer_lingerie
+  description: sheer see-through lingerie
+  aliases:
+  - see through lingerie
+  - transparent lingerie
+  - sheer underwear
+  tags:
+  - nudity
+  - lingerie
+  - sheer
+  positive_fragment: sheer see-through lingerie
+- entry_id: wet_clothing_transparent
+  description: wet clothing becoming transparent
+  aliases:
+  - wet shirt
+  - wet dress
+  - see through wet
+  tags:
+  - nudity
+  - wet
+  - transparent
+  positive_fragment: wet transparent clothing
+- entry_id: oiled_skin
+  description: oiled shiny skin
+  aliases:
+  - oiled body
+  - shiny skin
+  - glistening skin
+  tags:
+  - skin
+  - oiled
+  - shiny
+  positive_fragment: oiled shiny skin
+- entry_id: focus_breasts
+  description: visual focus on breasts
+  aliases:
+  - breast focus
+  - chest focus
+  - bust emphasis
+  tags:
+  - focus
+  - breasts
+  - body_part
+  positive_fragment: breasts in focus
+- entry_id: focus_buttocks
+  description: visual focus on buttocks
+  aliases:
+  - butt focus
+  - ass focus
+  - rear emphasis
+  tags:
+  - focus
+  - buttocks
+  - body_part
+  positive_fragment: buttocks in focus
+- entry_id: focus_thighs
+  description: visual focus on thighs
+  aliases:
+  - thigh focus
+  - upper legs
+  tags:
+  - focus
+  - thighs
+  - body_part
+  positive_fragment: thighs in focus
+- entry_id: focus_legs
+  description: visual focus on legs
+  aliases:
+  - long legs
+  - legs emphasis
+  tags:
+  - focus
+  - legs
+  - body_part
+  positive_fragment: legs in focus
+- entry_id: focus_hips
+  description: visual focus on hips
+  aliases:
+  - hip focus
+  - wide hips
+  - hip emphasis
+  tags:
+  - focus
+  - hips
+  - body_part
+  positive_fragment: hips in focus
+- entry_id: focus_waist
+  description: visual focus on waist
+  aliases:
+  - waist focus
+  - narrow waist
+  - waist emphasis
+  tags:
+  - focus
+  - waist
+  - body_part
+  positive_fragment: waist in focus
+- entry_id: focus_back
+  description: visual focus on back
+  aliases:
+  - back focus
+  - spine
+  - back emphasis
+  tags:
+  - focus
+  - back
+  - body_part
+  positive_fragment: back in focus
+- entry_id: focus_neck
+  description: visual focus on neck
+  aliases:
+  - neck focus
+  - throat
+  - neck emphasis
+  tags:
+  - focus
+  - neck
+  - body_part
+  positive_fragment: neck in focus
+- entry_id: focus_hands
+  description: visual focus on hands
+  aliases:
+  - hand focus
+  - hands
+  - fingers
+  tags:
+  - focus
+  - hands
+  - body_part
+  positive_fragment: hands in focus
+- entry_id: focus_feet
+  description: visual focus on feet
+  aliases:
+  - foot focus
+  - bare feet
+  - feet emphasis
+  tags:
+  - focus
+  - feet
+  - body_part
+  positive_fragment: feet in focus
+- entry_id: focus_lips
+  description: visual focus on lips
+  aliases:
+  - lip focus
+  - mouth
+  - lips emphasis
+  tags:
+  - focus
+  - lips
+  - body_part
+  positive_fragment: lips in focus
+- entry_id: reclining_nude_bed
+  description: nude reclining on bed
+  aliases:
+  - nude on bed
+  - reclining naked
+  - bed nude
+  tags:
+  - pose
+  - nude
+  - reclining
+  - bed
+  positive_fragment: nude reclining on bed
+- entry_id: reclining_nude_sofa
+  description: nude reclining on sofa
+  aliases:
+  - nude on couch
+  - naked reclining sofa
+  - sofa nude
+  tags:
+  - pose
+  - nude
+  - reclining
+  - sofa
+  positive_fragment: nude reclining on sofa
+- entry_id: reclining_nude_side
+  description: nude reclining on side
+  aliases:
+  - nude side lying
+  - naked on side
+  - side nude
+  tags:
+  - pose
+  - nude
+  - reclining
+  - side
+  positive_fragment: nude reclining on side
+- entry_id: reclining_nude_back
+  description: nude reclining on back
+  aliases:
+  - nude on back
+  - naked supine
+  - back nude
+  tags:
+  - pose
+  - nude
+  - reclining
+  - back
+  positive_fragment: nude reclining on back
+- entry_id: sitting_nude_bed
+  description: nude sitting on bed
+  aliases:
+  - nude seated bed
+  - naked on bed sitting
+  - bed nude sitting
+  tags:
+  - pose
+  - nude
+  - sitting
+  - bed
+  positive_fragment: nude sitting on bed
+- entry_id: sitting_nude_floor
+  description: nude sitting on floor
+  aliases:
+  - nude seated floor
+  - naked floor
+  - floor nude
+  tags:
+  - pose
+  - nude
+  - sitting
+  - floor
+  positive_fragment: nude sitting on floor
+- entry_id: standing_nude
+  description: standing nude
+  aliases:
+  - standing naked
+  - nude standing
+  - upright nude
+  tags:
+  - pose
+  - nude
+  - standing
+  positive_fragment: standing nude
+- entry_id: standing_nude_profile
+  description: standing nude in profile
+  aliases:
+  - standing nude side
+  tags:
+  - pose
+  - nude
+  - standing
+  - profile
+  positive_fragment: standing nude in profile
+- entry_id: standing_nude_back
+  description: standing nude from behind
+  aliases:
+  - nude back
+  - naked rear
+  - standing nude behind
+  tags:
+  - pose
+  - nude
+  - standing
+  - rear
+  positive_fragment: standing nude from behind
+- entry_id: kneeling_nude
+  description: kneeling nude
+  aliases:
+  - nude kneeling
+  - naked on knees
+  - kneeling naked
+  tags:
+  - pose
+  - nude
+  - kneeling
+  positive_fragment: kneeling nude
+- entry_id: kneeling_nude_back
+  description: kneeling nude seen from behind
+  aliases:
+  - nude kneeling back
+  - naked kneeling rear
+  - rear kneeling nude
+  tags:
+  - pose
+  - nude
+  - kneeling
+  - rear
+  positive_fragment: kneeling nude from behind
+- entry_id: bending_over_nude
+  description: bending over nude
+  aliases:
+  - nude bent over
+  - naked bending
+  - bent over nude
+  tags:
+  - pose
+  - nude
+  - bending
+  positive_fragment: bending over nude
+- entry_id: all_fours_nude
+  description: nude on all fours
+  aliases:
+  - naked all fours
+  - nude hands knees
+  - on all fours naked
+  tags:
+  - pose
+  - nude
+  - all_fours
+  positive_fragment: nude on all fours
+- entry_id: arched_back_nude
+  description: nude with arched back
+  aliases:
+  - nude arched
+  - naked arch
+  - arched back nude
+  tags:
+  - pose
+  - nude
+  - arched
+  positive_fragment: nude with arched back
+- entry_id: legs_spread_nude
+  description: nude with legs spread
+  aliases:
+  - nude legs apart
+  - naked spread
+  - spread legs nude
+  tags:
+  - pose
+  - nude
+  - spread
+  positive_fragment: nude with legs spread
+- entry_id: legs_together_nude
+  description: nude with legs together
+  aliases:
+  - nude legs closed
+  - closed legs nude
+  tags:
+  - pose
+  - nude
+  - closed
+  positive_fragment: nude with legs together
+- entry_id: one_leg_raised_nude
+  description: nude with one leg raised
+  aliases:
+  - nude leg up
+  - naked raised leg
+  - leg raised nude
+  tags:
+  - pose
+  - nude
+  - raised_leg
+  positive_fragment: nude with one leg raised
+- entry_id: wet_nude_shower
+  description: nude in shower, wet
+  aliases:
+  - shower nude
+  - wet naked
+  - nude shower
+  tags:
+  - pose
+  - nude
+  - wet
+  - shower
+  positive_fragment: nude in shower, wet
+- entry_id: wet_nude_pool
+  description: nude in pool, wet
+  aliases:
+  - pool nude
+  - naked in water
+  - nude water
+  tags:
+  - pose
+  - nude
+  - wet
+  - pool
+  positive_fragment: nude in pool, wet
+- entry_id: nude_covered_sheet
+  description: nude partially covered by sheet
+  aliases:
+  - sheet covered nude
+  - nude under sheet
+  - sheet draped
+  tags:
+  - pose
+  - nude
+  - covered
+  - sheet
+  positive_fragment: nude partially covered by sheet
+- entry_id: nude_covered_hands
+  description: nude covering with hands
+  aliases:
+  - hands covering nude
+  - nude hands covering
+  - covering breasts
+  tags:
+  - pose
+  - nude
+  - covering
+  - hands
+  positive_fragment: nude covering with hands
+- entry_id: embracing_nude
+  description: two nude subjects embracing
+  aliases:
+  - nude embrace
+  - naked hug
+  - nude holding
+  tags:
+  - pose
+  - nude
+  - two_subjects
+  - embrace
+  positive_fragment: two nude subjects embracing
+- entry_id: embracing_lingerie
+  description: two subjects embracing in lingerie
+  aliases:
+  - lingerie embrace
+  - underwear hug
+  - intimate embrace
+  tags:
+  - pose
+  - lingerie
+  - two_subjects
+  - embrace
+  positive_fragment: two subjects embracing in lingerie
+- entry_id: facing_each_other_nude
+  description: two nude subjects facing each other
+  aliases:
+  - nude facing
+  - naked facing
+  - face to face nude
+  tags:
+  - pose
+  - nude
+  - two_subjects
+  - facing
+  positive_fragment: two nude subjects facing each other
+- entry_id: one_behind_other_nude
+  description: one nude subject behind another
+  aliases:
+  - nude from behind
+  - naked behind
+  - rear embrace nude
+  tags:
+  - pose
+  - nude
+  - two_subjects
+  - behind
+  positive_fragment: one nude subject behind another
+- entry_id: spooning_nude
+  description: two nude subjects spooning
+  aliases:
+  - nude spooning
+  - naked spoon
+  - spoon position nude
+  tags:
+  - pose
+  - nude
+  - two_subjects
+  - spooning
+  positive_fragment: two nude subjects spooning
+- entry_id: straddling_nude
+  description: one nude subject straddling another
+  aliases:
+  - nude straddling
+  - naked straddle
+  - riding nude
+  tags:
+  - pose
+  - nude
+  - two_subjects
+  - straddling
+  positive_fragment: one nude subject straddling another
+- entry_id: straddling_lingerie
+  description: one subject straddling another in lingerie
+  aliases:
+  - lingerie straddle
+  - underwear straddling
+  - intimate straddle
+  tags:
+  - pose
+  - lingerie
+  - two_subjects
+  - straddling
+  positive_fragment: straddling in lingerie
+- entry_id: kneeling_between_legs_nude
+  description: nude kneeling between another's legs
+  aliases:
+  - nude between legs
+  - kneeling intimate
+  - between thighs nude
+  tags:
+  - pose
+  - nude
+  - two_subjects
+  - kneeling
+  positive_fragment: nude kneeling between legs
+- entry_id: lying_together_nude
+  description: two nude subjects lying together
+  aliases:
+  - nude lying together
+  - bed nude two
+  tags:
+  - pose
+  - nude
+  - two_subjects
+  - lying
+  positive_fragment: two nude subjects lying together
+- entry_id: standing_close_nude
+  description: two nude subjects standing close
+  aliases:
+  - nude standing close
+  - naked close
+  - intimate standing nude
+  tags:
+  - pose
+  - nude
+  - two_subjects
+  - standing
+  positive_fragment: two nude subjects standing close
+- entry_id: one_kneeling_one_standing_nude
+  description: one nude kneeling, one standing
+  aliases:
+  - nude kneeling standing
+  - mixed position nude
+  - kneeling before nude
+  tags:
+  - pose
+  - nude
+  - two_subjects
+  - mixed
+  positive_fragment: one nude kneeling, one standing
+- entry_id: hand_on_breast
+  description: hand on another's breast
+  aliases:
+  - touching breast
+  - breast touch
+  - hand on chest
+  tags:
+  - action
+  - intimate
+  - touch
+  - breast
+  positive_fragment: hand on breast
+- entry_id: hand_on_buttocks
+  description: hand on another's buttocks
+  aliases:
+  - touching ass
+  - butt touch
+  - hand on rear
+  tags:
+  - action
+  - intimate
+  - touch
+  - buttocks
+  positive_fragment: hand on buttocks
+- entry_id: hand_on_thigh
+  description: hand on another's thigh
+  aliases:
+  - thigh touch
+  - touching leg
+  - hand on upper leg
+  tags:
+  - action
+  - intimate
+  - touch
+  - thigh
+  positive_fragment: hand on thigh
+- entry_id: hand_on_waist
+  description: hand on another's waist
+  aliases:
+  - waist touch
+  - touching waist
+  - hand on hip
+  tags:
+  - action
+  - intimate
+  - touch
+  - waist
+  positive_fragment: hand on waist
+- entry_id: hand_on_stomach
+  description: hand on another's stomach
+  aliases:
+  - belly touch
+  - stomach touch
+  - hand on abdomen
+  tags:
+  - action
+  - intimate
+  - touch
+  - stomach
+  positive_fragment: hand on stomach
+- entry_id: hand_on_back
+  description: hand on another's back
+  aliases:
+  - back touch
+  - touching back
+  - hand on spine
+  tags:
+  - action
+  - intimate
+  - touch
+  - back
+  positive_fragment: hand on back
+- entry_id: hand_on_neck
+  description: hand on another's neck
+  aliases:
+  - neck touch
+  - touching neck
+  - hand on throat
+  tags:
+  - action
+  - intimate
+  - touch
+  - neck
+  positive_fragment: hand on neck
+- entry_id: hand_in_hair_intimate
+  description: hand in another's hair
+  aliases:
+  - hair touch
+  - touching hair
+  - hand running through hair
+  tags:
+  - action
+  - intimate
+  - touch
+  - hair
+  positive_fragment: hand in hair
+- entry_id: hands_exploring_body
+  description: hands exploring another's body
+  aliases:
+  - exploring body
+  - touching all over
+  - hands on body
+  tags:
+  - action
+  - intimate
+  - touch
+  - body
+  positive_fragment: hands exploring body
+- entry_id: pulling_close_intimate
+  description: pulling another close intimately
+  aliases:
+  - pulling close
+  - drawing near
+  - intimate pull
+  tags:
+  - action
+  - intimate
+  - pulling
+  positive_fragment: pulling close intimately
+- entry_id: holding_face
+  description: holding another's face
+  aliases:
+  - face in hands
+  - cupping face
+  - holding cheeks
+  tags:
+  - action
+  - intimate
+  - touch
+  - face
+  positive_fragment: holding face
+- entry_id: kissing_neck
+  description: kissing another's neck
+  aliases:
+  - neck kiss
+  - kissing throat
+  - necking
+  tags:
+  - action
+  - intimate
+  - kiss
+  - neck
+  positive_fragment: kissing neck
+- entry_id: kissing_shoulder
+  description: kissing another's shoulder
+  aliases:
+  - shoulder kiss
+  - kissing shoulder
+  - shoulder peck
+  tags:
+  - action
+  - intimate
+  - kiss
+  - shoulder
+  positive_fragment: kissing shoulder
+- entry_id: kissing_chest
+  description: kissing another's chest
+  aliases:
+  - chest kiss
+  - kissing breast
+  - chest peck
+  tags:
+  - action
+  - intimate
+  - kiss
+  - chest
+  positive_fragment: kissing chest
+- entry_id: kissing_stomach
+  description: kissing another's stomach
+  aliases:
+  - belly kiss
+  - abdomen kiss
+  tags:
+  - action
+  - intimate
+  - kiss
+  - stomach
+  positive_fragment: kissing stomach
+- entry_id: kissing_thigh
+  description: kissing another's thigh
+  aliases:
+  - thigh kiss
+  - kissing leg
+  - upper leg kiss
+  tags:
+  - action
+  - intimate
+  - kiss
+  - thigh
+  positive_fragment: kissing thigh
+- entry_id: kissing_back
+  description: kissing another's back
+  aliases:
+  - back kiss
+  - spine kiss
+  - kissing rear
+  tags:
+  - action
+  - intimate
+  - kiss
+  - back
+  positive_fragment: kissing back
+- entry_id: biting_neck
+  description: biting another's neck
+  aliases:
+  - neck bite
+  - love bite
+  - biting throat
+  tags:
+  - action
+  - intimate
+  - bite
+  - neck
+  positive_fragment: biting neck
+- entry_id: biting_shoulder
+  description: biting another's shoulder
+  aliases:
+  - shoulder bite
+  - biting shoulder
+  - love bite shoulder
+  tags:
+  - action
+  - intimate
+  - bite
+  - shoulder
+  positive_fragment: biting shoulder
+- entry_id: licking_neck
+  description: licking another's neck
+  aliases:
+  - neck lick
+  - licking throat
+  - tongue on neck
+  tags:
+  - action
+  - intimate
+  - lick
+  - neck
+  positive_fragment: licking neck
+- entry_id: licking_shoulder
+  description: licking another's shoulder
+  aliases:
+  - shoulder lick
+  - licking shoulder
+  - tongue on shoulder
+  tags:
+  - action
+  - intimate
+  - lick
+  - shoulder
+  positive_fragment: licking shoulder
+- entry_id: licking_thigh
+  description: licking another's thigh
+  aliases:
+  - thigh lick
+  - licking leg
+  - tongue on thigh
+  tags:
+  - action
+  - intimate
+  - lick
+  - thigh
+  positive_fragment: licking thigh
+- entry_id: sucking_finger
+  description: sucking another's finger
+  aliases:
+  - finger suck
+  - sucking digit
+  - finger in mouth
+  tags:
+  - action
+  - intimate
+  - suck
+  - finger
+  positive_fragment: sucking finger
+- entry_id: sucking_neck
+  description: sucking another's neck
+  aliases:
+  - neck suck
+  - hickey
+  - sucking skin
+  tags:
+  - action
+  - intimate
+  - suck
+  - neck
+  positive_fragment: sucking neck
+- entry_id: caressing_breast
+  description: caressing another's breast
+  aliases:
+  - breast caress
+  - caressing chest
+  - gentle breast touch
+  tags:
+  - action
+  - intimate
+  - caress
+  - breast
+  positive_fragment: caressing breast
+- entry_id: caressing_thigh
+  description: caressing another's thigh
+  aliases:
+  - thigh caress
+  - caressing leg
+  - gentle thigh touch
+  tags:
+  - action
+  - intimate
+  - caress
+  - thigh
+  positive_fragment: caressing thigh
+- entry_id: caressing_back
+  description: caressing another's back
+  aliases:
+  - back caress
+  - caressing spine
+  - gentle back touch
+  tags:
+  - action
+  - intimate
+  - caress
+  - back
+  positive_fragment: caressing back
+- entry_id: grabbing_waist
+  description: grabbing another's waist firmly
+  aliases:
+  - waist grab
+  - holding waist
+  - firm waist
+  tags:
+  - action
+  - intimate
+  - grab
+  - waist
+  positive_fragment: grabbing waist firmly
+- entry_id: grabbing_thigh
+  description: grabbing another's thigh firmly
+  aliases:
+  - thigh grab
+  - holding thigh
+  - firm thigh
+  tags:
+  - action
+  - intimate
+  - grab
+  - thigh
+  positive_fragment: grabbing thigh firmly
+- entry_id: grabbing_hair
+  description: grabbing another's hair
+  aliases:
+  - hair pull
+  - holding hair
+  - hair grab
+  tags:
+  - action
+  - intimate
+  - grab
+  - hair
+  positive_fragment: grabbing hair
+- entry_id: spanking
+  description: spanking another's buttocks
+  aliases:
+  - spank
+  - butt spank
+  - rear spank
+  tags:
+  - action
+  - intimate
+  - spank
+  - buttocks
+  positive_fragment: spanking buttocks
+- entry_id: pinning_wrists
+  description: pinning another's wrists
+  aliases:
+  - wrist pin
+  - holding wrists
+  - restrained wrists
+  tags:
+  - action
+  - intimate
+  - pin
+  - wrists
+  positive_fragment: pinning wrists
+- entry_id: lifting_leg
+  description: lifting another's leg
+  aliases:
+  - leg lift
+  - holding leg up
+  - raised leg
+  tags:
+  - action
+  - intimate
+  - lift
+  - leg
+  positive_fragment: lifting leg
+- entry_id: spreading_legs
+  description: spreading another's legs
+  aliases:
+  - leg spread
+  - opening legs
+  - spreading thighs
+  tags:
+  - action
+  - intimate
+  - spread
+  - legs
+  positive_fragment: spreading legs
+- entry_id: undressing_another
+  description: undressing another person
+  aliases:
+  - removing clothes
+  - stripping someone
+  - taking off dress
+  tags:
+  - action
+  - intimate
+  - undressing
+  positive_fragment: undressing another person
+- entry_id: removing_bra
+  description: removing another's bra
+  aliases:
+  - taking off bra
+  - unhooking bra
+  - bra removal
+  tags:
+  - action
+  - intimate
+  - removing
+  - bra
+  positive_fragment: removing bra
+- entry_id: removing_panties
+  description: removing another's panties
+  aliases:
+  - taking off panties
+  - sliding off underwear
+  - panty removal
+  tags:
+  - action
+  - intimate
+  - removing
+  - panties
+  positive_fragment: removing panties
+- entry_id: unzipping_dress
+  description: unzipping another's dress
+  aliases:
+  - dress unzip
+  - opening zipper
+  - unzipping back
+  tags:
+  - action
+  - intimate
+  - unzipping
+  - dress
+  positive_fragment: unzipping dress
+- entry_id: pulling_down_straps
+  description: pulling down dress straps
+  aliases:
+  - strap down
+  - slipping straps
+  - dress slipping
+  tags:
+  - action
+  - intimate
+  - pulling
+  - straps
+  positive_fragment: pulling down dress straps
+- entry_id: exposing_breast
+  description: exposing another's breast
+  aliases:
+  - revealing breast
+  - pulling down top
+  tags:
+  - action
+  - intimate
+  - exposing
+  - breast
+  positive_fragment: exposing breast
+- entry_id: exposing_buttocks
+  description: exposing another's buttocks
+  aliases:
+  - buttocks exposed
+  - revealing rear
+  - pulling down bottom
+  tags:
+  - action
+  - intimate
+  - exposing
+  - buttocks
+  positive_fragment: exposing buttocks
+- entry_id: kissing_intimate
+  description: intimate deep kissing
+  aliases:
+  - deep kiss
+  - french kiss
+  - passionate kiss
+  tags:
+  - action
+  - intimate
+  - kiss
+  - passionate
+  positive_fragment: intimate deep kissing
+- entry_id: oral_breast
+  description: oral contact with breast
+  aliases:
+  - breast oral
+  - sucking breast
+  - nipple oral
+  tags:
+  - action
+  - intimate
+  - oral
+  - breast
+  positive_fragment: oral contact with breast
+- entry_id: oral_stomach
+  description: oral contact with stomach
+  aliases:
+  - belly oral
+  - abdomen oral
+  tags:
+  - action
+  - intimate
+  - oral
+  - stomach
+  positive_fragment: oral contact with stomach
+- entry_id: oral_thigh
+  description: oral contact with thigh
+  aliases:
+  - thigh oral
+  - leg oral
+  - upper leg oral
+  tags:
+  - action
+  - intimate
+  - oral
+  - thigh
+  positive_fragment: oral contact with thigh
+- entry_id: oral_intimate_area
+  description: oral contact with intimate area
+  aliases:
+  - oral sex
+  - cunnilingus
+  - intimate oral
+  tags:
+  - action
+  - intimate
+  - oral
+  - explicit
+  positive_fragment: oral contact with intimate area
+- entry_id: fingering
+  description: fingering intimate area
+  aliases:
+  - finger penetration
+  - digital penetration
+  - fingering
+  tags:
+  - action
+  - intimate
+  - fingering
+  - explicit
+  positive_fragment: fingering intimate area
+- entry_id: penetration_missionary
+  description: penetration in missionary position
+  aliases:
+  - missionary
+  - missionary sex
+  - face to face penetration
+  tags:
+  - action
+  - intimate
+  - penetration
+  - missionary
+  positive_fragment: penetration in missionary position
+- entry_id: penetration_doggy
+  description: penetration from behind
+  aliases:
+  - doggy style
+  - from behind
+  - rear penetration
+  tags:
+  - action
+  - intimate
+  - penetration
+  - rear
+  positive_fragment: penetration from behind
+- entry_id: penetration_cowgirl
+  description: penetration with subject on top
+  aliases:
+  - cowgirl
+  - riding
+  - on top penetration
+  tags:
+  - action
+  - intimate
+  - penetration
+  - cowgirl
+  positive_fragment: penetration with subject on top
+- entry_id: penetration_spooning
+  description: penetration while spooning
+  aliases:
+  - spooning sex
+  - side penetration
+  - spoon position
+  tags:
+  - action
+  - intimate
+  - penetration
+  - spooning
+  positive_fragment: penetration while spooning
+- entry_id: penetration_standing
+  description: penetration while standing
+  aliases:
+  - standing sex
+  - upright penetration
+  - standing position
+  tags:
+  - action
+  - intimate
+  - penetration
+  - standing
+  positive_fragment: penetration while standing
+- entry_id: penetration_from_behind_bent
+  description: penetration from behind while bent over
+  aliases:
+  - bent over sex
+  - bent penetration
+  - from behind bent
+  tags:
+  - action
+  - intimate
+  - penetration
+  - bent
+  positive_fragment: penetration from behind while bent over
+- entry_id: mutual_masturbation
+  description: mutual masturbation
+  aliases:
+  - mutual touch
+  - both touching
+  - mutual pleasure
+  tags:
+  - action
+  - intimate
+  - masturbation
+  - mutual
+  positive_fragment: mutual masturbation
+- entry_id: masturbation_solo
+  description: solo masturbation
+  aliases:
+  - self pleasure
+  - solo touch
+  - self stimulation
+  tags:
+  - action
+  - intimate
+  - masturbation
+  - solo
+  positive_fragment: solo masturbation
+- entry_id: using_toy
+  description: using intimate toy
+  aliases:
+  - toy use
+  - vibrator
+  - dildo
+  tags:
+  - action
+  - intimate
+  - toy
+  - explicit
+  positive_fragment: using intimate toy
+- entry_id: afterglow
+  description: afterglow, post-intimacy resting
+  aliases:
+  - after sex
+  - post intimacy
+  - afterglow
+  tags:
+  - pose
+  - afterglow
+  - resting
+  positive_fragment: afterglow, post-intimacy resting
+- entry_id: afterglow_embrace
+  description: afterglow embrace
+  aliases:
+  - post sex embrace
+  - after intimacy hug
+  - afterglow holding
+  tags:
+  - pose
+  - afterglow
+  - embrace
+  positive_fragment: afterglow embrace
+- entry_id: bedroom_intimate
+  description: intimate bedroom setting
+  aliases:
+  - bedroom
+  - in bed
+  - bed scene
+  tags:
+  - context
+  - bedroom
+  - intimate
+  positive_fragment: intimate bedroom setting
+- entry_id: shower_intimate
+  description: intimate shower setting
+  aliases:
+  - shower together
+  - shower scene
+  - wet intimate
+  tags:
+  - context
+  - shower
+  - wet
+  positive_fragment: intimate shower setting
+- entry_id: bathtub_intimate
+  description: intimate bathtub setting
+  aliases:
+  - bath together
+  - tub scene
+  - bathtub intimate
+  tags:
+  - context
+  - bathtub
+  - wet
+  positive_fragment: intimate bathtub setting
+- entry_id: pool_intimate
+  description: intimate pool setting
+  aliases:
+  - pool together
+  - pool intimate
+  - water intimate
+  tags:
+  - context
+  - pool
+  - wet
+  positive_fragment: intimate pool setting
+- entry_id: sauna_intimate
+  description: intimate sauna setting
+  aliases:
+  - sauna together
+  - steam room
+  - sauna intimate
+  tags:
+  - context
+  - sauna
+  - steam
+  positive_fragment: intimate sauna setting
+- entry_id: beach_intimate
+  description: intimate beach setting
+  aliases:
+  - beach together
+  - sand intimate
+  - shore intimate
+  tags:
+  - context
+  - beach
+  - outdoor
+  positive_fragment: intimate beach setting
+- entry_id: office_intimate
+  description: intimate office setting
+  aliases:
+  - office sex
+  - desk intimate
+  - office after hours
+  tags:
+  - context
+  - office
+  - intimate
+  positive_fragment: intimate office setting
+- entry_id: couch_intimate
+  description: intimate couch setting
+  aliases:
+  - couch sex
+  - sofa intimate
+  - living room intimate
+  tags:
+  - context
+  - couch
+  - intimate
+  positive_fragment: intimate couch setting
+- entry_id: floor_intimate
+  description: intimate floor setting
+  aliases:
+  - floor sex
+  - ground intimate
+  - rug intimate
+  tags:
+  - context
+  - floor
+  - intimate
+  positive_fragment: intimate floor setting
+- entry_id: against_wall_intimate
+  description: intimate against wall
+  aliases:
+  - wall sex
+  - pressed against wall
+  - standing against wall
+  tags:
+  - context
+  - wall
+  - intimate
+  positive_fragment: intimate against wall
+- entry_id: on_table_intimate
+  description: intimate on table
+  aliases:
+  - table sex
+  - desk sex
+  - surface intimate
+  tags:
+  - context
+  - table
+  - intimate
+  positive_fragment: intimate on table
+- entry_id: in_doorway_intimate
+  description: intimate in doorway
+  aliases:
+  - doorway sex
+  - entry intimate
+  - threshold intimate
+  tags:
+  - context
+  - doorway
+  - intimate
+  positive_fragment: intimate in doorway
+- entry_id: dim_lighting_intimate
+  description: dim lighting for intimacy
+  aliases:
+  - dim intimate
+  - low light intimate
+  - dark intimate
+  tags:
+  - atmosphere
+  - dim
+  - intimate
+  positive_fragment: dim lighting
+- entry_id: candlelight_intimate
+  description: candlelight intimate atmosphere
+  aliases:
+  - candles
+  - candle lit
+  - romantic candles
+  tags:
+  - atmosphere
+  - candlelight
+  - intimate
+  positive_fragment: candlelight intimate atmosphere
+- entry_id: firelight_intimate
+  description: firelight intimate atmosphere
+  aliases:
+  - fireplace
+  - fire glow
+  - warm fire
+  tags:
+  - atmosphere
+  - firelight
+  - intimate
+  positive_fragment: firelight intimate atmosphere
+- entry_id: moonlight_intimate
+  description: moonlight intimate atmosphere
+  aliases:
+  - moonlight
+  - night intimate
+  - silver light
+  tags:
+  - atmosphere
+  - moonlight
+  - intimate
+  positive_fragment: moonlight intimate atmosphere
+- entry_id: morning_light_intimate
+  description: morning light intimate
+  aliases:
+  - morning after
+  - dawn intimate
+  - morning light
+  tags:
+  - atmosphere
+  - morning
+  - intimate
+  positive_fragment: morning light intimate
+- entry_id: sweaty_skin
+  description: sweaty glistening skin
+  aliases:
+  - sweat
+  - glistening
+  - perspiration
+  tags:
+  - skin
+  - sweat
+  - glistening
+  positive_fragment: sweaty glistening skin
+- entry_id: flushed_skin
+  description: flushed skin
+  aliases:
+  - flushed
+  - reddened skin
+  - blushing skin
+  tags:
+  - skin
+  - flushed
+  - reddened
+  positive_fragment: flushed skin
+- entry_id: goosebumps
+  description: goosebumps on skin
+  aliases:
+  - goose bumps
+  - raised skin
+  - chilled skin
+  tags:
+  - skin
+  - goosebumps
+  - texture
+  positive_fragment: goosebumps on skin
+- entry_id: bed_sheet_tangled
+  description: tangled in bed sheets
+  aliases:
+  - sheets tangled
+  - bed mess
+  - sheet wrap
+  tags:
+  - atmosphere
+  - sheets
+  - tangled
+  positive_fragment: tangled in bed sheets
+- entry_id: pillows_scattered
+  description: scattered pillows
+  aliases:
+  - pillows everywhere
+  - bed pillows
+  - scattered bedding
+  tags:
+  - atmosphere
+  - pillows
+  - scattered
+  positive_fragment: scattered pillows
+- entry_id: clothes_scattered
+  description: scattered clothing on floor
+  aliases:
+  - clothes on floor
+  - discarded clothes
+  - clothing scattered
+  tags:
+  - atmosphere
+  - clothes
+  - scattered
+  positive_fragment: scattered clothing on floor
+- entry_id: condom_wrapper_visible
+  description: condom wrapper visible
+  aliases:
+  - condom
+  - protection visible
+  - safe sex
+  tags:
+  - atmosphere
+  - condom
+  - safety
+  positive_fragment: condom wrapper visible

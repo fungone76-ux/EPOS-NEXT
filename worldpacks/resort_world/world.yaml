@@ -1,78 +1,793 @@
 worldpack_id: resort_world
-title: Resort World
+title: Seven Nights at Azure Crown
 initial_day: 1
-initial_phase: morning
+initial_phase: mattina
 player:
   entity_id: player
-  name: Alex
-  location_id: lobby
+  name: Protagonista
+  location_id: loc_lobby
   adult_verified: true
   stats:
-    negoziazione: 4
+    carisma: 3
+    intuito: 3
+    autorita: 2
+    negoziazione: 2
+    prestanza: 1
+  inventory: []
+  conditions: []
+  starting_outfit_id: player_starting
 world_truth:
   facts:
-    setting: Mediterranean resort
-narrative_config: {}
+    fact_all_adults:
+      statement: Tutti i personaggi coinvolti in dinamiche romantiche o sensuali sono adulti.
+      visibility: public
+      does_not_imply:
+      - Il consenso è automatico.
+    fact_no_conspiracy:
+      statement: Le difficoltà del resort non nascondono un complotto.
+      visibility: contextual
+      does_not_imply:
+      - Esistono sabotaggi nascosti.
+    fact_victoria_knows_purchase:
+      statement: Solo Victoria conosce inizialmente il possibile interesse per l'acquisto.
+      visibility: secret
+      does_not_imply:
+      - Le altre lo sanno già.
+    premise: Un miliardario adulto trascorre sette notti all'Azure Crown Resort sull'isola di Calista, tra servizio VIP, relazioni
+      e una possibile acquisizione.
+narrative_config:
+  premise: Un miliardario adulto trascorre sette notti all'Azure Crown Resort sull'isola di Calista, tra servizio VIP, relazioni
+    e una possibile acquisizione.
+  opening_narration: L'elicottero privato atterra all'Azure Crown. Victoria Hale accoglie il protagonista nella lobby e gli
+    presenta Stella, Maria e Luna.
+  interactive_creation: true
+  open_end: true
+  riserva_dice: 0
+  player_resources:
+    wealth: 5
+  location_descriptions:
+    loc_suite: Suite mediterranea moderna con bagno di lusso e terrazza sul mare.
+    loc_lobby: Grande lobby di marmo e vetro con vista sul Mediterraneo.
+    loc_restaurant: Ristorante elegante sul mare con terrazza panoramica.
+    loc_pool: Piscina panoramica con deck privato.
+    loc_spa: Area benessere con sauna bagno turco e sale massaggi.
+    loc_private_beach: Spiaggia riservata con lettini eleganti.
+    loc_wild_beach: Cala rocciosa isolata e naturale.
+    loc_lounge: Cocktail lounge con terrazza panoramica.
+    loc_victoria_office: Ufficio executive elegante con vista sul resort.
+  pressures:
+  - id: pressure_bank_debt
+    summary: Il debito bancario scade durante il settimo giorno.
+    escalation_hint: Victoria deve ottenere una soluzione concreta.
+  relationships:
+  - from: victoria
+    to: stella
+    statement: Victoria premia l'iniziativa di Stella ma ne controlla l'ambizione.
+    known_by:
+    - victoria
+    - stella
+  - from: victoria
+    to: maria
+    statement: Victoria considera Maria il riferimento professionale più affidabile.
+    known_by:
+    - victoria
+    - maria
+  - from: victoria
+    to: luna
+    statement: Victoria considera Luna la più difficile da controllare.
+    known_by:
+    - victoria
+    - luna
+  campaign_missions:
+  - id: mission_resort_future
+    location_id: loc_victoria_office
+    name: Il futuro dell'Azure Crown
+    description: Valutare il resort e decidere come affrontare il debito entro il settimo giorno.
+    state: active
+    objectives:
+    - id: assess_service
+      type: flag
+      key: resort_service_assessed
+      expected: true
+    - id: learn_debt
+      type: flag
+      key: bank_debt_disclosed
+      expected: true
+    - id: final_decision
+      type: flag
+      key: resort_final_decision
+      expected: true
+    success_conditions:
+    - type: flag
+      key: resort_saved
+      expected: true
+    failure_conditions:
+    - type: flag
+      key: negotiations_refused
+      expected: true
+    rewards:
+    - type: flag
+      key: campaign_complete
+      value: true
+    consequences:
+    - type: flag
+      key: resort_evaluation_consequence
+      value: recorded
+    transitions:
+    - type: remain
+      location_id: loc_victoria_office
+  - id: mission_stella_promotion
+    location_id: loc_lounge
+    name: La promozione internazionale
+    description: Stella deve meritare la promozione nel servizio VIP internazionale.
+    state: locked
+    objectives:
+    - id: vip_event
+      type: flag
+      key: stella_vip_event_success
+      expected: true
+    - id: positive_review
+      type: flag
+      key: stella_positive_review
+      expected: true
+    - id: victoria_test
+      type: flag
+      key: stella_victoria_test_passed
+      expected: true
+    success_conditions:
+    - type: flag
+      key: stella_promotion_approved
+      expected: true
+    failure_conditions:
+    - type: flag
+      key: stella_grave_misconduct
+      expected: true
+    rewards:
+    - type: relationship
+      target_id: stella
+      field: respect
+      delta: 2
+    consequences:
+    - type: flag
+      key: stella_mission_consequence
+      value: recorded
+    transitions:
+    - type: remain
+      location_id: loc_lounge
+  - id: mission_maria_stability
+    location_id: loc_suite
+    name: Un futuro stabile
+    description: Maria deve ottenere un contratto stabile e meglio retribuito.
+    state: locked
+    objectives:
+    - id: recover_bath_service
+      type: flag
+      key: maria_bath_service_recovered
+      expected: true
+    - id: solve_service_problem
+      type: flag
+      key: maria_service_problem_solved
+      expected: true
+    - id: positive_review
+      type: flag
+      key: maria_positive_review
+      expected: true
+    success_conditions:
+    - type: flag
+      key: maria_contract_approved
+      expected: true
+    failure_conditions:
+    - type: flag
+      key: maria_grave_negligence
+      expected: true
+    rewards:
+    - type: relationship
+      target_id: maria
+      field: trust
+      delta: 2
+    consequences:
+    - type: flag
+      key: maria_mission_consequence
+      value: recorded
+    transitions:
+    - type: remain
+      location_id: loc_suite
+  - id: mission_luna_letter
+    location_id: loc_wild_beach
+    name: Il legame nascosto
+    description: Luna vuole chiarire la promessa incompiuta nella lettera del padre del protagonista.
+    state: locked
+    objectives:
+    - id: mention_letter
+      type: flag
+      key: luna_letter_mentioned
+      expected: true
+    - id: show_letter
+      type: flag
+      key: luna_letter_revealed
+      expected: true
+    - id: confirm_author
+      type: flag
+      key: luna_letter_author_confirmed
+      expected: true
+    - id: answer_promise
+      type: flag
+      key: luna_promise_answered
+      expected: true
+    success_conditions:
+    - type: flag
+      key: luna_truth_clarified
+      expected: true
+    failure_conditions:
+    - type: flag
+      key: luna_letter_abused
+      expected: true
+    rewards:
+    - type: relationship
+      target_id: luna
+      field: trust
+      delta: 3
+    consequences:
+    - type: flag
+      key: luna_mission_consequence
+      value: recorded
+    transitions:
+    - type: remain
+      location_id: loc_wild_beach
+  - id: mission_victoria_save_resort
+    location_id: loc_victoria_office
+    name: Salvare l'Azure Crown
+    description: Victoria deve ottenere un acquisto un rifinanziamento o una trattativa vincolante.
+    state: locked
+    objectives:
+    - id: show_strengths
+      type: flag
+      key: victoria_strengths_shown
+      expected: true
+    - id: disclose_debt
+      type: flag
+      key: bank_debt_disclosed
+      expected: true
+    - id: prove_team
+      type: flag
+      key: victoria_team_proven
+      expected: true
+    success_conditions:
+    - type: flag
+      key: resort_saved
+      expected: true
+    failure_conditions:
+    - type: flag
+      key: victoria_trust_destroyed
+      expected: true
+    rewards:
+    - type: relationship
+      target_id: victoria
+      field: trust
+      delta: 2
+    consequences:
+    - type: flag
+      key: victoria_mission_consequence
+      value: recorded
+    transitions:
+    - type: remain
+      location_id: loc_victoria_office
+  mission_progression:
+  - id: mission_resort_future
+    reveal: initial
+    deadline:
+      day: 7
+      phase: sera
+    success_points: 25
+    failure_points: -15
+    required_flags:
+    - resort_service_assessed
+    - bank_debt_disclosed
+    - resort_final_decision
+    terminal_success_flags:
+    - resort_saved
+    terminal_failure_flags:
+    - negotiations_refused
+  - id: mission_stella_promotion
+    reveal: progressive
+    unlock_when:
+      relationship: stella
+      field: respect
+      minimum: 1
+    success_points: 10
+    failure_points: -5
+    required_flags:
+    - stella_vip_event_success
+    - stella_positive_review
+    - stella_victoria_test_passed
+    terminal_success_flags:
+    - stella_promotion_approved
+    terminal_failure_flags:
+    - stella_grave_misconduct
+  - id: mission_maria_stability
+    reveal: progressive
+    unlock_when:
+      event_completed: event_bath_for_two
+    success_points: 10
+    failure_points: -5
+    required_flags:
+    - maria_bath_service_recovered
+    - maria_service_problem_solved
+    - maria_positive_review
+    terminal_success_flags:
+    - maria_contract_approved
+    terminal_failure_flags:
+    - maria_grave_negligence
+  - id: mission_luna_letter
+    reveal: progressive
+    unlock_when:
+      relationship: luna
+      field: trust
+      minimum: 2
+    success_points: 10
+    failure_points: -10
+    reveal_gates:
+      mention: luna_letter_mention_unlocked
+      show: luna_letter_reveal_unlocked
+      full_truth: luna_letter_truth_unlocked
+    required_flags:
+    - luna_letter_mentioned
+    - luna_letter_revealed
+    - luna_letter_author_confirmed
+    - luna_promise_answered
+    terminal_success_flags:
+    - luna_truth_clarified
+    terminal_failure_flags:
+    - luna_letter_abused
+  - id: mission_victoria_save_resort
+    reveal: progressive
+    unlock_when:
+      flag: bank_debt_disclosed
+      expected: true
+    success_points: 10
+    failure_points: -5
+    required_flags:
+    - victoria_strengths_shown
+    - bank_debt_disclosed
+    - victoria_team_proven
+    terminal_success_flags:
+    - resort_saved
+    terminal_failure_flags:
+    - victoria_trust_destroyed
+  event_definitions:
+  - id: event_bath_for_two
+    title: Il bagno per due
+    day_range:
+    - 1
+    - 2
+    phases:
+    - sera
+    - notte
+    location_id: loc_suite
+    npc_ids:
+    - maria
+    trigger:
+      flag_missing: maria_bath_service_recovered
+    adult_component: intimate_service
+    consent_exit_required: true
+    choices:
+    - accept_maria_solution
+    - request_second_companion
+    - modify_service
+    - decline
+    completion_flag: maria_bath_service_recovered
+    visual_outfit: maria_suite_service
+  - id: event_stella_vip_evening
+    title: La serata VIP da recuperare
+    day_range:
+    - 2
+    - 5
+    phases:
+    - sera
+    - notte
+    location_id: loc_lounge
+    npc_ids:
+    - stella
+    - victoria
+    trigger:
+      mission_active: mission_stella_promotion
+    adult_component: provocative_dress_code
+    consent_exit_required: true
+    choices:
+    - support_stella
+    - demand_changes
+    - involve_colleague
+    - leave_event
+    completion_flag: stella_vip_event_success
+    visual_outfit: stella_vip_gala
+  - id: event_pool_outfit
+    title: Prova costume VIP
+    day_range:
+    - 1
+    - 6
+    phases:
+    - mattina
+    - pomeriggio
+    location_id: loc_pool
+    npc_ids:
+    - stella
+    - maria
+    - luna
+    trigger:
+      random_weight: 2
+    adult_component: revealing_outfit_choice
+    consent_exit_required: true
+    choices:
+    - choose_style
+    - let_npc_choose
+    - ask_victoria
+    - skip
+  - id: event_contested_massage
+    title: Massaggio conteso
+    day_range:
+    - 2
+    - 6
+    phases:
+    - pomeriggio
+    - sera
+    location_id: loc_spa
+    npc_ids:
+    - maria
+    - stella
+    trigger:
+      relationship_field: jealousy
+      minimum: 1
+    adult_component: sensual_spa_service
+    consent_exit_required: true
+    choices:
+    - choose_maria
+    - choose_stella
+    - shared_professional_session
+    - cancel
+  - id: event_luna_wild_beach
+    title: La lettera sulla spiaggia selvaggia
+    day_range:
+    - 3
+    - 7
+    phases:
+    - sera
+    - notte
+    location_id: loc_wild_beach
+    npc_ids:
+    - luna
+    trigger:
+      flag: luna_letter_reveal_unlocked
+      expected: true
+    adult_component: vulnerable_romantic_intimacy
+    consent_exit_required: true
+    choices:
+    - listen
+    - read_letter
+    - postpone
+    - leave
+    completion_flag: luna_letter_revealed
+    visual_outfit: luna_private_evening
+  - id: event_victoria_private_review
+    title: Valutazione privata del servizio VIP
+    day_range:
+    - 4
+    - 6
+    phases:
+    - sera
+    - notte
+    location_id: loc_lounge
+    npc_ids:
+    - victoria
+    - stella
+    - maria
+    - luna
+    trigger:
+      flag: bank_debt_disclosed
+      expected: true
+    adult_component: elegant_provocative_evaluation
+    consent_exit_required: true
+    choices:
+    - participate
+    - change_assignments
+    - private_talk
+    - end_review
+    completion_flag: victoria_team_proven
+  - id: event_night_service
+    title: Servizio notturno in suite
+    day_range:
+    - 1
+    - 7
+    phases:
+    - notte
+    location_id: loc_suite
+    npc_ids:
+    - stella
+    - maria
+    - luna
+    - victoria
+    trigger:
+      player_request: true
+    adult_component: intimate_companionship
+    consent_exit_required: true
+    choices:
+    - invite_one
+    - request_two
+    - ask_victoria_to_choose
+    - sleep_alone
+  - id: event_final_decision
+    title: La decisione del settimo giorno
+    day_range:
+    - 7
+    - 7
+    phases:
+    - sera
+    location_id: loc_victoria_office
+    npc_ids:
+    - victoria
+    trigger:
+      day: 7
+      phase: sera
+    adult_component: private_emotional_negotiation
+    consent_exit_required: true
+    choices:
+    - buy
+    - buy_with_conditions
+    - refinance
+    - delay_binding_talks
+    - end_without_agreement
+    completion_flag: resort_final_decision
+  schedule_phases:
+  - mattina
+  - pomeriggio
+  - sera
+  - notte
+  schedule_matrix:
+    victoria:
+      '1':
+        mattina: loc_lobby
+        pomeriggio: loc_victoria_office
+        sera: loc_restaurant
+        notte: loc_lounge
+      '2':
+        mattina: loc_restaurant
+        pomeriggio: loc_victoria_office
+        sera: loc_lounge
+        notte: loc_suite
+      '3':
+        mattina: loc_lobby
+        pomeriggio: loc_pool
+        sera: loc_victoria_office
+        notte: loc_lounge
+      '4':
+        mattina: loc_victoria_office
+        pomeriggio: loc_spa
+        sera: loc_restaurant
+        notte: loc_victoria_office
+      '5':
+        mattina: loc_private_beach
+        pomeriggio: loc_victoria_office
+        sera: loc_lounge
+        notte: loc_suite
+      '6':
+        mattina: loc_lobby
+        pomeriggio: loc_restaurant
+        sera: loc_victoria_office
+        notte: loc_lounge
+      '7':
+        mattina: loc_victoria_office
+        pomeriggio: loc_lobby
+        sera: loc_victoria_office
+        notte: loc_suite
+    stella:
+      '1':
+        mattina: loc_pool
+        pomeriggio: loc_private_beach
+        sera: loc_lounge
+        notte: loc_suite
+      '2':
+        mattina: loc_restaurant
+        pomeriggio: loc_pool
+        sera: loc_lounge
+        notte: loc_private_beach
+      '3':
+        mattina: loc_private_beach
+        pomeriggio: loc_spa
+        sera: loc_restaurant
+        notte: loc_lounge
+      '4':
+        mattina: loc_lobby
+        pomeriggio: loc_pool
+        sera: loc_lounge
+        notte: loc_suite
+      '5':
+        mattina: loc_restaurant
+        pomeriggio: loc_private_beach
+        sera: loc_victoria_office
+        notte: loc_lounge
+      '6':
+        mattina: loc_pool
+        pomeriggio: loc_spa
+        sera: loc_restaurant
+        notte: loc_private_beach
+      '7':
+        mattina: loc_lobby
+        pomeriggio: loc_lounge
+        sera: loc_victoria_office
+        notte: loc_suite
+    maria:
+      '1':
+        mattina: loc_restaurant
+        pomeriggio: loc_suite
+        sera: loc_suite
+        notte: loc_spa
+      '2':
+        mattina: loc_lobby
+        pomeriggio: loc_spa
+        sera: loc_restaurant
+        notte: loc_suite
+      '3':
+        mattina: loc_suite
+        pomeriggio: loc_restaurant
+        sera: loc_spa
+        notte: loc_suite
+      '4':
+        mattina: loc_restaurant
+        pomeriggio: loc_private_beach
+        sera: loc_suite
+        notte: loc_lounge
+      '5':
+        mattina: loc_spa
+        pomeriggio: loc_suite
+        sera: loc_restaurant
+        notte: loc_suite
+      '6':
+        mattina: loc_lobby
+        pomeriggio: loc_restaurant
+        sera: loc_spa
+        notte: loc_suite
+      '7':
+        mattina: loc_suite
+        pomeriggio: loc_victoria_office
+        sera: loc_restaurant
+        notte: loc_suite
+    luna:
+      '1':
+        mattina: loc_private_beach
+        pomeriggio: loc_wild_beach
+        sera: loc_lounge
+        notte: loc_wild_beach
+      '2':
+        mattina: loc_pool
+        pomeriggio: loc_private_beach
+        sera: loc_restaurant
+        notte: loc_lounge
+      '3':
+        mattina: loc_wild_beach
+        pomeriggio: loc_spa
+        sera: loc_wild_beach
+        notte: loc_suite
+      '4':
+        mattina: loc_private_beach
+        pomeriggio: loc_lobby
+        sera: loc_restaurant
+        notte: loc_wild_beach
+      '5':
+        mattina: loc_pool
+        pomeriggio: loc_wild_beach
+        sera: loc_lounge
+        notte: loc_private_beach
+      '6':
+        mattina: loc_spa
+        pomeriggio: loc_private_beach
+        sera: loc_restaurant
+        notte: loc_wild_beach
+      '7':
+        mattina: loc_wild_beach
+        pomeriggio: loc_lobby
+        sera: loc_victoria_office
+        notte: loc_suite
+  wardrobe_location_overrides:
+    loc_pool: revealing_swimwear_required
+    loc_private_beach: revealing_beachwear_required
+    loc_wild_beach: sensual_natural_beachwear_required
+    loc_spa: short_revealing_spa_attire_required
+    loc_victoria_office: fitted_revealing_executive_attire_required
+    loc_lobby: fitted_luxury_resort_attire_required
+    loc_restaurant: fitted_revealing_dinner_attire_required
+    loc_lounge: very_sexy_evening_attire_required
+    loc_suite: intimate_private_attire_preferred
+  source_schema_version: 1
+  source_id: resort_world
 rendering_config:
   a1111:
     default_lora_weight: 0.8
     dimension_multiple: 8
     min_dimension: 64
     max_dimension: 2048
+    lora_weights:
+    - alias: alice_milf_catchers_lora.safetensors
+      weight: 0.7
+    - alias: stsSmith-10e
+      weight: 0.65
+    - alias: stsDebbie-10e
+      weight: 0.7
   comfyui:
     workflow_file: workflows/comfy_workflow_image.json
-    base_model_node_id: "1"
+    base_model_node_id: '1'
     base_model_expected_class_type: CheckpointLoaderSimple
     base_model_output_index: 0
     base_clip_output_index: 1
     nodes:
       positive_prompt:
-        node_id: "2"
+        node_id: '2'
         expected_class_type: CLIPTextEncode
         input_name: text
       negative_prompt:
-        node_id: "3"
+        node_id: '3'
         expected_class_type: CLIPTextEncode
         input_name: text
       checkpoint:
-        node_id: "1"
+        node_id: '1'
         expected_class_type: CheckpointLoaderSimple
         input_name: ckpt_name
       seed:
-        node_id: "4"
+        node_id: '4'
         expected_class_type: SamplerCustom
         input_name: noise_seed
       cfg:
-        node_id: "4"
+        node_id: '4'
         expected_class_type: SamplerCustom
         input_name: cfg
       sampler:
-        node_id: "5"
+        node_id: '5'
         expected_class_type: KSamplerSelect
         input_name: sampler_name
       scheduler:
-        node_id: "6"
+        node_id: '6'
         expected_class_type: BasicScheduler
         input_name: scheduler
       steps:
-        node_id: "6"
+        node_id: '6'
         expected_class_type: BasicScheduler
         input_name: steps
       width:
-        node_id: "7"
+        node_id: '7'
         expected_class_type: EmptyLatentImage
         input_name: width
       height:
-        node_id: "7"
+        node_id: '7'
         expected_class_type: EmptyLatentImage
         input_name: height
     lora_slots:
-      - node_id: "20"
-        expected_class_type: LoraLoader
-      - node_id: "23"
-        expected_class_type: LoraLoader
+    - node_id: '20'
+      expected_class_type: LoraLoader
+    - node_id: '23'
+      expected_class_type: LoraLoader
     default_lora_strength_model: 0.8
     default_lora_strength_clip: 1.0
     dimension_multiple: 8
     min_dimension: 64
     max_dimension: 2048
+  visual_policy:
+    protected_base_prompts: true
+    single_character_default: true
+    multi_character_mode: shared_action
+    speaker_action_focus: true
+    include_sheet_negative: true
+    sanitize_identity_layers: true
+    concise_role_prompts: true
+    max_role_prompt_words: 12
+    visual_en_primary: true
+    dedupe_across_layers: true
+    max_scene_tags: 8
+    role_prompt_optional: true
+    preserve_revealing_outfit_traits: true
+    revealing_outfit_priority: true
+    visual_director_enabled: true
+    structured_camera: true
+    camera_variety_enabled: true
+    camera_history_size: 6
+    avoid_repeating_camera: true
+  visual_style_en: realistic luxury mediterranean resort, adult sensual atmosphere, elegant cinematic photography
+  negative_extra_en: underage, child, teenager, coercion, violence, bad anatomy, extra limbs, duplicate person, plain background,
+    white background, grey background, studio background, seamless backdrop, isolated figure, empty background, blank wall

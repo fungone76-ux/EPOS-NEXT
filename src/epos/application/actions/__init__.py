@@ -6,11 +6,13 @@ from epos.application.actions.models import (
     ActionInterpreterContext,
     CheckOutcome,
     CheckProposal,
+    IntimacyRequestProposal,
     ObservationIntent,
     OutfitOption,
     OutfitRequestProposal,
     ResolvedCheck,
     ValidatedAction,
+    ValidatedIntimacyRequest,
     ValidatedOutfitRequest,
 )
 from epos.application.actions.service import ActionInterpreterService
@@ -26,10 +28,12 @@ __all__ = [
     "CheckResolutionError",
     "CheckResolver",
     "D6OutcomePolicy",
+    "IntimacyRequestProposal",
     "ObservationIntent",
     "OutfitOption",
     "OutfitRequestProposal",
     "ResolvedCheck",
     "ValidatedAction",
+    "ValidatedIntimacyRequest",
     "ValidatedOutfitRequest",
 ]

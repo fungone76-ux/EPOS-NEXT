@@ -1,12 +1,53 @@
 loras:
-  victoria_main: victoria_main.safetensors
+  alice_milf_catchers_lora.safetensors: alice_milf_catchers_lora.safetensors
+  stsSmith-10e: stsSmith-10e.safetensors
+  stsDebbie-10e: stsDebbie-10e.safetensors
 characters:
-  - entity_id: victoria
-    base_prompt: adult woman, dark hair
-    role_prompt: resort director
-    negative_prompt: identity drift
-    lora_alias: victoria_main
-    visual_gender: woman
-    canonical_traits: [dark hair, brown eyes]
-world_positive: [luxury Mediterranean resort]
-world_negative: [lowres]
+- entity_id: player
+  base_prompt: adult billionaire man, confident, refined, masculine
+  role_prompt: luxury resort VIP guest
+  negative_prompt: underage, child, teenager, coercion, violence, bad anatomy, extra limbs, duplicate person, plain background,
+    white background, grey background, studio background, seamless backdrop, isolated figure, empty background, blank wall
+  visual_gender: man
+  canonical_traits: []
+- entity_id: victoria
+  base_prompt: score_9,score_8_up,score_7_up,masterpiece , realistic, zatanna, mature woman, , black hair, long hair,  , cute,
+    huge ass, bottom heavy, wide hips, huge breast,  grey eyes,  pink lips,  ,  <lora:Zatanna_-_DC_Animated_Universe:0.6>
+    <lora:Expressive_H:0.4> <lora:FantasyWorldPonyV2:0.3>
+  role_prompt: authoritative adult VIP director
+  negative_prompt: underage, child, teenager, coercion, violence, bad anatomy, extra limbs, duplicate person, plain background,
+    white background, grey background, studio background, seamless backdrop, isolated figure, empty background, blank wall
+  visual_gender: woman
+  canonical_traits: []
+- entity_id: stella
+  base_prompt: score_9, score_8_up, masterpiece, photorealistic, 1girl, alice_milf_catchers, massive breasts, cleavage, blonde
+    hair, beautiful blue eyes, shapely legs, hourglass figure, skinny body, narrow waist, wide hips
+  role_prompt: ambitious adult VIP entertainer
+  negative_prompt: underage, child, teenager, coercion, violence, bad anatomy, extra limbs, duplicate person, plain background,
+    white background, grey background, studio background, seamless backdrop, isolated figure, empty background, blank wall
+  visual_gender: woman
+  canonical_traits: []
+  lora_alias: alice_milf_catchers_lora.safetensors
+- entity_id: maria
+  base_prompt: score_9, score_8_up, stsSmith, ultra-detailed, realistic lighting, 1girl, mature female, veiny breasts, big
+    breasts, saggy tits, black hair, short hair
+  role_prompt: professional adult suite attendant
+  negative_prompt: underage, child, teenager, coercion, violence, bad anatomy, extra limbs, duplicate person, plain background,
+    white background, grey background, studio background, seamless backdrop, isolated figure, empty background, blank wall
+  visual_gender: woman
+  canonical_traits: []
+  lora_alias: stsSmith-10e
+- entity_id: luna
+  base_prompt: score_9, score_8_up, masterpiece, photorealistic, detailed, atmospheric, stsdebbie, dynamic pose, 1girl, mature
+    woman, brown hair, athletic body, shiny skin, head tilt, massive breasts, cleavage
+  role_prompt: observant adult private companion
+  negative_prompt: underage, child, teenager, coercion, violence, bad anatomy, extra limbs, duplicate person, plain background,
+    white background, grey background, studio background, seamless backdrop, isolated figure, empty background, blank wall
+  visual_gender: woman
+  canonical_traits: []
+  lora_alias: stsDebbie-10e
+world_positive:
+- realistic luxury mediterranean resort, adult sensual atmosphere, elegant cinematic photography
+world_negative:
+- underage, child, teenager, coercion, violence, bad anatomy, extra limbs, duplicate person, plain background, white background,
+  grey background, studio background, seamless backdrop, isolated figure, empty background, blank wall

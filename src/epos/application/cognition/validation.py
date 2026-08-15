@@ -52,6 +52,7 @@ class NPCReactionValidator:
 
         self._validate_outfit_response(proposal, context)
         self._validate_autonomous_outfit_action(proposal, context)
+        self._validate_intimacy_response(proposal, context)
 
         return ValidatedNPCReaction(
             npc_id=proposal.npc_id,
@@ -65,7 +66,31 @@ class NPCReactionValidator:
             authorized_secret_disclosures=proposal.requested_secret_disclosures,
             outfit_request_response=proposal.outfit_request_response,
             autonomous_outfit_action=proposal.autonomous_outfit_action,
+            intimacy_response=proposal.intimacy_response,
         )
+
+    @staticmethod
+    def _validate_intimacy_response(
+        proposal: NPCReactionProposal,
+        context: PrivateCognitiveContext,
+    ) -> None:
+        response = proposal.intimacy_response
+        request = context.action.intimacy_request
+        targets_this_npc = request is not None and request.target_id == context.npc_id
+        if not targets_this_npc:
+            if response is not None:
+                raise CognitionValidationError(
+                    "NPC cannot answer another actor's intimacy request"
+                )
+            return
+        if response is None:
+            raise CognitionValidationError(
+                "target NPC must explicitly answer intimacy request"
+            )
+        if request is None or response.scope is not request.scope:
+            raise CognitionValidationError(
+                "NPC intimacy response does not match the requested scope"
+            )
 
     @staticmethod
     def _validate_outfit_response(
