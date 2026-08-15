@@ -215,6 +215,24 @@ def test_memory_text_is_not_exposed_automatically_even_when_cognition_referenced
     )
 
 
+def test_open_brief_social_context_accepts_any_authorized_present_reaction() -> None:
+    context = NarrationContextBuilder().build(
+        state=_state(),
+        scene=_scene(),
+        focus=ConversationFocus(
+            speaker_id=EntityId("player"),
+            target_npc_id=None,
+            topic="introduction",
+            mode=NarrationMode.BRIEF_SOCIAL,
+        ),
+        player_input="Buongiorno, sono Andrea.",
+        reactions=(_reaction(),),
+    )
+
+    assert context.focus.target_npc_id is None
+    assert context.reactions[0].npc_id == EntityId("victoria")
+
+
 def test_narratable_memory_must_belong_to_reaction_reference_whitelist() -> None:
     memory = MemoryEntryState(
         memory_id=MemoryId("unrelated"),

@@ -21,7 +21,11 @@ TASK_PROFILES: dict[LLMTask, LLMTaskProfile] = {
         system_instruction=(
             "Classify and interpret only the event information provided in the request. "
             "Return a schema-conforming proposal only; do not mutate world state, roll dice, "
-            "or create authoritative facts not present in the supplied context."
+            "or create authoritative facts not present in the supplied context. When the "
+            "validated action includes an observation, use exploration mode even if the "
+            "observed subject is an NPC; observation alone is not dialogue and does not "
+            "require the target NPC to speak first. For a group greeting or untargeted "
+            "introduction, use brief_social with target_npc_id set to JSON null."
         ),
     ),
     LLMTask.REASON_NPC: LLMTaskProfile(

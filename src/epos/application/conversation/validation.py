@@ -115,6 +115,8 @@ class NarrationValidator:
             return
         target = context.focus.target_npc_id
         if target is None:
+            if context.focus.mode is NarrationMode.BRIEF_SOCIAL:
+                return
             raise NarrationValidationError("focused narration has no target NPC")
         first = proposal.units[0]
         if not isinstance(first, NPCDialogueDraft):
@@ -199,7 +201,11 @@ class NarrationValidator:
     ) -> None:
         target = context.focus.target_npc_id
         for unit in proposal.units:
-            if isinstance(unit, NPCDialogueDraft) and unit.speaker_id != target:
+            if (
+                target is not None
+                and isinstance(unit, NPCDialogueDraft)
+                and unit.speaker_id != target
+            ):
                 raise NarrationValidationError(
                     "brief_social conversation focus forbids unrelated NPC initiative"
                 )
