@@ -8,6 +8,7 @@ from epos.application.actions.models import (
     ActionInterpreterContext,
     CheckProposal,
     MovementProposal,
+    ObservationIntent,
 )
 from epos.application.actions.service import ActionInterpreterService
 from epos.application.actions.validation import ActionValidationError, ActionValidator
@@ -56,6 +57,80 @@ def test_simple_dialogue_needs_no_check() -> None:
 
     assert validated.check is None
     assert validated.intent == "dialogue"
+
+
+def test_explicit_simple_observation_needs_no_check_even_when_worldpack_maps_intuito() -> None:
+    context = _context("Osservo i piedi di Victoria").model_copy(
+        update={
+            "skill_catalog": (
+                SkillDefinition(
+                    skill_id=SkillId("intuito"),
+                    name="Intuito",
+                    check_intents=("observe",),
+                ),
+            ),
+            "player_skill_ratings": {SkillId("intuito"): 3},
+        }
+    )
+    action = ActionInterpretation(
+        intent="observe",
+        target_ids=(EntityId("victoria"),),
+        observation=ObservationIntent(subject_id=EntityId("victoria"), region="feet"),
+    )
+
+    validated = ActionValidator().validate(action, context)
+
+    assert validated.check is None
+    assert validated.observation == action.observation
+
+
+def test_simple_observe_intent_does_not_crash_when_optional_focus_is_absent() -> None:
+    context = _context("Osservo Victoria").model_copy(
+        update={
+            "skill_catalog": (
+                SkillDefinition(
+                    skill_id=SkillId("intuito"),
+                    name="Intuito",
+                    check_intents=("observe",),
+                ),
+            ),
+            "player_skill_ratings": {SkillId("intuito"): 3},
+        }
+    )
+
+    validated = ActionValidator().validate(
+        ActionInterpretation(intent="observe", target_ids=(EntityId("victoria"),)),
+        context,
+    )
+
+    assert validated.intent == "observe"
+    assert validated.check is None
+
+
+def test_uncertain_observation_may_still_use_an_explicit_intuito_check() -> None:
+    context = _context("Cerco di capire se Victoria nasconde qualcosa").model_copy(
+        update={
+            "skill_catalog": (
+                SkillDefinition(
+                    skill_id=SkillId("intuito"),
+                    name="Intuito",
+                    check_intents=("observe",),
+                ),
+            ),
+            "player_skill_ratings": {SkillId("intuito"): 3},
+        }
+    )
+    action = ActionInterpretation(
+        intent="observe",
+        target_ids=(EntityId("victoria"),),
+        observation=ObservationIntent(subject_id=EntityId("victoria"), region="expression"),
+        check=CheckProposal(skill_id=SkillId("intuito"), difficulty=3),
+    )
+
+    validated = ActionValidator().validate(action, context)
+
+    assert validated.check is not None
+    assert validated.skill_rating == 3
 
 
 def test_offscene_target_is_rejected() -> None:

@@ -101,6 +101,9 @@ def test_task_profiles_are_distinct_and_cover_required_epos_tasks() -> None:
         TASK_PROFILES
     )
     assert "do not roll" in TASK_PROFILES[LLMTask.INTERPRET_ACTION].system_instruction.casefold()
+    assert "simple looking as check-free" in TASK_PROFILES[
+        LLMTask.INTERPRET_ACTION
+    ].system_instruction.casefold()
     assert "player" in TASK_PROFILES[LLMTask.REASON_NPC].system_instruction.casefold()
     assert "stable diffusion" in TASK_PROFILES[LLMTask.GENERATE_VST].system_instruction.casefold()
 
@@ -318,6 +321,66 @@ async def test_primary_transport_failure_falls_back_to_secondary_provider() -> N
     assert result.answer == "fallback"
     assert openai_calls == 1
     assert gemini_calls == 1
+
+
+@pytest.mark.asyncio
+async def test_rate_limited_primary_falls_back_without_repeating_the_same_429() -> None:
+    openai_calls = 0
+
+    def openai_handler(request: httpx.Request) -> httpx.Response:
+        nonlocal openai_calls
+        openai_calls += 1
+        return httpx.Response(429, json={"error": {"message": "quota exceeded"}})
+
+    def gemini_handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, json=_gemini_response(_json_response("fallback", 8)))
+
+    openai_client = httpx.AsyncClient(transport=httpx.MockTransport(openai_handler))
+    gemini_client = httpx.AsyncClient(transport=httpx.MockTransport(gemini_handler))
+    port = StructuredLLMPort(
+        backends=(
+            OpenAIResponsesBackend(api_key="oa", model="oa-model", client=openai_client),
+            GeminiInteractionsBackend(api_key="gm", model="gm-model", client=gemini_client),
+        ),
+        task=LLMTask.INTERPRET_EVENT,
+        response_model=SampleResponse,
+        retry_policy=LLMRetryPolicy(max_attempts_per_provider=3),
+    )
+
+    result = await port.invoke(SampleRequest(text="event"))
+    await openai_client.aclose()
+    await gemini_client.aclose()
+
+    assert result.answer == "fallback"
+    assert openai_calls == 1
+
+
+@pytest.mark.asyncio
+async def test_all_provider_error_names_each_provider_and_rate_limit() -> None:
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(429, json={"error": {"message": "quota exceeded"}})
+
+    first_client = httpx.AsyncClient(transport=httpx.MockTransport(handler))
+    second_client = httpx.AsyncClient(transport=httpx.MockTransport(handler))
+    port = StructuredLLMPort(
+        backends=(
+            OpenAIResponsesBackend(api_key="oa", model="oa-model", client=first_client),
+            GeminiInteractionsBackend(api_key="gm", model="gm-model", client=second_client),
+        ),
+        task=LLMTask.REASON_NPC,
+        response_model=SampleResponse,
+        retry_policy=LLMRetryPolicy(max_attempts_per_provider=2),
+    )
+
+    with pytest.raises(LLMError) as exc_info:
+        await port.invoke(SampleRequest(text="react"))
+
+    await first_client.aclose()
+    await second_client.aclose()
+    message = str(exc_info.value)
+    assert "openai/oa-model" in message
+    assert "gemini/gm-model" in message
+    assert message.count("HTTP 429") == 2
 
 
 @pytest.mark.asyncio

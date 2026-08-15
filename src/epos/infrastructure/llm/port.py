@@ -9,7 +9,12 @@ from pydantic import BaseModel, ValidationError
 
 from epos.domain.json_types import ensure_json_object
 from epos.infrastructure.llm.backends import StructuredLLMBackend
-from epos.infrastructure.llm.errors import LLMContractError, LLMError, LLMUnavailableError
+from epos.infrastructure.llm.errors import (
+    LLMContractError,
+    LLMError,
+    LLMProviderResponseError,
+    LLMUnavailableError,
+)
 from epos.infrastructure.llm.models import LLMRetryPolicy, LLMTask, StructuredLLMRequest
 from epos.infrastructure.llm.runtime import LLMRuntime
 from epos.infrastructure.llm.tasks import TASK_PROFILES
@@ -63,7 +68,9 @@ class StructuredLLMPort(Generic[RequestT, ResponseT]):
         )
 
         last_error: LLMError | LLMContractError | None = None
+        provider_failures: dict[str, str] = {}
         for backend in self._backends:
+            provider_label = f"{backend.provider.value}/{backend.model}"
             for _attempt in range(self._retry_policy.max_attempts_per_provider):
                 try:
                     completion = await backend.complete(provider_request)
@@ -73,11 +80,27 @@ class StructuredLLMPort(Generic[RequestT, ResponseT]):
                         f"{backend.provider.value} returned output outside the Pydantic contract"
                     )
                     last_error.__cause__ = exc
+                    provider_failures[provider_label] = str(last_error)
+                except LLMProviderResponseError as exc:
+                    last_error = exc
+                    provider_failures[provider_label] = str(exc)
+                    if exc.http_status is not None and (
+                        exc.http_status == 429
+                        or (400 <= exc.http_status < 500 and exc.http_status != 408)
+                    ):
+                        break
                 except (LLMError, LLMContractError) as exc:
                     last_error = exc
+                    provider_failures[provider_label] = str(exc)
 
+        detail = "; ".join(
+            f"{provider}: {message}" for provider, message in provider_failures.items()
+        )
+        message = "all configured LLM providers failed"
+        if detail:
+            message = f"{message} ({detail})"
         failure = LLMError(
-            "all configured LLM providers failed",
+            message,
             code="llm.all_providers_failed",
         )
         if last_error is None:

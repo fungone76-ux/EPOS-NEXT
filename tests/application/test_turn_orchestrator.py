@@ -509,6 +509,17 @@ async def test_checked_action_requires_player_decision_before_any_downstream_pha
     assert store.saved == []
     assert checkpoints.value is None
 
+    result = await orchestrator.run(
+        TurnCommand(
+            player_input="Convincila.",
+            check_decision=CheckDecision.ROLL,
+        )
+    )
+
+    assert calls.count("interpret") == 1
+    assert result.check_decision is CheckDecision.ROLL
+    assert result.resolved_check is not None
+
 
 @pytest.mark.asyncio
 async def test_dice_checkpoint_resume_skips_interpreter_and_rng_then_clears_after_commit() -> None:

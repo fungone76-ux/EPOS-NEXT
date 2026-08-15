@@ -85,6 +85,7 @@ class TurnOrchestrator:
         self._npc_outfits = npc_outfits or PythonNPCOutfitMutationPlanner()
         self._intimacy = intimacy or PythonTurnIntimacyResolver()
         self._turn_lock = asyncio.Lock()
+        self._pending_check_action: tuple[TurnNumber, str, ValidatedAction] | None = None
 
     async def run(self, command: TurnCommand) -> TurnOrchestrationResult:
         async with self._turn_lock:
@@ -249,6 +250,7 @@ class TurnOrchestrator:
         checkpoint: DiceCheckpoint | None,
     ) -> tuple[ValidatedAction, CheckDecision | None, ResolvedCheck | None, bool]:
         if checkpoint is not None:
+            self._pending_check_action = None
             if checkpoint.player_input != command.player_input:
                 raise PendingDiceCheckpointError(
                     "a crashed dice turn is pending; new player input cannot replace it"
@@ -266,18 +268,32 @@ class TurnOrchestrator:
                 True,
             )
 
-        context = ActionInterpreterContext.from_world_state(
-            state,
-            player_input=command.player_input,
-            known_location_ids=command.known_location_ids,
-        )
-        action = await self._interpreter.interpret(context)
+        pending = self._pending_check_action
+        if pending is not None:
+            pending_turn, pending_input, pending_action = pending
+            if pending_turn == state.turn_number and pending_input == command.player_input:
+                if command.check_decision is None:
+                    raise CheckDecisionRequiredError()
+                action = pending_action.model_copy(deep=True)
+            else:
+                self._pending_check_action = None
+                action = await self._interpret_action(command=command, state=state)
+        else:
+            action = await self._interpret_action(command=command, state=state)
+
         if action.check is None:
+            self._pending_check_action = None
             return action, None, None, False
 
         if command.check_decision is None:
+            self._pending_check_action = (
+                state.turn_number,
+                command.player_input,
+                action.model_copy(deep=True),
+            )
             raise CheckDecisionRequiredError()
         if command.check_decision is CheckDecision.DECLINE:
+            self._pending_check_action = None
             return action, CheckDecision.DECLINE, None, False
 
         rating = action.skill_rating
@@ -295,7 +311,21 @@ class TurnOrchestrator:
             resolved_check=resolved,
             player_decision=CheckDecision.ROLL.value,
         )
+        self._pending_check_action = None
         return action, CheckDecision.ROLL, resolved, False
+
+    async def _interpret_action(
+        self,
+        *,
+        command: TurnCommand,
+        state: WorldState,
+    ) -> ValidatedAction:
+        context = ActionInterpreterContext.from_world_state(
+            state,
+            player_input=command.player_input,
+            known_location_ids=command.known_location_ids,
+        )
+        return await self._interpreter.interpret(context)
 
     async def _process_present_npcs(
         self,

@@ -8,6 +8,7 @@ from epos.application.results import (
     TurnResult,
     TurnVisualResult,
 )
+from epos.application.turn import CheckDecision
 from epos.domain.ids import LocationId, SceneId, SessionId, TurnNumber, WorldpackId
 from epos.presentation import (
     ComponentHealthView,
@@ -58,6 +59,7 @@ class FakeRuntime:
     def __init__(self) -> None:
         self.turn = 1
         self.inputs: list[str] = []
+        self.check_decisions: list[CheckDecision | None] = []
 
     async def get_session(self, session_id):
         return _session(self.turn)
@@ -76,6 +78,7 @@ class FakeRuntime:
 
     async def run_turn(self, session_id, command):
         self.inputs.append(command.player_input)
+        self.check_decisions.append(command.check_decision)
         self.turn += 1
         return TurnResult(
             session_id=SessionId("session-1"),
@@ -104,6 +107,20 @@ async def test_desktop_controller_updates_three_panels_from_one_public_result() 
     assert view.visual.result is not None
     assert view.visual.result.render_status == "failed"
     assert view.health.llm.status == "up"
+
+
+@pytest.mark.asyncio
+async def test_desktop_controller_forwards_the_players_explicit_check_decision() -> None:
+    runtime = FakeRuntime()
+    controller = DesktopController(runtime)
+    await controller.initialize(SessionId("session-1"))
+
+    await controller.submit_player_input(
+        "Convincila",
+        check_decision=CheckDecision.ROLL,
+    )
+
+    assert runtime.check_decisions == [CheckDecision.ROLL]
 
 
 @pytest.mark.asyncio
