@@ -93,6 +93,17 @@ class ConversationFocusProposal(DomainModel):
     topic: SemanticToken
     mode: NarrationMode
 
+    @field_validator("target_npc_id", mode="before")
+    @classmethod
+    def normalize_absent_target(cls, value: object) -> object:
+        if isinstance(value, str) and value.strip().casefold() in {
+            "null",
+            "none",
+            "no_target",
+        }:
+            return None
+        return value
+
     @field_validator("topic")
     @classmethod
     def normalize_topic(cls, value: str) -> str:

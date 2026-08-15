@@ -59,10 +59,19 @@ class NarrationContextBuilder:
         reactions_by_npc = self._reaction_map(state, scene, reactions)
         if (
             focus.mode in _CONVERSATIONAL_MODES
+            and focus.target_npc_id is not None
             and focus.target_npc_id not in reactions_by_npc
         ):
             raise NarrationContextError(
                 "focused conversation target has no authorized NPC reaction"
+            )
+        if (
+            focus.mode is NarrationMode.BRIEF_SOCIAL
+            and focus.target_npc_id is None
+            and not reactions_by_npc
+        ):
+            raise NarrationContextError(
+                "open brief social narration has no authorized NPC reaction"
             )
 
         evidence = self._scene_evidence(scene)

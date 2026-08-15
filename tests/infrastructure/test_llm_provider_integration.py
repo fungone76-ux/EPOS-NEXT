@@ -138,6 +138,9 @@ def test_task_profiles_are_distinct_and_cover_required_epos_tasks() -> None:
     assert "simple looking as check-free" in TASK_PROFILES[
         LLMTask.INTERPRET_ACTION
     ].system_instruction.casefold()
+    focus_instruction = TASK_PROFILES[LLMTask.INTERPRET_EVENT].system_instruction.casefold()
+    assert "observation" in focus_instruction
+    assert "exploration mode" in focus_instruction
     assert "player" in TASK_PROFILES[LLMTask.REASON_NPC].system_instruction.casefold()
     assert "stable diffusion" in TASK_PROFILES[LLMTask.GENERATE_VST].system_instruction.casefold()
 

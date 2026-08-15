@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from epos.application.actions.models import ValidatedAction
+from epos.application.actions.models import ObservationIntent, ValidatedAction
 from epos.application.conversation.focus import ConversationFocusService, ConversationFocusValidator
 from epos.application.conversation.models import (
     ConversationFocusContext,
@@ -98,3 +98,59 @@ def test_focus_validator_rejects_off_scene_target() -> None:
 
     with pytest.raises(ConversationFocusValidationError, match="present"):
         ConversationFocusValidator().validate(proposal, _context())
+
+
+def test_observation_is_canonicalized_to_exploration_instead_of_conversation() -> None:
+    context = _context("guardo i piedi nudi di Victoria").model_copy(
+        update={
+            "action": ValidatedAction(
+                intent="observe",
+                target_ids=(EntityId("victoria"),),
+                observation=ObservationIntent(
+                    subject_id=EntityId("victoria"),
+                    region="feet",
+                ),
+            )
+        }
+    )
+    proposal = ConversationFocusProposal(
+        speaker_id=EntityId("player"),
+        target_npc_id=EntityId("victoria"),
+        topic="bare_feet",
+        mode=NarrationMode.FOCUSED_INTERACTION,
+    )
+
+    focus = ConversationFocusValidator().validate(proposal, context)
+
+    assert focus.target_npc_id == EntityId("victoria")
+    assert focus.mode is NarrationMode.EXPLORATION
+
+
+def test_focus_proposal_normalizes_string_null_to_absent_target() -> None:
+    proposal = ConversationFocusProposal.model_validate(
+        {
+            "speaker_id": "player",
+            "target_npc_id": "null",
+            "topic": "introduction",
+            "mode": "brief_social",
+        }
+    )
+
+    assert proposal.target_npc_id is None
+
+
+def test_untargeted_conversation_becomes_open_brief_social() -> None:
+    context = _context("Buongiorno, sono Andrea").model_copy(
+        update={"action": ValidatedAction(intent="greet")}
+    )
+    proposal = ConversationFocusProposal(
+        speaker_id=EntityId("player"),
+        target_npc_id=None,
+        topic="introduction",
+        mode=NarrationMode.DIRECT_DIALOGUE,
+    )
+
+    focus = ConversationFocusValidator().validate(proposal, context)
+
+    assert focus.target_npc_id is None
+    assert focus.mode is NarrationMode.BRIEF_SOCIAL

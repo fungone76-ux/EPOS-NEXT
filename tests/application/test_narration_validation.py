@@ -181,6 +181,24 @@ def test_brief_social_accepts_one_or_two_sentences_from_target_npc() -> None:
     assert validated.units[0].speaker_id == EntityId("victoria")
 
 
+def test_open_brief_social_accepts_a_present_authorized_npc_response() -> None:
+    context = _context().model_copy(
+        update={
+            "focus": ConversationFocus(
+                speaker_id=EntityId("player"),
+                target_npc_id=None,
+                topic="introduction",
+                mode=NarrationMode.BRIEF_SOCIAL,
+            )
+        }
+    )
+    proposal = NarrationProposal(units=(_victoria_line("Benvenuto, Andrea."),))
+
+    validated = NarrationValidator().validate(proposal, context)
+
+    assert validated.units[0].speaker_id == EntityId("victoria")
+
+
 def test_brief_social_rejects_unrelated_npc_initiative() -> None:
     proposal = NarrationProposal(
         units=(
