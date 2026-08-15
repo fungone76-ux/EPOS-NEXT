@@ -1,6 +1,8 @@
-"""Coordinate the complete Visual Director -> ComfyUI pipeline for one scene."""
+"""Coordinate the complete renderer-neutral visual pipeline for one scene."""
 
 from __future__ import annotations
+
+from typing import Generic, TypeVar
 
 from epos.application.visual.bridge.errors import VisualDiagnosticsPersistenceError
 from epos.application.visual.bridge.models import (
@@ -10,6 +12,7 @@ from epos.application.visual.bridge.models import (
 )
 from epos.application.visual.bridge.ports import (
     PromptCompilerPort,
+    RenderRequestBuilderPort,
     VisualCanonicalizerPort,
     VisualDiagnosticsStorePort,
     VisualDirectorPort,
@@ -17,14 +20,12 @@ from epos.application.visual.bridge.ports import (
 from epos.application.visual.models import ObservableSceneState
 from epos.application.visual.prompt import WorldpackVisualConfig
 from epos.application.visual.rendering import RendererPort
-from epos.application.visual.workflow import (
-    ComfyWorkflowBuilderPort,
-    ComfyWorkflowRequest,
-)
+
+RequestT = TypeVar("RequestT")
 
 
-class VisualTurnPipeline:
-    """Thin application coordinator; every visual subsystem remains replaceable."""
+class VisualTurnPipeline(Generic[RequestT]):
+    """Thin coordinator; renderer-specific work begins after prompt compilation."""
 
     def __init__(
         self,
@@ -32,14 +33,14 @@ class VisualTurnPipeline:
         director: VisualDirectorPort,
         canonicalizer: VisualCanonicalizerPort,
         compiler: PromptCompilerPort,
-        workflow_builder: ComfyWorkflowBuilderPort,
-        renderer: RendererPort[ComfyWorkflowRequest],
+        render_request_builder: RenderRequestBuilderPort[RequestT],
+        renderer: RendererPort[RequestT],
         diagnostics: VisualDiagnosticsStorePort,
     ) -> None:
         self._director = director
         self._canonicalizer = canonicalizer
         self._compiler = compiler
-        self._workflow_builder = workflow_builder
+        self._render_request_builder = render_request_builder
         self._renderer = renderer
         self._diagnostics = diagnostics
 
@@ -60,11 +61,9 @@ class VisualTurnPipeline:
             profile=resources.prompt_profile,
         )
         prompt_contract = self._compiler.compile(canonical_vst, visual_config)
-        workflow_request = self._workflow_builder.build(
-            contract=prompt_contract,
-            template=resources.workflow_template,
-            profile=resources.workflow_profile,
-            parameters=resources.workflow_parameters,
+        built_request = self._render_request_builder.build(
+            prompt_contract,
+            seed=resources.seed,
         )
 
         prepared = VisualPipelineDiagnostics(
@@ -73,12 +72,12 @@ class VisualTurnPipeline:
             raw_vst=raw_vst,
             canonical_vst=canonical_vst,
             prompt_contract=prompt_contract,
-            workflow_request=workflow_request,
+            render_request=built_request.snapshot,
             render_result=None,
         )
         diagnostics_path = await self._diagnostics.save(prepared)
 
-        render_result = await self._renderer.render(workflow_request)
+        render_result = await self._renderer.render(built_request.request)
         rendered = prepared.model_copy(
             update={"phase": "rendered", "render_result": render_result}
         )
@@ -93,7 +92,7 @@ class VisualTurnPipeline:
             raw_vst=raw_vst,
             canonical_vst=canonical_vst,
             prompt_contract=prompt_contract,
-            workflow_request=workflow_request,
+            render_request=built_request.snapshot,
             render_result=render_result,
             diagnostics_path=diagnostics_path,
             diagnostics_error=diagnostics_error,
