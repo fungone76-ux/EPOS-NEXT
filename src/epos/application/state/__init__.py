@@ -5,6 +5,7 @@ from epos.application.state.commit import AuthoritativeStateManager
 from epos.application.state.errors import (
     CheckpointStateMismatchError,
     MutationAuthorityError,
+    StaleAuthoritativeStateError,
     StateMutationError,
 )
 from epos.application.state.models import (
@@ -12,6 +13,7 @@ from epos.application.state.models import (
     DiceCheckpoint,
     MutationAuthority,
     MutationBatch,
+    ReplaceNPCBondStateMutation,
     ReplaceNPCEmotionalStateMutation,
     ReplaceNPCRelationshipMutation,
     SetNPCIntentionsMutation,
@@ -34,6 +36,7 @@ __all__ = [
     "MutationAuthority",
     "MutationAuthorityError",
     "MutationBatch",
+    "ReplaceNPCBondStateMutation",
     "ReplaceNPCEmotionalStateMutation",
     "ReplaceNPCRelationshipMutation",
     "SetNPCIntentionsMutation",
@@ -41,6 +44,7 @@ __all__ = [
     "SetPlayerLocationMutation",
     "SetWorldFlagMutation",
     "SetWorldPhaseMutation",
+    "StaleAuthoritativeStateError",
     "StateMutation",
     "StateMutationError",
     "StateReference",
