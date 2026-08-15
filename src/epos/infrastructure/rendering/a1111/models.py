@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
-from pydantic import Field, JsonValue, field_validator
+from pydantic import Field, JsonValue, ValidationError, field_validator
 
 from epos.domain.base import DomainModel
+from epos.domain.errors import ConfigurationError
+from epos.domain.world_state import RenderingConfig
 
 
 class A1111LoraWeightRule(DomainModel):
@@ -40,6 +42,18 @@ class A1111RenderProfile(DomainModel):
                 raise ValueError(f"duplicate A1111 LoRA weight alias: {rule.alias}")
             seen.add(key)
         return rules
+
+    @classmethod
+    def from_rendering_config(cls, config: RenderingConfig) -> A1111RenderProfile:
+        raw = config.settings.get("a1111")
+        if raw is None:
+            raise ConfigurationError("A1111 render profile is missing from Worldpack")
+        if not isinstance(raw, dict):
+            raise ConfigurationError("invalid A1111 render profile: expected object")
+        try:
+            return cls.model_validate(raw)
+        except ValidationError as exc:
+            raise ConfigurationError(f"invalid A1111 render profile: {exc}") from exc
 
     def lora_weight_for(self, alias: str) -> float:
         key = alias.casefold()
