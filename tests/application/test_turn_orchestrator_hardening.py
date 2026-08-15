@@ -149,7 +149,7 @@ class OneMemoryDerivation:
                 npc_id=EntityId("victoria"),
                 memory=MemoryEntryState(
                     memory_id=MemoryId("turn-2-greeting"),
-                    turn=context.state.turn_number,
+                    turn=context.scene.time.turn_number,
                     summary="Il giocatore ha salutato Victoria nella lobby.",
                     participants=(EntityId("player"), EntityId("victoria")),
                     salience=2.0,
