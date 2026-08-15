@@ -1,4 +1,4 @@
-"""Adapter that exposes the existing Comfy workflow builder through the generic render-request port."""
+"""Expose the existing Comfy workflow builder through the generic render-request port."""
 
 from __future__ import annotations
 
@@ -9,8 +9,8 @@ from copy import deepcopy
 from epos.application.visual.bridge import BuiltRenderRequest, RenderRequestSnapshot
 from epos.application.visual.prompt import RenderPromptContract
 from epos.application.visual.workflow import (
-    ComfyWorkflowBuildParameters,
     ComfyWorkflowBuilderPort,
+    ComfyWorkflowBuildParameters,
     ComfyWorkflowProfile,
     ComfyWorkflowRequest,
     ComfyWorkflowTemplate,
