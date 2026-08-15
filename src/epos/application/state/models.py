@@ -1,4 +1,4 @@
-"""Typed state mutations and crash-recovery contracts for Module 09."""
+"""Typed state mutations and crash-recovery contracts for authoritative turns."""
 
 from __future__ import annotations
 
@@ -7,7 +7,7 @@ from typing import Annotated, Literal, Self
 
 from pydantic import Field, field_validator, model_validator
 
-from epos.application.actions.models import CheckProposal, ResolvedCheck
+from epos.application.actions.models import CheckProposal, ResolvedCheck, ValidatedAction
 from epos.domain.base import DomainModel
 from epos.domain.ids import EntityId, LocationId, SessionId, TurnNumber
 from epos.domain.psychology import EmotionalState
@@ -94,6 +94,13 @@ class SetWorldPhaseMutation(DomainModel):
         return normalized
 
 
+class AdvanceTurnMutation(DomainModel):
+    """Advance only the canonical turn counter; GameTime remains independently owned."""
+
+    kind: Literal["advance_turn"] = "advance_turn"
+    authority: Literal[MutationAuthority.ENGINE_ONLY] = MutationAuthority.ENGINE_ONLY
+
+
 StateMutation = Annotated[
     SetWorldFlagMutation
     | SetPlayerLocationMutation
@@ -101,7 +108,8 @@ StateMutation = Annotated[
     | SetNPCIntentionsMutation
     | ReplaceNPCEmotionalStateMutation
     | ReplaceNPCRelationshipMutation
-    | SetWorldPhaseMutation,
+    | SetWorldPhaseMutation
+    | AdvanceTurnMutation,
     Field(discriminator="kind"),
 ]
 
@@ -122,26 +130,32 @@ class StateReference(DomainModel):
 
 
 class DiceCheckpoint(DomainModel):
-    """Crash-recovery payload persisted immediately after a Python dice roll."""
+    """Exact resumable turn payload persisted immediately after a Python dice roll."""
 
     session_id: SessionId
     state_reference: StateReference
+    player_input: str
+    validated_action: ValidatedAction
     proposal: CheckProposal
     resolved_check: ResolvedCheck
     player_decision: str
 
-    @field_validator("player_decision")
+    @field_validator("player_input", "player_decision")
     @classmethod
-    def validate_player_decision(cls, value: str) -> str:
+    def validate_non_empty_text(cls, value: str) -> str:
         normalized = value.strip()
         if not normalized:
-            raise ValueError("player_decision must not be empty")
+            raise ValueError("checkpoint text fields must not be empty")
         return normalized
 
     @model_validator(mode="after")
     def validate_exact_roll_integrity(self) -> Self:
         if self.state_reference.session_id != self.session_id:
             raise ValueError("state reference session does not match checkpoint session")
+        if self.validated_action.check != self.proposal:
+            raise ValueError("validated action does not own checkpoint proposal")
+        if self.validated_action.skill_rating != self.resolved_check.rating:
+            raise ValueError("validated action rating does not match resolved check")
         if self.proposal.skill_id != self.resolved_check.skill_id:
             raise ValueError("resolved skill does not match check proposal")
         if self.proposal.difficulty != self.resolved_check.difficulty:
