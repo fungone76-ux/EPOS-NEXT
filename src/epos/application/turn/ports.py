@@ -95,6 +95,17 @@ class ReactionMutationPlannerPort(Protocol):
     def plan(self, reactions: tuple[CognitionResult, ...]) -> MutationBatch: ...
 
 
+class TurnScenePort(Protocol):
+    def build(
+        self,
+        *,
+        state: WorldState,
+        action: ValidatedAction,
+        resolved_check: ResolvedCheck | None,
+        resolution: TurnActionResolution,
+    ) -> ObservableSceneState: ...
+
+
 class TurnNarrationPort(Protocol):
     async def generate(
         self,
