@@ -12,6 +12,7 @@ from epos.application.actions.models import (
 )
 from epos.application.cognition.models import CognitionResult, CognitionScene
 from epos.application.conversation.models import NarrationResult
+from epos.application.memory import LongTermMemoryRecord
 from epos.application.psychology.models import PsychologyProfile
 from epos.application.state import MutationBatch
 from epos.application.turn.models import (
@@ -124,6 +125,13 @@ class TurnVisualResourcesPort(Protocol):
 
 class TurnVisualPort(Protocol):
     async def render(self, scene: ObservableSceneState) -> VisualPipelineResult: ...
+
+
+class TurnMemoryDerivationPort(Protocol):
+    async def derive(
+        self,
+        context: TurnMemoryContext,
+    ) -> tuple[LongTermMemoryRecord, ...]: ...
 
 
 class TurnMemoryPort(Protocol):
