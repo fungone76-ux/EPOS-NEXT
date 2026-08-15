@@ -14,7 +14,12 @@ from epos.application.conversation import (
     NarrationResult,
     NarrationService,
 )
-from epos.application.memory import LongTermMemoryRecord, MemoryHit, MemoryRecallQuery
+from epos.application.memory import (
+    LongTermMemoryRecord,
+    MemoryHit,
+    MemoryRecallQuery,
+    MemoryService,
+)
 from epos.application.ports import MemoryStorePort
 from epos.application.psychology import PsychologyService
 from epos.application.state import (
@@ -22,6 +27,7 @@ from epos.application.state import (
     MutationBatch,
     ReplaceNPCBondStateMutation,
     ReplaceNPCEmotionalStateMutation,
+    ReplaceNPCMemoryLayersMutation,
     ReplaceNPCRelationshipMutation,
     SetNPCIntentionsMutation,
     SetPlayerLocationMutation,
@@ -33,6 +39,7 @@ from epos.application.turn.models import (
     CheckDecision,
     TurnActionResolution,
     TurnMemoryContext,
+    TurnMemoryPlan,
     TurnPsychologyPlan,
 )
 from epos.application.turn.ports import (
@@ -294,20 +301,84 @@ class VisualTurnPipelineAdapter(Generic[RequestT]):
         )
 
 
-class LongTermTurnMemoryWriter:
-    """Persist only validated memories for NPCs that actually perceived this scene."""
+class TurnMemoryCoordinator:
+    """Derive once, commit active memory layers, then archive the same validated records."""
 
     def __init__(
         self,
         *,
         derivation: TurnMemoryDerivationPort,
+        capture: MemoryService,
         store: MemoryStorePort[LongTermMemoryRecord, MemoryRecallQuery, MemoryHit],
     ) -> None:
         self._derivation = derivation
+        self._capture = capture
         self._store = store
 
-    async def remember(self, context: TurnMemoryContext) -> None:
+    async def prepare(self, context: TurnMemoryContext) -> TurnMemoryPlan:
         records = await self._derivation.derive(context)
+        self._validate_records(context, records)
+
+        mutations: list[StateMutation] = []
+        by_npc: dict[EntityId, list[LongTermMemoryRecord]] = {}
+        for record in records:
+            by_npc.setdefault(record.npc_id, []).append(record)
+
+        for npc_id, npc_records in by_npc.items():
+            original = context.state.npcs[npc_id]
+            updated = original.model_copy(deep=True)
+            existing_ids = {
+                memory.memory_id
+                for memory in (
+                    *original.short_term_memory,
+                    *original.core_memories,
+                    *original.emotional_memory,
+                )
+            }
+            for record in npc_records:
+                if record.memory.memory_id in existing_ids:
+                    raise TurnOrchestrationError(
+                        f"memory {record.memory.memory_id} already exists for {npc_id}",
+                        code="turn.memory.already_exists",
+                    )
+                existing_ids.add(record.memory.memory_id)
+                updated = self._capture.remember(
+                    updated,
+                    record.memory,
+                    perceived=True,
+                )
+
+            if (
+                updated.short_term_memory != original.short_term_memory
+                or updated.core_memories != original.core_memories
+                or updated.emotional_memory != original.emotional_memory
+            ):
+                mutations.append(
+                    ReplaceNPCMemoryLayersMutation(
+                        npc_id=npc_id,
+                        short_term_memory=updated.short_term_memory,
+                        core_memories=updated.core_memories,
+                        emotional_memory=updated.emotional_memory,
+                    )
+                )
+
+        batches = (
+            MutationBatch(
+                producer=MutationAuthority.ENGINE_ONLY,
+                mutations=tuple(mutations),
+            ),
+        ) if mutations else ()
+        return TurnMemoryPlan(records=records, mutation_batches=batches)
+
+    async def store(self, plan: TurnMemoryPlan) -> None:
+        for record in plan.records:
+            await self._store.add(record)
+
+    @staticmethod
+    def _validate_records(
+        context: TurnMemoryContext,
+        records: tuple[LongTermMemoryRecord, ...],
+    ) -> None:
         present_npcs = {
             subject.entity_id
             for subject in context.scene.visible_subjects
@@ -320,14 +391,14 @@ class LongTermTurnMemoryWriter:
                     f"memory record targets off-scene NPC {record.npc_id}",
                     code="turn.memory.offscene_target",
                 )
-            if record.npc_id not in context.committed_state.npcs:
+            if record.npc_id not in context.state.npcs:
                 raise TurnOrchestrationError(
                     f"memory record targets unknown NPC {record.npc_id}",
                     code="turn.memory.unknown_npc",
                 )
-            if record.memory.turn != context.committed_state.turn_number:
+            if record.memory.turn != context.state.turn_number:
                 raise TurnOrchestrationError(
-                    "memory turn does not match committed authoritative turn",
+                    "memory turn does not match authoritative turn candidate",
                     code="turn.memory.turn_mismatch",
                 )
             key = (record.npc_id, str(record.memory.memory_id))
@@ -337,6 +408,3 @@ class LongTermTurnMemoryWriter:
                     code="turn.memory.duplicate",
                 )
             seen.add(key)
-
-        for record in records:
-            await self._store.add(record)
