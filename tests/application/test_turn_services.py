@@ -3,8 +3,11 @@ from __future__ import annotations
 import pytest
 
 from epos.application.actions.models import (
+    CheckOutcome,
     CheckProposal,
     MovementProposal,
+    OutfitRequestProposal,
+    ResolvedCheck,
     ValidatedAction,
 )
 from epos.application.psychology import (
@@ -111,6 +114,55 @@ def test_unchecked_movement_becomes_engine_only_location_mutation() -> None:
     assert batch.mutations == (
         SetPlayerLocationMutation(destination_id=LocationId("garden")),
     )
+
+
+def test_outfit_request_requires_explicit_worldpack_resolution_policy() -> None:
+    action = ValidatedAction(
+        intent="change_outfit",
+        outfit_request=OutfitRequestProposal(
+            target_id=EntityId("player"),
+            item_id="linen_shirt",
+            requested_state="wear",
+        ),
+    )
+
+    with pytest.raises(TurnOrchestrationError) as exc_info:
+        DefaultTurnActionResolver().resolve(
+            state=_world(),
+            action=action,
+            check_decision=None,
+            resolved_check=None,
+        )
+
+    assert exc_info.value.code == "turn.action.unsupported_outfit_request"
+
+
+def test_checked_movement_requires_explicit_outcome_to_mutation_policy() -> None:
+    action = ValidatedAction(
+        intent="sneak_to_garden",
+        movement=MovementProposal(destination_id=LocationId("garden")),
+        check=CheckProposal(skill_id=SkillId("furtivita"), difficulty=4),
+        skill_rating=3,
+    )
+    resolved = ResolvedCheck(
+        skill_id=SkillId("furtivita"),
+        difficulty=4,
+        rating=3,
+        pool_size=3,
+        dice=(6, 4, 2),
+        success_count=2,
+        outcome=CheckOutcome.FULL_SUCCESS,
+    )
+
+    with pytest.raises(TurnOrchestrationError) as exc_info:
+        DefaultTurnActionResolver().resolve(
+            state=_world(),
+            action=action,
+            check_decision=CheckDecision.ROLL,
+            resolved_check=resolved,
+        )
+
+    assert exc_info.value.code == "turn.action.checked_movement_requires_policy"
 
 
 class PraiseVictoriaEvents:
