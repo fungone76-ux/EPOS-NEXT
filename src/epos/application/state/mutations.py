@@ -6,6 +6,7 @@ from typing import assert_never
 
 from epos.application.state.errors import StateMutationError
 from epos.application.state.models import (
+    AdvanceTurnMutation,
     ReplaceNPCEmotionalStateMutation,
     ReplaceNPCRelationshipMutation,
     SetNPCIntentionsMutation,
@@ -15,6 +16,7 @@ from epos.application.state.models import (
     SetWorldPhaseMutation,
     StateMutation,
 )
+from epos.domain.ids import TurnNumber
 from epos.domain.world_state import WorldState
 
 
@@ -57,5 +59,8 @@ def apply_mutation(state: WorldState, mutation: StateMutation) -> None:
         return
     if isinstance(mutation, SetWorldPhaseMutation):
         state.world_phase = mutation.world_phase
+        return
+    if isinstance(mutation, AdvanceTurnMutation):
+        state.turn_number = TurnNumber(int(state.turn_number) + 1)
         return
     assert_never(mutation)
