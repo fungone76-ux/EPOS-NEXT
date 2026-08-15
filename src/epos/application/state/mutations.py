@@ -6,7 +6,10 @@ from typing import assert_never
 
 from epos.application.state.errors import StateMutationError
 from epos.application.state.models import (
+    AdvanceTurnMutation,
+    ReplaceNPCBondStateMutation,
     ReplaceNPCEmotionalStateMutation,
+    ReplaceNPCMemoryLayersMutation,
     ReplaceNPCRelationshipMutation,
     SetNPCIntentionsMutation,
     SetNPCLocationMutation,
@@ -15,7 +18,16 @@ from epos.application.state.models import (
     SetWorldPhaseMutation,
     StateMutation,
 )
+from epos.domain.ids import EntityId, TurnNumber
+from epos.domain.npc import NPCState
 from epos.domain.world_state import WorldState
+
+
+def _npc(state: WorldState, npc_id: EntityId) -> NPCState:
+    try:
+        return state.npcs[npc_id]
+    except KeyError as exc:
+        raise StateMutationError(f"unknown npc {npc_id}") from exc
 
 
 def apply_mutation(state: WorldState, mutation: StateMutation) -> None:
@@ -28,34 +40,40 @@ def apply_mutation(state: WorldState, mutation: StateMutation) -> None:
         state.player.location_id = mutation.destination_id
         return
     if isinstance(mutation, SetNPCLocationMutation):
-        try:
-            npc = state.npcs[mutation.npc_id]
-        except KeyError as exc:
-            raise StateMutationError(f"unknown npc {mutation.npc_id}") from exc
-        npc.location_id = mutation.destination_id
+        _npc(state, mutation.npc_id).location_id = mutation.destination_id
         return
     if isinstance(mutation, SetNPCIntentionsMutation):
-        try:
-            npc = state.npcs[mutation.npc_id]
-        except KeyError as exc:
-            raise StateMutationError(f"unknown npc {mutation.npc_id}") from exc
-        npc.intentions = mutation.intentions
+        _npc(state, mutation.npc_id).intentions = mutation.intentions
         return
     if isinstance(mutation, ReplaceNPCEmotionalStateMutation):
-        try:
-            npc = state.npcs[mutation.npc_id]
-        except KeyError as exc:
-            raise StateMutationError(f"unknown npc {mutation.npc_id}") from exc
-        npc.emotional_state = mutation.emotional_state.model_copy(deep=True)
+        _npc(state, mutation.npc_id).emotional_state = mutation.emotional_state.model_copy(
+            deep=True
+        )
         return
     if isinstance(mutation, ReplaceNPCRelationshipMutation):
-        try:
-            npc = state.npcs[mutation.npc_id]
-        except KeyError as exc:
-            raise StateMutationError(f"unknown npc {mutation.npc_id}") from exc
-        npc.relationships[mutation.partner_id] = mutation.relationship.model_copy(deep=True)
+        _npc(state, mutation.npc_id).relationships[mutation.partner_id] = (
+            mutation.relationship.model_copy(deep=True)
+        )
+        return
+    if isinstance(mutation, ReplaceNPCBondStateMutation):
+        _npc(state, mutation.npc_id).bond_state = mutation.bond_state.model_copy(deep=True)
+        return
+    if isinstance(mutation, ReplaceNPCMemoryLayersMutation):
+        npc = _npc(state, mutation.npc_id)
+        npc.short_term_memory = tuple(
+            memory.model_copy(deep=True) for memory in mutation.short_term_memory
+        )
+        npc.core_memories = tuple(
+            memory.model_copy(deep=True) for memory in mutation.core_memories
+        )
+        npc.emotional_memory = tuple(
+            memory.model_copy(deep=True) for memory in mutation.emotional_memory
+        )
         return
     if isinstance(mutation, SetWorldPhaseMutation):
         state.world_phase = mutation.world_phase
+        return
+    if isinstance(mutation, AdvanceTurnMutation):
+        state.turn_number = TurnNumber(int(state.turn_number) + 1)
         return
     assert_never(mutation)

@@ -1,17 +1,21 @@
-"""Module 09 state authority API."""
+"""Authoritative state authority and crash-recovery API."""
 
 from epos.application.state.checkpoint import DiceCheckpointService, state_fingerprint
 from epos.application.state.commit import AuthoritativeStateManager
 from epos.application.state.errors import (
     CheckpointStateMismatchError,
     MutationAuthorityError,
+    StaleAuthoritativeStateError,
     StateMutationError,
 )
 from epos.application.state.models import (
+    AdvanceTurnMutation,
     DiceCheckpoint,
     MutationAuthority,
     MutationBatch,
+    ReplaceNPCBondStateMutation,
     ReplaceNPCEmotionalStateMutation,
+    ReplaceNPCMemoryLayersMutation,
     ReplaceNPCRelationshipMutation,
     SetNPCIntentionsMutation,
     SetNPCLocationMutation,
@@ -24,6 +28,7 @@ from epos.application.state.models import (
 from epos.application.state.ports import DiceCheckpointStorePort
 
 __all__ = [
+    "AdvanceTurnMutation",
     "AuthoritativeStateManager",
     "CheckpointStateMismatchError",
     "DiceCheckpoint",
@@ -32,13 +37,16 @@ __all__ = [
     "MutationAuthority",
     "MutationAuthorityError",
     "MutationBatch",
+    "ReplaceNPCBondStateMutation",
     "ReplaceNPCEmotionalStateMutation",
+    "ReplaceNPCMemoryLayersMutation",
     "ReplaceNPCRelationshipMutation",
     "SetNPCIntentionsMutation",
     "SetNPCLocationMutation",
     "SetPlayerLocationMutation",
     "SetWorldFlagMutation",
     "SetWorldPhaseMutation",
+    "StaleAuthoritativeStateError",
     "StateMutation",
     "StateMutationError",
     "StateReference",

@@ -5,7 +5,7 @@ from __future__ import annotations
 import hashlib
 import json
 
-from epos.application.actions.models import CheckProposal, ResolvedCheck
+from epos.application.actions.models import CheckProposal, ResolvedCheck, ValidatedAction
 from epos.application.state.errors import CheckpointStateMismatchError
 from epos.application.state.models import DiceCheckpoint, StateReference
 from epos.application.state.ports import DiceCheckpointStorePort
@@ -30,6 +30,8 @@ class DiceCheckpointService:
         self,
         *,
         state: WorldState,
+        player_input: str,
+        validated_action: ValidatedAction,
         proposal: CheckProposal,
         resolved_check: ResolvedCheck,
         player_decision: str,
@@ -41,6 +43,8 @@ class DiceCheckpointService:
                 turn_number=state.turn_number,
                 fingerprint=state_fingerprint(state),
             ),
+            player_input=player_input,
+            validated_action=validated_action.model_copy(deep=True),
             proposal=proposal.model_copy(deep=True),
             resolved_check=resolved_check.model_copy(deep=True),
             player_decision=player_decision,
