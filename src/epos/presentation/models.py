@@ -5,7 +5,7 @@ from __future__ import annotations
 from pydantic import Field, JsonValue
 
 from epos.application.diagnostics import RuntimeHealthView
-from epos.application.results import TurnDialogueLine, TurnVisualResult
+from epos.application.results import TurnDialogueLine, TurnGameResult, TurnVisualResult
 from epos.domain.base import DomainModel
 from epos.domain.ids import (
     EntityId,
@@ -24,6 +24,15 @@ class PresentNPCView(DomainModel):
     entity_id: EntityId
     name: str
     role: str
+    outfit: tuple[str, ...] = ()
+
+
+class PlayerView(DomainModel):
+    entity_id: EntityId
+    name: str
+    inventory: tuple[str, ...] = ()
+    conditions: tuple[str, ...] = ()
+    outfit: tuple[str, ...] = ()
 
 
 class MissionView(DomainModel):
@@ -33,6 +42,11 @@ class MissionView(DomainModel):
 
 class EventView(DomainModel):
     event_id: EventId
+    status: str
+
+
+class NarrativeThreadView(DomainModel):
+    thread_id: str
     status: str
 
 
@@ -50,9 +64,11 @@ class SessionView(DomainModel):
     location_name: str
     day: int = Field(ge=1)
     world_phase: str
+    player: PlayerView | None = None
     present_npcs: tuple[PresentNPCView, ...] = ()
     missions: tuple[MissionView, ...] = ()
     events: tuple[EventView, ...] = ()
+    threads: tuple[NarrativeThreadView, ...] = ()
     player_skills: tuple[PlayerSkillView, ...] = ()
     known_world_info: dict[str, JsonValue] = Field(default_factory=dict)
 
@@ -67,11 +83,19 @@ class SessionView(DomainModel):
             location_name=location.name,
             day=state.day,
             world_phase=state.world_phase,
+            player=PlayerView(
+                entity_id=state.player.entity_id,
+                name=state.player.name,
+                inventory=state.player.inventory,
+                conditions=state.player.conditions,
+                outfit=tuple(item.name for item in state.player.outfit.visible_items()),
+            ),
             present_npcs=tuple(
                 PresentNPCView(
                     entity_id=npc_id,
                     name=npc.identity.name,
                     role=npc.identity.role,
+                    outfit=tuple(item.name for item in npc.outfit.visible_items()),
                 )
                 for npc_id, npc in sorted(state.npcs.items(), key=lambda item: str(item[0]))
                 if npc.location_id == state.player.location_id
@@ -87,6 +111,10 @@ class SessionView(DomainModel):
                 for event_id, event in sorted(
                     state.events.items(), key=lambda item: str(item[0])
                 )
+            ),
+            threads=tuple(
+                NarrativeThreadView(thread_id=thread_id, status=thread.status)
+                for thread_id, thread in sorted(state.threads.items())
             ),
             player_skills=tuple(
                 PlayerSkillView(
@@ -110,6 +138,7 @@ class WorldpackView(DomainModel):
 class StoryPanelState(DomainModel):
     narration: str = ""
     dialogues: tuple[TurnDialogueLine, ...] = ()
+    game: TurnGameResult | None = None
 
 
 class VisualPanelState(DomainModel):
