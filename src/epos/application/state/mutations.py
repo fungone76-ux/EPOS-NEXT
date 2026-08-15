@@ -9,6 +9,7 @@ from epos.application.state.models import (
     AdvanceTurnMutation,
     ReplaceNPCBondStateMutation,
     ReplaceNPCEmotionalStateMutation,
+    ReplaceNPCMemoryLayersMutation,
     ReplaceNPCRelationshipMutation,
     SetNPCIntentionsMutation,
     SetNPCLocationMutation,
@@ -56,6 +57,18 @@ def apply_mutation(state: WorldState, mutation: StateMutation) -> None:
         return
     if isinstance(mutation, ReplaceNPCBondStateMutation):
         _npc(state, mutation.npc_id).bond_state = mutation.bond_state.model_copy(deep=True)
+        return
+    if isinstance(mutation, ReplaceNPCMemoryLayersMutation):
+        npc = _npc(state, mutation.npc_id)
+        npc.short_term_memory = tuple(
+            memory.model_copy(deep=True) for memory in mutation.short_term_memory
+        )
+        npc.core_memories = tuple(
+            memory.model_copy(deep=True) for memory in mutation.core_memories
+        )
+        npc.emotional_memory = tuple(
+            memory.model_copy(deep=True) for memory in mutation.emotional_memory
+        )
         return
     if isinstance(mutation, SetWorldPhaseMutation):
         state.world_phase = mutation.world_phase
