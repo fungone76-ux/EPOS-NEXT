@@ -1,7 +1,8 @@
 # Module 03 — Adult Intimacy & Sexual Relationship System
 
 Module 03 separates adult sexual dynamics from ordinary relationships and emotional bonds.
-It does not implement NPC cognition, dialogue generation, memory retrieval, or love derivation.
+It does not itself implement NPC cognition, dialogue generation, memory retrieval, or love
+derivation. Module 25 later supplies the separate Python-derived `LovePhase` policy.
 
 Implemented boundaries:
 
@@ -14,12 +15,13 @@ Implemented boundaries:
 - semantic intimacy events contain meaning and normalized intensity only;
 - Python maps semantic events to deterministic NPC intimacy deltas and clamps state to 0..10;
 - completed sexual activity can be recorded only from a valid authorization result;
-- `BondState` is now a general emotional bond: none, forming, established, deep.
+- `BondPhase` is a general emotional bond: none, forming, established, deep;
+- a later optional `LovePhase` remains separate from sexual intimacy and general bond depth.
 
 Deliberately excluded:
 
 - automatic or LLM-controlled player desire;
-- love or `in_love` derivation;
+- love or `in_love` derivation inside this module;
 - explicit scene narration;
 - off-screen NPC sexual cognition;
 - persistence/commit orchestration;

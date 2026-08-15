@@ -8,7 +8,7 @@ import asyncio
 from collections.abc import Sequence
 from typing import Protocol
 
-from epos.application.memory import LongTermMemoryRecord, MemoryHit, MemoryRecallQuery
+from epos.application.memory import LongTermMemoryRecord, MemoryError, MemoryHit, MemoryRecallQuery
 
 
 class SyncChromaMemoryCollection(Protocol):
@@ -24,8 +24,20 @@ class ChromaMemoryAdapter:
         self._collection = collection
 
     async def add(self, record: LongTermMemoryRecord) -> None:
-        await asyncio.to_thread(self._collection.add, record)
+        try:
+            await asyncio.to_thread(self._collection.add, record)
+        except Exception as exc:
+            raise MemoryError(
+                f"memory store failed: {type(exc).__name__}: {exc}",
+                code="memory.store.failed",
+            ) from exc
 
     async def recall(self, query: MemoryRecallQuery, *, limit: int) -> list[MemoryHit]:
-        hits = await asyncio.to_thread(self._collection.recall, query, limit=limit)
+        try:
+            hits = await asyncio.to_thread(self._collection.recall, query, limit=limit)
+        except Exception as exc:
+            raise MemoryError(
+                f"memory recall failed: {type(exc).__name__}: {exc}",
+                code="memory.recall.failed",
+            ) from exc
         return list(hits)

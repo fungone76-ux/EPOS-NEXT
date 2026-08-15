@@ -31,8 +31,12 @@ Sexual activity requires both participants to be adult-verified and requires exp
 scoped, current consent. Numeric intimacy or relationship scores never imply consent.
 Consent may be declined or withdrawn.
 
-`BondState` represents only general emotional bond depth. Love, if implemented later, is an
-optional derived state and is not the primary progression axis of the adult intimacy system.
+`BondPhase` represents only general emotional bond depth. `LovePhase`, implemented during
+the final acceptance hardening, is a separate optional Python-derived field inside the
+authoritative bond state and is not the primary progression axis of the adult intimacy
+system. Attraction alone never sets it. Progress requires multidimensional relationship
+thresholds, blockers, shared core memories, narrative time, meaningful events, and staged
+advancement with hysteresis.
 
 ## DEC-004 — NPC memory has five operational levels
 

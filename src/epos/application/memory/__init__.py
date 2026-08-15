@@ -7,6 +7,7 @@ from pydantic import Field
 
 from epos.application.ports import MemoryStorePort
 from epos.domain.base import DomainModel
+from epos.domain.errors import MemoryError
 from epos.domain.ids import EntityId, MemoryId, TurnNumber
 from epos.domain.memory import (
     EmotionalMemoryState,
@@ -227,6 +228,7 @@ __all__ = [
     "LongTermMemoryRecord",
     "MemoryCapturePolicy",
     "MemoryConsolidationService",
+    "MemoryError",
     "MemoryHit",
     "MemoryRecallQuery",
     "MemoryRecallResult",

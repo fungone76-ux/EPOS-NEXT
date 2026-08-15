@@ -1,9 +1,9 @@
 """Errors for authoritative observable-scene construction."""
 
-from epos.domain.errors import EposValidationError
+from epos.domain.errors import VisualContractError
 
 
-class ObservableSceneValidationError(EposValidationError):
+class ObservableSceneValidationError(VisualContractError):
     """Raised when a proposed observable fact contradicts the authoritative scene."""
 
     def __init__(

@@ -34,6 +34,34 @@ class EposValidationError(EposError):
         super().__init__(message, code=code)
 
 
+class StateValidationError(EposValidationError):
+    """Authoritative state is invalid, stale, or unsafe to commit."""
+
+    def __init__(self, message: str, *, code: str = "state.validation_failed") -> None:
+        super().__init__(message, code=code)
+
+
+class MemoryError(EposError):
+    """Memory capture, recall, consolidation, or storage failed."""
+
+    def __init__(self, message: str, *, code: str = "memory.failed") -> None:
+        super().__init__(message, code=code)
+
+
+class VisualContractError(ContractError):
+    """A visual semantic contract is invalid or contradicts authority."""
+
+    def __init__(self, message: str, *, code: str = "visual.contract.invalid") -> None:
+        super().__init__(message, code=code)
+
+
+class PromptCompilationError(EposValidationError):
+    """Python could not deterministically compile a validated visual contract."""
+
+    def __init__(self, message: str, *, code: str = "visual.prompt.compilation_failed") -> None:
+        super().__init__(message, code=code)
+
+
 class ExternalServiceError(EposError):
     """An external dependency failed in a classified way."""
 

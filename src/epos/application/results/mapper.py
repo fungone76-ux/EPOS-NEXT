@@ -37,7 +37,14 @@ class TurnResultMapper:
                 checkpoint_reused=result.checkpoint_reused,
                 memory_stored=result.memory_stored,
                 issues=tuple(
-                    TurnIssue(phase=item.phase, code=item.code, message=item.message)
+                    TurnIssue(
+                        phase=item.phase,
+                        code=item.code,
+                        message=item.message,
+                        recovery_action=item.recovery_action,
+                        retryable=item.retryable,
+                        committed_state_preserved=item.committed_state_preserved,
+                    )
                     for item in result.post_commit_issues
                 ),
             ),
@@ -73,7 +80,13 @@ class TurnResultMapper:
                 vst_status="failed" if issue is not None else "unavailable",
                 render_status="failed" if issue is not None else "not_attempted",
                 render_error=issue.message if issue is not None else None,
-                retry_available=issue is not None,
+                retry_available=bool(
+                    issue is not None
+                    and (
+                        (issue.retryable and issue.recovery_action == "retry_image")
+                        or issue.code.startswith("renderer.")
+                    )
+                ),
             )
 
         rendered = visual.render_result
