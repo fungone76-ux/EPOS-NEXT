@@ -20,6 +20,7 @@ class PsychologicalEventType(StrEnum):
     PROMISE_BROKEN = "promise_broken"
     HUMILIATION = "humiliation"
     SUPPORT = "support"
+    ROMANTIC_MILESTONE = "romantic_milestone"
 
 
 class PsychologicalEvent(DomainModel):

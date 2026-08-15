@@ -64,6 +64,9 @@ class TurnIssue(DomainModel):
     phase: str
     code: str
     message: str
+    recovery_action: str = "report_bug"
+    retryable: bool = False
+    committed_state_preserved: bool = True
 
 
 class TurnDiagnostics(DomainModel):

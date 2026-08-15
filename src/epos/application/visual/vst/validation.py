@@ -4,10 +4,10 @@ from __future__ import annotations
 
 from epos.application.visual.vst.context import VisualDirectorContext
 from epos.application.visual.vst.models import RawVST
-from epos.domain.errors import EposValidationError
+from epos.domain.errors import VisualContractError
 
 
-class VSTValidationError(EposValidationError):
+class VSTValidationError(VisualContractError):
     def __init__(self, message: str, *, code: str = "visual.vst.validation_failed") -> None:
         super().__init__(message, code=code)
 

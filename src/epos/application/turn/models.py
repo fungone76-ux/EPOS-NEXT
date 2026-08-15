@@ -130,8 +130,11 @@ class PostCommitIssue(DomainModel):
     phase: str
     code: str
     message: str
+    recovery_action: str = "report_bug"
+    retryable: bool = False
+    committed_state_preserved: bool = True
 
-    @field_validator("phase", "code", "message")
+    @field_validator("phase", "code", "message", "recovery_action")
     @classmethod
     def validate_text(cls, value: str) -> str:
         normalized = value.strip()

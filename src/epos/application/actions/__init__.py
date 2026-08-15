@@ -1,6 +1,6 @@
 """Action interpretation and Python-authoritative check resolution."""
 
-from epos.application.actions.checks import CheckResolver, D6OutcomePolicy
+from epos.application.actions.checks import CheckResolutionError, CheckResolver, D6OutcomePolicy
 from epos.application.actions.models import (
     ActionInterpretation,
     ActionInterpreterContext,
@@ -23,6 +23,7 @@ __all__ = [
     "ActionValidator",
     "CheckOutcome",
     "CheckProposal",
+    "CheckResolutionError",
     "CheckResolver",
     "D6OutcomePolicy",
     "ObservationIntent",

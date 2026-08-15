@@ -1,9 +1,9 @@
 """Errors raised by Module 12 visual canonicalization."""
 
-from epos.domain.errors import EposValidationError
+from epos.domain.errors import VisualContractError
 
 
-class VisualCanonicalizationError(EposValidationError):
+class VisualCanonicalizationError(VisualContractError):
     """Raised when RAW visual intent contradicts canonical visual truth."""
 
     def __init__(

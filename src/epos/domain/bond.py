@@ -1,4 +1,4 @@
-"""Persistent general bond state, independent from sexual intimacy or love."""
+"""Persistent general bond plus a separate Python-derived emergent-love phase."""
 
 from enum import StrEnum
 
@@ -12,5 +12,12 @@ class BondPhase(StrEnum):
     DEEP = "deep"
 
 
+class LovePhase(StrEnum):
+    NONE = "none"
+    FALLING_IN_LOVE = "falling_in_love"
+    IN_LOVE = "in_love"
+
+
 class BondState(DomainModel):
     phase: BondPhase = BondPhase.NONE
+    love_phase: LovePhase = LovePhase.NONE

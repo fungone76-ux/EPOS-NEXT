@@ -5,6 +5,8 @@ from __future__ import annotations
 import re
 from collections.abc import Iterable
 
+from pydantic import ValidationError
+
 from epos.application.visual.canonical import (
     CanonicalSubject,
     CanonicalVST,
@@ -25,6 +27,7 @@ from epos.application.worldpacks.models import (
     SemanticLibraryDocument,
     SemanticLibraryEntry,
 )
+from epos.domain.errors import PromptCompilationError
 from epos.domain.outfit import OutfitItem
 
 _WORD = re.compile(r"[a-z]+")
@@ -37,6 +40,20 @@ class SemanticPromptCompiler:
         self._resolver = resolver or SemanticLibraryResolver()
 
     def compile(
+        self,
+        canonical_vst: CanonicalVST,
+        config: WorldpackVisualConfig,
+    ) -> RenderPromptContract:
+        try:
+            return self._compile(canonical_vst, config)
+        except (PromptCompilationError, SemanticLibraryResolutionError):
+            raise
+        except (ValidationError, ValueError) as exc:
+            raise PromptCompilationError(
+                f"could not compile canonical visual prompt: {type(exc).__name__}: {exc}"
+            ) from exc
+
+    def _compile(
         self,
         canonical_vst: CanonicalVST,
         config: WorldpackVisualConfig,

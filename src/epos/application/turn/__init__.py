@@ -1,5 +1,6 @@
 """Module 18 canonical turn orchestration API."""
 
+from epos.application.turn.bond import EmergentBondPolicy
 from epos.application.turn.errors import (
     CheckDecisionRequiredError,
     PendingDiceCheckpointError,
@@ -59,6 +60,7 @@ __all__ = [
     "DefaultTurnActionResolver",
     "DefaultTurnNarrationCoordinator",
     "DefaultTurnSceneBuilder",
+    "EmergentBondPolicy",
     "NPCOutfitMutationPlannerPort",
     "PendingDiceCheckpointError",
     "PostCommitIssue",

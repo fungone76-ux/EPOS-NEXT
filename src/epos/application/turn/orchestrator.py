@@ -6,6 +6,7 @@ import asyncio
 
 from epos.application.actions.models import ActionInterpreterContext, ResolvedCheck, ValidatedAction
 from epos.application.cognition.models import CognitionResult, CognitionScene
+from epos.application.recovery import ErrorRecoveryPolicy, RecoveryAction
 from epos.application.state import (
     AdvanceTurnMutation,
     AuthoritativeStateManager,
@@ -42,7 +43,6 @@ from epos.application.turn.ports import (
     TurnVisualPort,
 )
 from epos.application.visual.models import ObservableConsequence
-from epos.domain.errors import EposError
 from epos.domain.ids import EntityId
 from epos.domain.world_state import WorldState
 
@@ -328,10 +328,17 @@ class TurnOrchestrator:
 
     @staticmethod
     def _issue(phase: str, exc: Exception) -> PostCommitIssue:
-        if isinstance(exc, EposError):
-            code = exc.code
-            message = str(exc)
-        else:
-            code = f"turn.post_commit.{phase}_unexpected"
-            message = f"{type(exc).__name__}: {exc}"
-        return PostCommitIssue(phase=phase, code=code, message=message)
+        decision = ErrorRecoveryPolicy().decide(exc, phase=phase, committed=True)
+        code = (
+            f"turn.post_commit.{phase}_unexpected"
+            if decision.action is RecoveryAction.REPORT_BUG
+            else decision.code
+        )
+        return PostCommitIssue(
+            phase=phase,
+            code=code,
+            message=decision.message,
+            recovery_action=decision.action.value,
+            retryable=decision.retryable,
+            committed_state_preserved=decision.committed_state_preserved,
+        )

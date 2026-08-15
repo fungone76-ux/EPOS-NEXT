@@ -72,4 +72,14 @@ def default_rule_for(event_type: PsychologicalEventType) -> PsychologyRule:
                 emotions=EmotionEffect(joy=0.5, fear=-0.5),
                 relationship=RelationshipEffect(trust=0.75, affection=0.75),
             )
+        case PsychologicalEventType.ROMANTIC_MILESTONE:
+            return PsychologyRule(
+                emotions=EmotionEffect(joy=0.4, attraction=0.35),
+                relationship=RelationshipEffect(
+                    trust=0.4,
+                    attraction=0.35,
+                    affection=0.6,
+                    respect=0.3,
+                ),
+            )
     raise AssertionError(f"unsupported psychological event type: {event_type}")

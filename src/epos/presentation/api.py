@@ -9,6 +9,7 @@ from fastapi import FastAPI, HTTPException
 from pydantic import Field
 
 from epos.application.diagnostics import ComponentHealthView, RuntimeHealthView
+from epos.application.recovery import ErrorRecoveryPolicy
 from epos.application.results import TurnResult, TurnVisualResult
 from epos.application.turn import CheckDecision, TurnCommand
 from epos.domain.base import DomainModel
@@ -39,6 +40,7 @@ class TurnRequest(DomainModel):
 
 def create_app(runtime: EPOSRuntimePort) -> FastAPI:
     app = FastAPI(title="EPOS NEXT Debug API", version="1.0")
+    recovery = ErrorRecoveryPolicy()
 
     async def invoke(operation: Awaitable[T]) -> T:
         try:
@@ -46,9 +48,17 @@ def create_app(runtime: EPOSRuntimePort) -> FastAPI:
         except KeyError as exc:
             raise HTTPException(status_code=404, detail=f"resource not found: {exc}") from exc
         except EposError as exc:
+            decision = recovery.decide(exc, phase="api")
             raise HTTPException(
-                status_code=409 if exc.code.startswith("state.") else 400,
-                detail={"code": exc.code, "message": str(exc)},
+                status_code=decision.http_status,
+                detail={
+                    "code": decision.code,
+                    "message": decision.message,
+                    "error_type": decision.error_type,
+                    "recovery_action": decision.action.value,
+                    "retryable": decision.retryable,
+                    "committed_state_preserved": decision.committed_state_preserved,
+                },
             ) from exc
 
     @app.post("/sessions", response_model=SessionView)
