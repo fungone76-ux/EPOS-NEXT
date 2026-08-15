@@ -80,16 +80,31 @@ class TurnPsychologyPlan(DomainModel):
     targeted_events: tuple[TargetedPsychologicalEvent, ...] = ()
 
 
-class TurnMemoryContext(DomainModel):
-    """Disclosure-safe material from which resulting NPC memories may be derived."""
+class TurnMemoryDerivationContext(DomainModel):
+    """Disclosure-safe material allowed across a memory-classification/LLM boundary."""
 
-    state: WorldState
     player_input: str
     action: ValidatedAction
     resolved_check: ResolvedCheck | None = None
     reactions: tuple[ValidatedNPCReaction, ...] = ()
     scene: ObservableSceneState
     narration: NarrationResult
+
+
+class TurnMemoryContext(TurnMemoryDerivationContext):
+    """Python-only memory planning context; authoritative state never crosses derivation port."""
+
+    state: WorldState
+
+    def derivation_context(self) -> TurnMemoryDerivationContext:
+        return TurnMemoryDerivationContext(
+            player_input=self.player_input,
+            action=self.action,
+            resolved_check=self.resolved_check,
+            reactions=self.reactions,
+            scene=self.scene,
+            narration=self.narration,
+        )
 
 
 class TurnMemoryPlan(DomainModel):
