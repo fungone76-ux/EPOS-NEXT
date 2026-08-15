@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Generic, TypeVar
+
 from epos.application.actions.checks import CheckResolver
 from epos.application.actions.models import CheckProposal, ResolvedCheck, ValidatedAction
 from epos.application.cognition.models import CognitionResult
@@ -21,6 +23,7 @@ from epos.application.state import (
     ReplaceNPCRelationshipMutation,
     SetNPCIntentionsMutation,
     SetPlayerLocationMutation,
+    StateMutation,
 )
 from epos.application.turn.errors import TurnOrchestrationError
 from epos.application.turn.models import (
@@ -33,13 +36,17 @@ from epos.application.turn.ports import (
     BondDerivationPort,
     PsychologyProfilePort,
     TurnPsychologicalEventPort,
+    TurnVisualResourcesPort,
 )
+from epos.application.visual.bridge import VisualPipelineResult, VisualTurnPipeline
 from epos.application.visual.models import ObservableSceneState, SceneObservationInput
 from epos.application.visual.observable_scene import ObservableSceneBuilder
 from epos.domain.ids import EntityId
 from epos.domain.relationships import RelationshipState
 from epos.domain.rng import RandomSource
 from epos.domain.world_state import WorldState
+
+RequestT = TypeVar("RequestT")
 
 
 class PythonTurnCheckResolver:
@@ -68,7 +75,7 @@ class DefaultTurnActionResolver:
         if action.check is not None and check_decision is CheckDecision.DECLINE:
             return TurnActionResolution()
 
-        mutations = ()
+        mutations: tuple[StateMutation, ...] = ()
         if action.movement is not None:
             mutations = (
                 SetPlayerLocationMutation(destination_id=action.movement.destination_id),
@@ -120,11 +127,7 @@ class PythonTurnPsychologyPlanner:
                     code="turn.psychology.offscene_target",
                 )
 
-        mutations: list[
-            ReplaceNPCEmotionalStateMutation
-            | ReplaceNPCRelationshipMutation
-            | ReplaceNPCBondStateMutation
-        ] = []
+        mutations: list[StateMutation] = []
         player_id = state.player.entity_id
         for npc_id in present_npc_ids:
             npc = state.npcs[npc_id]
@@ -266,3 +269,22 @@ class DefaultTurnNarrationCoordinator:
             reactions=validated_reactions,
         )
         return await self._narration.generate(context)
+
+
+class VisualTurnPipelineAdapter(Generic[RequestT]):
+    """Connect Module 18 directly to the complete Module 16 renderer-neutral pipeline."""
+
+    def __init__(
+        self,
+        *,
+        pipeline: VisualTurnPipeline[RequestT],
+        resources: TurnVisualResourcesPort,
+    ) -> None:
+        self._pipeline = pipeline
+        self._resources = resources
+
+    async def render(self, scene: ObservableSceneState) -> VisualPipelineResult:
+        return await self._pipeline.run(
+            scene=scene,
+            resources=self._resources.resources_for(scene),
+        )
