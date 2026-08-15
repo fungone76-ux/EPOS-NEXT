@@ -9,8 +9,9 @@ from epos.application.conversation.models import (
     NarrationResult,
     WorldNarrationDraft,
 )
-from epos.application.memory import LongTermMemoryRecord
-from epos.application.turn import LongTermTurnMemoryWriter, TurnMemoryContext, TurnOrchestrationError
+from epos.application.memory import LongTermMemoryRecord, MemoryService
+from epos.application.state import ReplaceNPCMemoryLayersMutation
+from epos.application.turn import TurnMemoryContext, TurnMemoryCoordinator, TurnOrchestrationError
 from epos.application.visual.models import SceneObservationInput
 from epos.application.visual.observable_scene import ObservableSceneBuilder
 from epos.domain.ids import EntityId, LocationId, MemoryId, SessionId, WorldpackId
@@ -84,7 +85,7 @@ def _context() -> TurnMemoryContext:
         text="Victoria ricambia il saluto.",
     )
     return TurnMemoryContext(
-        committed_state=state,
+        state=state,
         player_input="Buongiorno Victoria.",
         action=action,
         scene=scene,
@@ -109,8 +110,10 @@ class FixedDerivation:
     def __init__(self, records: tuple[LongTermMemoryRecord, ...]) -> None:
         self.records = records
         self.context: TurnMemoryContext | None = None
+        self.calls = 0
 
     async def derive(self, context: TurnMemoryContext) -> tuple[LongTermMemoryRecord, ...]:
+        self.calls += 1
         self.context = context.model_copy(deep=True)
         return tuple(record.model_copy(deep=True) for record in self.records)
 
@@ -127,41 +130,62 @@ class RecordingMemoryStore:
 
 
 @pytest.mark.asyncio
-async def test_turn_memory_writer_persists_derived_memory_for_visible_npc() -> None:
+async def test_turn_memory_coordinator_derives_once_commits_active_layer_then_archives_same_record() -> None:
     context = _context()
-    derivation = FixedDerivation((_record("victoria"),))
+    record = _record("victoria")
+    derivation = FixedDerivation((record,))
     store = RecordingMemoryStore()
-    writer = LongTermTurnMemoryWriter(derivation=derivation, store=store)
+    memory = TurnMemoryCoordinator(
+        derivation=derivation,
+        capture=MemoryService.default(),
+        store=store,
+    )
 
-    await writer.remember(context)
+    plan = await memory.prepare(context)
 
+    assert derivation.calls == 1
     assert derivation.context == context
-    assert store.added == [_record("victoria")]
+    assert plan.records == (record,)
+    assert len(plan.mutation_batches) == 1
+    mutation = plan.mutation_batches[0].mutations[0]
+    assert isinstance(mutation, ReplaceNPCMemoryLayersMutation)
+    assert mutation.npc_id == EntityId("victoria")
+    assert mutation.short_term_memory == (record.memory,)
+    assert store.added == []
+
+    await memory.store(plan)
+
+    assert derivation.calls == 1
+    assert store.added == [record]
 
 
 @pytest.mark.asyncio
-async def test_turn_memory_writer_rejects_offscene_npc_before_any_store_write() -> None:
+async def test_turn_memory_coordinator_rejects_offscene_npc_before_plan_or_store_write() -> None:
     store = RecordingMemoryStore()
-    writer = LongTermTurnMemoryWriter(
-        derivation=FixedDerivation((_record("victoria"), _record("stella", memory_id="memory-2"))),
+    memory = TurnMemoryCoordinator(
+        derivation=FixedDerivation(
+            (_record("victoria"), _record("stella", memory_id="memory-2"))
+        ),
+        capture=MemoryService.default(),
         store=store,
     )
 
     with pytest.raises(TurnOrchestrationError, match="off-scene NPC stella"):
-        await writer.remember(_context())
+        await memory.prepare(_context())
 
     assert store.added == []
 
 
 @pytest.mark.asyncio
-async def test_turn_memory_writer_rejects_memory_from_wrong_turn() -> None:
+async def test_turn_memory_coordinator_rejects_memory_from_wrong_turn() -> None:
     store = RecordingMemoryStore()
-    writer = LongTermTurnMemoryWriter(
+    memory = TurnMemoryCoordinator(
         derivation=FixedDerivation((_record("victoria", turn=1),)),
+        capture=MemoryService.default(),
         store=store,
     )
 
     with pytest.raises(TurnOrchestrationError, match="memory turn"):
-        await writer.remember(_context())
+        await memory.prepare(_context())
 
     assert store.added == []
