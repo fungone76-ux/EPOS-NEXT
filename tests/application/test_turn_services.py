@@ -172,7 +172,8 @@ def test_python_psychology_updates_relationship_before_bond_derivation() -> None
     assert len(bond.contexts) == 1
     context = bond.contexts[0]
     assert context.npc_id == EntityId("victoria")
-    assert context.relationship_with_player.trust > 0.0
+    assert context.relationship_with_player.affection > 0.0
+    assert context.relationship_with_player.respect > 0.0
     assert context.event_types == (PsychologicalEventType.PRAISE.value,)
     assert all(batch.producer is MutationAuthority.ENGINE_ONLY for batch in plan.mutation_batches)
     mutations = tuple(
