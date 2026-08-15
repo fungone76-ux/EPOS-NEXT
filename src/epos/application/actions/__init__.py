@@ -6,8 +6,12 @@ from epos.application.actions.models import (
     ActionInterpreterContext,
     CheckOutcome,
     CheckProposal,
+    ObservationIntent,
+    OutfitOption,
+    OutfitRequestProposal,
     ResolvedCheck,
     ValidatedAction,
+    ValidatedOutfitRequest,
 )
 from epos.application.actions.service import ActionInterpreterService
 from epos.application.actions.validation import ActionValidator
@@ -21,6 +25,10 @@ __all__ = [
     "CheckProposal",
     "CheckResolver",
     "D6OutcomePolicy",
+    "ObservationIntent",
+    "OutfitOption",
+    "OutfitRequestProposal",
     "ResolvedCheck",
     "ValidatedAction",
+    "ValidatedOutfitRequest",
 ]

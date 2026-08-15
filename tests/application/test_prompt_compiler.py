@@ -286,6 +286,20 @@ def test_raw_semantic_free_text_is_never_copied_directly_to_positive_prompt() ->
     assert "RAW_FOCUS_INJECTION" not in prompt
 
 
+def test_python_authorized_focus_region_is_compiled_into_prompt() -> None:
+    vst = _canonical_vst().model_copy(
+        update={
+            "visual_focus": _canonical_vst().visual_focus.model_copy(
+                update={"region": "feet"}
+            )
+        }
+    )
+
+    prompt = SemanticPromptCompiler().compile(vst, _config()).positive_prompt
+
+    assert "focus on woman, feet" in prompt
+
+
 def test_subject_count_is_derived_from_canonical_subjects() -> None:
     vst = _canonical_vst()
     second = vst.subjects[0].model_copy(

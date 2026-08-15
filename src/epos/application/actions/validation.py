@@ -3,9 +3,12 @@
 from epos.application.actions.models import (
     ActionInterpretation,
     ActionInterpreterContext,
+    OutfitRequestProposal,
     ValidatedAction,
+    ValidatedOutfitRequest,
 )
 from epos.domain.errors import EposValidationError
+from epos.domain.ids import EntityId
 
 
 class ActionValidationError(EposValidationError):
@@ -25,6 +28,21 @@ class ActionValidator:
         for target_id in action.target_ids:
             if target_id not in allowed_targets:
                 raise ActionValidationError(f"target {target_id} is not present in the local scene")
+
+        if action.observation is not None:
+            if action.observation.subject_id not in allowed_targets:
+                raise ActionValidationError(
+                    f"observation target {action.observation.subject_id} is not present"
+                )
+            if action.observation.subject_id not in action.target_ids:
+                raise ActionValidationError("observation target must be included in target_ids")
+
+        outfit_request = self._validate_outfit_request(
+            action.outfit_request,
+            action=action,
+            context=context,
+            allowed_targets=allowed_targets,
+        )
 
         if (
             action.movement is not None
@@ -46,7 +64,8 @@ class ActionValidator:
                 intent=action.intent,
                 target_ids=action.target_ids,
                 movement=action.movement,
-                outfit_request=action.outfit_request,
+                outfit_request=outfit_request,
+                observation=action.observation,
             )
 
         skill = skills_by_id.get(action.check.skill_id)
@@ -66,6 +85,80 @@ class ActionValidator:
             target_ids=action.target_ids,
             movement=action.movement,
             check=action.check,
-            outfit_request=action.outfit_request,
+            outfit_request=outfit_request,
+            observation=action.observation,
             skill_rating=rating,
+        )
+
+    @staticmethod
+    def _validate_outfit_request(
+        request: OutfitRequestProposal | None,
+        *,
+        action: ActionInterpretation,
+        context: ActionInterpreterContext,
+        allowed_targets: set[EntityId],
+    ) -> ValidatedOutfitRequest | None:
+        if request is None:
+            return None
+        if request.target_id not in allowed_targets:
+            raise ActionValidationError(f"outfit target {request.target_id} is not present")
+        if request.target_id not in action.target_ids:
+            raise ActionValidationError("outfit target must be included in target_ids")
+
+        requested = request.requested_state
+        legacy_item_ids = (request.item_id,) if request.item_id else ()
+        item_ids = tuple(dict.fromkeys((*request.item_ids, *legacy_item_ids)))
+        if requested in {"change", "wear", "wear_outfit", "change_outfit"} and (
+            request.outfit_id is not None or request.semantic_tags
+        ):
+            requested = "wear_outfit"
+        elif requested in {"remove", "take_off", "remove_items"}:
+            requested = "remove_items"
+        elif requested in {"put_on", "rewear", "rewear_items", "wear_items"} or (
+            requested == "wear" and item_ids
+        ):
+            requested = "rewear_items"
+
+        if requested == "wear_outfit":
+            options = tuple(
+                option
+                for option in context.wardrobe_options
+                if option.owner_id == request.target_id
+            )
+            required_tags = set(request.semantic_tags)
+            candidates = tuple(
+                option.outfit_id
+                for option in options
+                if (request.outfit_id is None or option.outfit_id == request.outfit_id)
+                and required_tags.issubset(set(option.tags))
+            )
+            return ValidatedOutfitRequest(
+                target_id=request.target_id,
+                requested_state=requested,
+                semantic_tags=request.semantic_tags,
+                candidate_outfit_ids=candidates,
+                requested_concept=request.outfit_id,
+                allow_generated_outfit=not candidates,
+            )
+
+        if requested not in {"remove_items", "rewear_items"}:
+            raise ActionValidationError(f"unsupported outfit request state: {requested}")
+        if not item_ids:
+            raise ActionValidationError("item outfit request requires at least one item_id")
+        current = context.current_outfits.get(request.target_id)
+        if current is None:
+            raise ActionValidationError(f"no current outfit for {request.target_id}")
+        by_id = {item.item_id: item for item in current.items}
+        for item_id in item_ids:
+            item = by_id.get(item_id)
+            if item is None:
+                raise ActionValidationError(f"unknown current outfit item: {item_id}")
+            if requested == "remove_items" and not item.is_worn:
+                raise ActionValidationError(f"outfit item is already removed: {item_id}")
+            if requested == "rewear_items" and item.is_worn:
+                raise ActionValidationError(f"outfit item is already worn: {item_id}")
+        return ValidatedOutfitRequest(
+            target_id=request.target_id,
+            requested_state=requested,
+            item_ids=item_ids,
         )

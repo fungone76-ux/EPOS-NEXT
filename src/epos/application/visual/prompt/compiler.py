@@ -119,7 +119,7 @@ class SemanticPromptCompiler:
             subject.identity.role_prompt,
             *subject.identity.canonical_traits,
         ]
-        for item in subject.outfit.ordered_items():
+        for item in subject.outfit.visible_items():
             fragments.append(self._outfit_fragment(item, outfit_library))
         fragments.extend(self._visual_state_fragments(subject))
         if subject.pose is not None:
@@ -241,9 +241,11 @@ class SemanticPromptCompiler:
         )
         if not genders:
             return ()
+        region = canonical_vst.visual_focus.region
+        detail = "" if region is None else f", {region.replace('_', ' ')}"
         if len(genders) == 1:
-            return (f"focus on {genders[0]}",)
-        return (f"focus on {' and '.join(genders)}",)
+            return (f"focus on {genders[0]}{detail}",)
+        return (f"focus on {' and '.join(genders)}{detail}",)
 
     @staticmethod
     def _resolved_loras(canonical_vst: CanonicalVST) -> tuple[ResolvedLora, ...]:

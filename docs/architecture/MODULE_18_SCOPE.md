@@ -128,14 +128,21 @@ If commit fails, the checkpoint remains. If commit succeeds, cleanup is attempte
 `DefaultTurnActionResolver` implements only effects that are generic and unambiguous:
 
 - unchecked movement -> engine-owned player-location mutation;
+- player-owned outfit changes with exactly one Python-authorized canonical choice;
+- NPC outfit requests remain pending until the target NPC's validated cognition response;
 - declined checked action -> no checked effect.
 
 It deliberately fails fast for:
 
-- `outfit_request`, because no canonical generic outfit mutation policy exists yet;
+- ambiguous player-owned semantic outfit choices, because the engine cannot choose a player action;
 - movement controlled by a check result, because the engine has no universal rule mapping `critical_failure/failure/partial_success/full_success` to a location mutation.
 
-A Worldpack or future generic rule module must inject a `TurnActionResolverPort` for those cases. Module 18 never pretends that an unsupported authoritative action succeeded.
+Module 18B adds the generic NPC outfit-request policy: Python resolves canonical candidates,
+the target NPC accepts/rejects/counteroffers through validated cognition, and only Python
+creates the persistent outfit mutation. If no canonical candidate exists, cognition may
+describe a bounded new outfit; Python assigns stable IDs, persists it in the runtime
+wardrobe, and equips it before the shared scene is built. Module 18 never pretends that a
+rejected authoritative action succeeded.
 
 ## Present NPC rule
 

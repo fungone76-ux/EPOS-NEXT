@@ -71,16 +71,25 @@ class ObservableSceneBuilder:
                 )
             )
 
-        focus_ids = tuple(
-            target_id
-            for target_id in observation.action.target_ids
-            if target_id in visible_ids
-        )
-        focus = (
-            VisualFocusCandidate(subject_ids=focus_ids, reason="action_target")
-            if focus_ids
-            else None
-        )
+        explicit_observation = observation.action.observation
+        focus: VisualFocusCandidate | None
+        if explicit_observation is not None:
+            focus = VisualFocusCandidate(
+                subject_ids=(explicit_observation.subject_id,),
+                reason="player_observation",
+                region=explicit_observation.region,
+            )
+        else:
+            focus_ids = tuple(
+                target_id
+                for target_id in observation.action.target_ids
+                if target_id in visible_ids
+            )
+            focus = (
+                VisualFocusCandidate(subject_ids=focus_ids, reason="action_target")
+                if focus_ids
+                else None
+            )
 
         return ObservableSceneState(
             scene_id=SceneId(f"{state.session_id}:{int(state.turn_number)}"),

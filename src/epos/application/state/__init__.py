@@ -16,7 +16,9 @@ from epos.application.state.models import (
     ReplaceNPCBondStateMutation,
     ReplaceNPCEmotionalStateMutation,
     ReplaceNPCMemoryLayersMutation,
+    ReplaceNPCOutfitMutation,
     ReplaceNPCRelationshipMutation,
+    ReplacePlayerOutfitMutation,
     SetNPCIntentionsMutation,
     SetNPCLocationMutation,
     SetPlayerLocationMutation,
@@ -24,6 +26,7 @@ from epos.application.state.models import (
     SetWorldPhaseMutation,
     StateMutation,
     StateReference,
+    UpsertWardrobeOutfitMutation,
 )
 from epos.application.state.ports import DiceCheckpointStorePort
 
@@ -40,7 +43,9 @@ __all__ = [
     "ReplaceNPCBondStateMutation",
     "ReplaceNPCEmotionalStateMutation",
     "ReplaceNPCMemoryLayersMutation",
+    "ReplaceNPCOutfitMutation",
     "ReplaceNPCRelationshipMutation",
+    "ReplacePlayerOutfitMutation",
     "SetNPCIntentionsMutation",
     "SetNPCLocationMutation",
     "SetPlayerLocationMutation",
@@ -50,5 +55,6 @@ __all__ = [
     "StateMutation",
     "StateMutationError",
     "StateReference",
+    "UpsertWardrobeOutfitMutation",
     "state_fingerprint",
 ]

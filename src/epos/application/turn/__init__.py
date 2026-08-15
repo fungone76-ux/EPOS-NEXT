@@ -20,8 +20,10 @@ from epos.application.turn.models import (
     TurnPsychologyPlan,
 )
 from epos.application.turn.orchestrator import TurnOrchestrator
+from epos.application.turn.outfits import PythonNPCOutfitMutationPlanner
 from epos.application.turn.ports import (
     BondDerivationPort,
+    NPCOutfitMutationPlannerPort,
     PsychologyProfilePort,
     ReactionMutationPlannerPort,
     TurnActionInterpreterPort,
@@ -57,9 +59,11 @@ __all__ = [
     "DefaultTurnActionResolver",
     "DefaultTurnNarrationCoordinator",
     "DefaultTurnSceneBuilder",
+    "NPCOutfitMutationPlannerPort",
     "PendingDiceCheckpointError",
     "PostCommitIssue",
     "PsychologyProfilePort",
+    "PythonNPCOutfitMutationPlanner",
     "PythonTurnCheckResolver",
     "PythonTurnPsychologyPlanner",
     "ReactionMutationPlannerPort",

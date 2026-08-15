@@ -151,11 +151,19 @@ class ResolvedSceneAction(DomainModel):
 class VisualFocusCandidate(DomainModel):
     subject_ids: tuple[EntityId, ...]
     reason: str
+    region: str | None = None
 
     @field_validator("reason")
     @classmethod
     def validate_reason(cls, value: str) -> str:
         return _semantic_token(value, field_name="visual focus reason")
+
+    @field_validator("region")
+    @classmethod
+    def validate_region(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        return _semantic_token(value, field_name="visual focus region")
 
 
 class SceneObservationInput(DomainModel):

@@ -10,13 +10,16 @@ from epos.application.state.models import (
     ReplaceNPCBondStateMutation,
     ReplaceNPCEmotionalStateMutation,
     ReplaceNPCMemoryLayersMutation,
+    ReplaceNPCOutfitMutation,
     ReplaceNPCRelationshipMutation,
+    ReplacePlayerOutfitMutation,
     SetNPCIntentionsMutation,
     SetNPCLocationMutation,
     SetPlayerLocationMutation,
     SetWorldFlagMutation,
     SetWorldPhaseMutation,
     StateMutation,
+    UpsertWardrobeOutfitMutation,
 )
 from epos.domain.ids import EntityId, TurnNumber
 from epos.domain.npc import NPCState
@@ -44,6 +47,16 @@ def apply_mutation(state: WorldState, mutation: StateMutation) -> None:
         return
     if isinstance(mutation, SetNPCIntentionsMutation):
         _npc(state, mutation.npc_id).intentions = mutation.intentions
+        return
+    if isinstance(mutation, ReplacePlayerOutfitMutation):
+        state.player.outfit = mutation.outfit.model_copy(deep=True)
+        return
+    if isinstance(mutation, ReplaceNPCOutfitMutation):
+        _npc(state, mutation.npc_id).outfit = mutation.outfit.model_copy(deep=True)
+        return
+    if isinstance(mutation, UpsertWardrobeOutfitMutation):
+        outfit = mutation.outfit.model_copy(deep=True)
+        state.wardrobes[outfit.outfit_id] = outfit
         return
     if isinstance(mutation, ReplaceNPCEmotionalStateMutation):
         _npc(state, mutation.npc_id).emotional_state = mutation.emotional_state.model_copy(
