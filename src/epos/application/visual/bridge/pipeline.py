@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Generic, TypeVar
+from typing import TYPE_CHECKING, Generic, TypeVar
 
 from epos.application.visual.bridge.errors import VisualDiagnosticsPersistenceError
 from epos.application.visual.bridge.models import (
@@ -21,6 +21,10 @@ from epos.application.visual.models import ObservableSceneState
 from epos.application.visual.prompt import WorldpackVisualConfig
 from epos.application.visual.rendering import RendererPort
 
+if TYPE_CHECKING:
+    from epos.application.visual.recovery.models import PendingRender
+    from epos.application.visual.recovery.ports import PendingRenderStorePort
+
 RequestT = TypeVar("RequestT")
 
 
@@ -36,6 +40,7 @@ class VisualTurnPipeline(Generic[RequestT]):
         render_request_builder: RenderRequestBuilderPort[RequestT],
         renderer: RendererPort[RequestT],
         diagnostics: VisualDiagnosticsStorePort,
+        pending_renders: PendingRenderStorePort | None = None,
     ) -> None:
         self._director = director
         self._canonicalizer = canonicalizer
@@ -43,6 +48,7 @@ class VisualTurnPipeline(Generic[RequestT]):
         self._render_request_builder = render_request_builder
         self._renderer = renderer
         self._diagnostics = diagnostics
+        self._pending_renders = pending_renders
 
     async def run(
         self,
@@ -77,6 +83,20 @@ class VisualTurnPipeline(Generic[RequestT]):
         )
         diagnostics_path = await self._diagnostics.save(prepared)
 
+        pending: PendingRender | None = None
+        if self._pending_renders is not None:
+            from epos.application.visual.recovery.models import PendingRender
+
+            pending = PendingRender(
+                session_id=scene.session_id,
+                turn_number=scene.time.turn_number,
+                scene_id=scene.scene_id,
+                canonical_vst=canonical_vst,
+                prompt_contract=prompt_contract,
+                render_request=built_request.snapshot,
+            )
+            await self._pending_renders.save(pending)
+
         render_result = await self._renderer.render(built_request.request)
         rendered = prepared.model_copy(
             update={"phase": "rendered", "render_result": render_result}
@@ -87,6 +107,13 @@ class VisualTurnPipeline(Generic[RequestT]):
             diagnostics_path = await self._diagnostics.save(rendered)
         except VisualDiagnosticsPersistenceError as exc:
             diagnostics_error = str(exc)
+
+        if (
+            render_result.status == "success"
+            and self._pending_renders is not None
+            and pending is not None
+        ):
+            await self._pending_renders.delete(pending.session_id, pending.turn_number)
 
         return VisualPipelineResult(
             raw_vst=raw_vst,
