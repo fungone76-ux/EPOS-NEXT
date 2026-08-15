@@ -1,34 +1,45 @@
-"""Typed contracts for the Module 16 visual bridge."""
+"""Typed contracts for the renderer-neutral visual bridge."""
 
 from __future__ import annotations
 
-from typing import Literal
+from dataclasses import dataclass
+from typing import Generic, Literal, TypeVar
 
-from pydantic import model_validator
+from pydantic import Field, JsonValue, model_validator
 
 from epos.application.visual.canonical import CanonicalVST
 from epos.application.visual.prompt import PromptCompilerProfile, RenderPromptContract
 from epos.application.visual.rendering import RenderResult
 from epos.application.visual.vst import RawVST
-from epos.application.visual.workflow import (
-    ComfyWorkflowBuildParameters,
-    ComfyWorkflowProfile,
-    ComfyWorkflowRequest,
-    ComfyWorkflowTemplate,
-)
 from epos.application.worldpacks.models import LoadedWorldpack
 from epos.domain.base import DomainModel
 from epos.domain.ids import SceneId
 
+RequestT = TypeVar("RequestT")
+
+
+class RenderRequestSnapshot(DomainModel):
+    """Backend-neutral, JSON-safe request snapshot persisted before rendering."""
+
+    backend: str = Field(min_length=1)
+    request_id: str = Field(min_length=1)
+    payload: dict[str, JsonValue]
+
+
+@dataclass(frozen=True, slots=True)
+class BuiltRenderRequest(Generic[RequestT]):
+    """Typed backend request paired with its persistable diagnostic snapshot."""
+
+    request: RequestT
+    snapshot: RenderRequestSnapshot
+
 
 class VisualPipelineResources(DomainModel):
-    """Already-resolved resources required to render one observable scene."""
+    """Renderer-neutral resources required to process one observable scene."""
 
     worldpack: LoadedWorldpack
     prompt_profile: PromptCompilerProfile
-    workflow_profile: ComfyWorkflowProfile
-    workflow_template: ComfyWorkflowTemplate
-    workflow_parameters: ComfyWorkflowBuildParameters
+    seed: int = Field(ge=0, le=2**64 - 1)
 
 
 class VisualPipelineDiagnostics(DomainModel):
@@ -39,7 +50,7 @@ class VisualPipelineDiagnostics(DomainModel):
     raw_vst: RawVST
     canonical_vst: CanonicalVST
     prompt_contract: RenderPromptContract
-    workflow_request: ComfyWorkflowRequest
+    render_request: RenderRequestSnapshot
     render_result: RenderResult | None = None
 
     @model_validator(mode="after")
@@ -56,12 +67,12 @@ class VisualPipelineDiagnostics(DomainModel):
 
 
 class VisualPipelineResult(DomainModel):
-    """Complete visual result returned to the future turn orchestrator."""
+    """Complete renderer-neutral visual result returned to turn orchestration."""
 
     raw_vst: RawVST
     canonical_vst: CanonicalVST
     prompt_contract: RenderPromptContract
-    workflow_request: ComfyWorkflowRequest
+    render_request: RenderRequestSnapshot
     render_result: RenderResult
     diagnostics_path: str
     diagnostics_error: str | None = None

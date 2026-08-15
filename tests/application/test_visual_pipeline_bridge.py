@@ -4,6 +4,7 @@ from collections.abc import Callable
 
 import pytest
 
+from epos.application.visual.bridge import BuiltRenderRequest, RenderRequestSnapshot
 from epos.application.visual.canonical import (
     CanonicalAction,
     CanonicalCamera,
@@ -28,12 +29,7 @@ from epos.application.visual.vst import (
     VSTSubjectProminence,
     VSTVisualFocus,
 )
-from epos.application.visual.workflow import (
-    ComfyWorkflowBuildParameters,
-    ComfyWorkflowProfile,
-    ComfyWorkflowRequest,
-    ComfyWorkflowTemplate,
-)
+from epos.application.visual.workflow import ComfyWorkflowRequest
 from epos.application.worldpacks.models import (
     LoadedWorldpack,
     SemanticLibraryDocument,
@@ -65,15 +61,11 @@ def _raw() -> RawVST:
             subject_ids=(victoria,),
             intent=SemanticIntent(description="focus on Victoria"),
         ),
-        camera=VSTCameraIntent(
-            shot=SemanticIntent(description="medium shot"),
-        ),
+        camera=VSTCameraIntent(shot=SemanticIntent(description="medium shot")),
         lighting=VSTLightingIntent(
             intent=SemanticIntent(description="warm sunset light"),
         ),
-        style=VSTStyleIntent(
-            intent=SemanticIntent(description="cinematic realism"),
-        ),
+        style=VSTStyleIntent(intent=SemanticIntent(description="cinematic realism")),
         safety=VSTSafetyIntent(),
     )
 
@@ -83,10 +75,7 @@ def _canonical() -> CanonicalVST:
         scene_id=SceneId("session:12"),
         worldpack_id=WorldpackId("resort-world"),
         time=SceneTime(turn_number=12, day=1, world_phase="sunset"),
-        location=CanonicalLocation(
-            location_id=LocationId("pool"),
-            name="Pool",
-        ),
+        location=CanonicalLocation(location_id=LocationId("pool"), name="Pool"),
         subjects=(),
         action=CanonicalAction(
             participants=(),
@@ -110,9 +99,7 @@ def _canonical() -> CanonicalVST:
         lighting=VSTLightingIntent(
             intent=SemanticIntent(description="warm sunset light"),
         ),
-        style=VSTStyleIntent(
-            intent=SemanticIntent(description="cinematic realism"),
-        ),
+        style=VSTStyleIntent(intent=SemanticIntent(description="cinematic realism")),
         safety=VSTSafetyIntent(),
     )
 
@@ -142,10 +129,21 @@ def _prompt_contract() -> RenderPromptContract:
     )
 
 
-def _workflow_request() -> ComfyWorkflowRequest:
+def _render_request() -> ComfyWorkflowRequest:
     return ComfyWorkflowRequest(
         prompt={"1": {"class_type": "CheckpointLoaderSimple", "inputs": {}}},
         client_id="epos-session-12",
+    )
+
+
+def _request_snapshot() -> RenderRequestSnapshot:
+    return RenderRequestSnapshot(
+        backend="comfyui",
+        request_id="comfyui-test-request",
+        payload={
+            "client_id": "epos-session-12",
+            "prompt": {"1": {"class_type": "CheckpointLoaderSimple", "inputs": {}}},
+        },
     )
 
 
@@ -204,21 +202,34 @@ class FakeCompiler:
     def __init__(self, calls: list[str]) -> None:
         self.calls = calls
 
-    def compile(self, canonical_vst: CanonicalVST, config: object) -> RenderPromptContract:
+    def compile(
+        self,
+        canonical_vst: CanonicalVST,
+        config: object,
+    ) -> RenderPromptContract:
         self.calls.append("compiler")
         assert canonical_vst.scene_id == SceneId("session:12")
         assert config is not None
         return _prompt_contract()
 
 
-class FakeWorkflowBuilder:
+class FakeRenderRequestBuilder:
     def __init__(self, calls: list[str]) -> None:
         self.calls = calls
 
-    def build(self, **kwargs: object) -> ComfyWorkflowRequest:
-        self.calls.append("workflow")
-        assert kwargs["contract"] == _prompt_contract()
-        return _workflow_request()
+    def build(
+        self,
+        contract: RenderPromptContract,
+        *,
+        seed: int,
+    ) -> BuiltRenderRequest[ComfyWorkflowRequest]:
+        self.calls.append("render_request")
+        assert contract == _prompt_contract()
+        assert seed == 123456789
+        return BuiltRenderRequest(
+            request=_render_request(),
+            snapshot=_request_snapshot(),
+        )
 
 
 class FakeRenderer:
@@ -264,20 +275,10 @@ class FakeDiagnosticsStore:
 def _resources():
     from epos.application.visual.bridge import VisualPipelineResources
 
-    return VisualPipelineResources.model_construct(
+    return VisualPipelineResources(
         worldpack=_worldpack(),
         prompt_profile=PromptCompilerProfile(),
-        workflow_profile=ComfyWorkflowProfile.model_construct(
-            workflow_file="workflow.json"
-        ),
-        workflow_template=ComfyWorkflowTemplate(
-            prompt={"1": {"class_type": "CheckpointLoaderSimple", "inputs": {}}},
-            source="workflow.json",
-        ),
-        workflow_parameters=ComfyWorkflowBuildParameters(
-            client_id="epos-session-12",
-            seed=123456789,
-        ),
+        seed=123456789,
     )
 
 
@@ -292,7 +293,7 @@ def _pipeline(
         director=FakeDirector(calls),
         canonicalizer=FakeCanonicalizer(calls),
         compiler=FakeCompiler(calls),
-        workflow_builder=FakeWorkflowBuilder(calls),
+        render_request_builder=FakeRenderRequestBuilder(calls),
         renderer=FakeRenderer(calls, renderer_result),
         diagnostics=diagnostics,
     )
@@ -310,13 +311,14 @@ async def test_bridge_enforces_required_visual_pipeline_order() -> None:
         "director",
         "canonicalizer",
         "compiler",
-        "workflow",
+        "render_request",
         "diagnostics",
         "renderer",
         "diagnostics",
     ]
     assert result.render_result.status == "success"
     assert result.render_result.prompt_id == "job-1"
+    assert result.render_request == _request_snapshot()
     assert result.diagnostics_path == "diagnostics/session_12.visual.json"
     assert result.diagnostics_error is None
 
@@ -336,9 +338,9 @@ async def test_pre_render_diagnostics_persist_full_python_contract_before_render
     assert prepared.canonical_vst.scene_id == SceneId("session:12")
     assert prepared.prompt_contract.positive_prompt == "canonical positive"
     assert prepared.prompt_contract.negative_prompt == "fixed negative"
-    assert prepared.workflow_request == _workflow_request()
+    assert prepared.render_request == _request_snapshot()
     assert prepared.render_result is None
-    assert result.workflow_request == _workflow_request()
+    assert result.render_request == _request_snapshot()
 
 
 @pytest.mark.asyncio
@@ -359,7 +361,7 @@ async def test_renderer_failure_is_persisted_and_returned_without_new_llm_call()
 
 
 @pytest.mark.asyncio
-async def test_pre_render_diagnostics_failure_prevents_comfy_submission() -> None:
+async def test_pre_render_diagnostics_failure_prevents_renderer_submission() -> None:
     from epos.application.visual.bridge import VisualDiagnosticsPersistenceError
 
     calls: list[str] = []
@@ -387,18 +389,21 @@ async def test_final_diagnostics_failure_does_not_trigger_duplicate_render() -> 
     assert result.diagnostics_error == "diagnostic disk unavailable"
 
 
-def test_bridge_contract_does_not_expose_raw_prompt_or_direct_comfy_llm_path() -> None:
+def test_bridge_contract_does_not_expose_backend_specific_or_world_mutation_inputs() -> None:
     from epos.application.visual.bridge import VisualPipelineResources, VisualPipelineResult
 
     resource_fields = set(VisualPipelineResources.model_fields)
     result_fields = set(VisualPipelineResult.model_fields)
 
+    assert resource_fields == {"worldpack", "prompt_profile", "seed"}
     assert "llm_prompt" not in resource_fields
     assert "stable_diffusion_prompt" not in resource_fields
     assert "raw_player_input" not in resource_fields
     assert "world_state" not in resource_fields
+    assert "workflow_profile" not in resource_fields
     assert "raw_vst" in result_fields
     assert "canonical_vst" in result_fields
     assert "prompt_contract" in result_fields
-    assert "workflow_request" in result_fields
+    assert "render_request" in result_fields
+    assert "workflow_request" not in result_fields
     assert "render_result" in result_fields

@@ -5,6 +5,7 @@ from pathlib import Path
 
 import pytest
 
+from epos.application.visual.bridge import RenderRequestSnapshot
 from epos.application.visual.canonical import (
     CanonicalAction,
     CanonicalCamera,
@@ -29,7 +30,6 @@ from epos.application.visual.vst import (
     VSTSubjectProminence,
     VSTVisualFocus,
 )
-from epos.application.visual.workflow import ComfyWorkflowRequest
 from epos.domain.ids import EntityId, LocationId, SceneId, WorldpackId
 
 
@@ -110,9 +110,13 @@ def _snapshot(*, rendered: bool):
             width=896,
             height=1152,
         ),
-        workflow_request=ComfyWorkflowRequest(
-            prompt={"1": {"class_type": "CheckpointLoaderSimple", "inputs": {}}},
-            client_id="client-1",
+        render_request=RenderRequestSnapshot(
+            backend="comfyui",
+            request_id="comfyui-test",
+            payload={
+                "prompt": {"1": {"class_type": "CheckpointLoaderSimple", "inputs": {}}},
+                "client_id": "client-1",
+            },
         ),
         render_result=(
             RenderResult(
@@ -147,7 +151,7 @@ async def test_atomic_visual_diagnostics_store_writes_deterministic_scene_file(
     assert payload["phase"] == "prepared"
     assert payload["prompt_contract"]["positive_prompt"] == "canonical positive"
     assert payload["prompt_contract"]["negative_prompt"] == "fixed negative"
-    assert payload["workflow_request"]["client_id"] == "client-1"
+    assert payload["render_request"]["payload"]["client_id"] == "client-1"
     assert payload["render_result"] is None
 
 
