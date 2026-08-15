@@ -35,16 +35,32 @@ class AuthoritativeStateManager:
         return self._state.model_copy(deep=True)
 
     async def commit(self, batch: MutationBatch) -> WorldState:
+        return await self.commit_many((batch,))
+
+    async def commit_many(self, batches: tuple[MutationBatch, ...]) -> WorldState:
+        """Apply heterogeneous authority batches in one atomic state transaction."""
+
         async with self._lock:
-            MutationAuthorityValidator.validate(batch)
             candidate = deepcopy(self._state)
-            for mutation in batch.mutations:
-                apply_mutation(candidate, mutation)
+            for batch in batches:
+                MutationAuthorityValidator.validate(batch)
+                for mutation in batch.mutations:
+                    apply_mutation(candidate, mutation)
 
             validated = WorldStateCommitValidator.validate(candidate)
             await self._persist_or_reconcile(validated)
             self._state = validated
             return self._state.model_copy(deep=True)
+
+    def project_many(self, batches: tuple[MutationBatch, ...]) -> WorldState:
+        """Validate and project turn effects without persisting or swapping live state."""
+
+        candidate = deepcopy(self._state)
+        for batch in batches:
+            MutationAuthorityValidator.validate(batch)
+            for mutation in batch.mutations:
+                apply_mutation(candidate, mutation)
+        return WorldStateCommitValidator.validate(candidate)
 
     async def _persist_or_reconcile(self, validated: WorldState) -> None:
         try:
