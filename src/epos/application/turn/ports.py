@@ -22,7 +22,7 @@ from epos.application.turn.models import (
     TurnMemoryContext,
     TurnPsychologyPlan,
 )
-from epos.application.visual.bridge import VisualPipelineResult
+from epos.application.visual.bridge import VisualPipelineResources, VisualPipelineResult
 from epos.application.visual.models import ObservableSceneState
 from epos.domain.bond import BondState
 from epos.domain.ids import EntityId
@@ -116,6 +116,10 @@ class TurnNarrationPort(Protocol):
         action: ValidatedAction,
         reactions: tuple[CognitionResult, ...],
     ) -> NarrationResult: ...
+
+
+class TurnVisualResourcesPort(Protocol):
+    def resources_for(self, scene: ObservableSceneState) -> VisualPipelineResources: ...
 
 
 class TurnVisualPort(Protocol):
