@@ -49,7 +49,7 @@ def test_a1111_builder_rejects_unsafe_lora_alias_instead_of_injecting_prompt_syn
 
 @pytest.mark.parametrize(
     ("width", "height"),
-    ((63, 1152), (897, 1152), (896, 2056)),
+    ((64, 1152), (897, 1152), (896, 2056)),
 )
 def test_a1111_builder_rejects_dimensions_outside_worldpack_profile(
     tmp_path: Path,
@@ -66,7 +66,7 @@ def test_a1111_builder_rejects_dimensions_outside_worldpack_profile(
         settings=_settings(tmp_path),
         profile=A1111RenderProfile(
             dimension_multiple=8,
-            min_dimension=64,
+            min_dimension=128,
             max_dimension=2048,
         ),
     )
