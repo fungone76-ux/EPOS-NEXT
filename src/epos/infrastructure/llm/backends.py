@@ -174,7 +174,8 @@ class _HTTPBackend:
             ) from exc
         if response.status_code >= 400:
             raise LLMProviderResponseError(
-                f"{provider_label} request failed with HTTP {response.status_code}"
+                f"{provider_label} request failed with HTTP {response.status_code}",
+                http_status=response.status_code,
             )
         return response
 

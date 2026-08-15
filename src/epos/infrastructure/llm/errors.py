@@ -14,8 +14,10 @@ class LLMTransportError(LLMError):
 
 
 class LLMProviderResponseError(LLMError):
-    def __init__(self, message: str) -> None:
-        super().__init__(message, code="llm.provider_response.invalid")
+    def __init__(self, message: str, *, http_status: int | None = None) -> None:
+        code = "llm.rate_limited" if http_status == 429 else "llm.provider_response.invalid"
+        super().__init__(message, code=code)
+        self.http_status = http_status
 
 
 class LLMContractError(ContractError):

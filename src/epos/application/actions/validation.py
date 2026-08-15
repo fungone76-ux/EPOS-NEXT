@@ -66,7 +66,12 @@ class ActionValidator:
         )
 
         if action.check is None:
-            if mapped_skills:
+            # A declared observation focus is descriptive attention, not an
+            # automatic challenge.  The same ``observe`` intent may still
+            # carry an explicit Intuito check when the interpreter identifies
+            # genuine uncertainty, concealment or risk.
+            simple_observation = action.intent == "observe"
+            if mapped_skills and not simple_observation:
                 raise ActionValidationError(f"intent {action.intent} requires a check")
             return ValidatedAction(
                 intent=action.intent,

@@ -15,7 +15,7 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import Any, cast
 
-from epos.application.turn import TurnCommand
+from epos.application.turn import CheckDecision, CheckDecisionRequiredError, TurnCommand
 from epos.domain.errors import ConfigurationError
 from epos.domain.ids import EntityId, SessionId
 from epos.presentation.models import (
@@ -210,11 +210,16 @@ class DesktopController:
         self._state = DesktopViewState(session=session, health=health)
         return self.state
 
-    async def submit_player_input(self, player_input: str) -> DesktopViewState:
+    async def submit_player_input(
+        self,
+        player_input: str,
+        *,
+        check_decision: CheckDecision | None = None,
+    ) -> DesktopViewState:
         current = self.state
         result = await self._runtime.run_turn(
             current.session.session_id,
-            TurnCommand(player_input=player_input),
+            TurnCommand(player_input=player_input, check_decision=check_decision),
         )
         session = await self._runtime.get_session(current.session.session_id)
         health = await self._runtime.health()
@@ -619,16 +624,23 @@ class QtDesktopLauncher:
             else:
                 app.restoreOverrideCursor()
 
-        def operation_finished(payload: tuple[str, object, object]) -> None:
-            kind, value, callback = payload
+        def show_operation_error(error: Exception) -> None:
+            system_line(f"[operazione non completata: {error}]")
+            status.showMessage(f"Errore: {error}")
+
+        def operation_finished(payload: tuple[str, object, object, object]) -> None:
+            kind, value, callback, error_callback = payload
             if kind == "ok":
                 cast(Callable[[object], None], callback)(value)
                 set_busy(False, "pronta")
                 player_input.setFocus()
                 return
             set_busy(False, "errore")
-            system_line(f"[operazione non completata: {value}]")
-            status.showMessage(f"Errore: {value}")
+            error = cast(Exception, value)
+            if error_callback is not None:
+                cast(Callable[[Exception], None], error_callback)(error)
+            else:
+                show_operation_error(error)
 
         bridge.completed.connect(operation_finished, qt_core.Qt.QueuedConnection)
 
@@ -636,6 +648,7 @@ class QtDesktopLauncher:
             operation: Callable[[], Any],
             callback: Callable[[DesktopViewState], None],
             message: str,
+            error_callback: Callable[[Exception], None] | None = None,
         ) -> None:
             if busy["value"]:
                 return
@@ -645,9 +658,9 @@ class QtDesktopLauncher:
                 try:
                     result = asyncio.run(operation())
                 except Exception as exc:  # reported without losing committed state
-                    bridge.completed.emit(("error", exc, callback))
+                    bridge.completed.emit(("error", exc, callback, error_callback))
                 else:
-                    bridge.completed.emit(("ok", result, callback))
+                    bridge.completed.emit(("ok", result, callback, error_callback))
 
             threading.Thread(target=worker, daemon=True).start()
 
@@ -688,11 +701,43 @@ class QtDesktopLauncher:
             current = self._controller.state
             name = current.session.player.name if current.session.player is not None else "Tu"
             dialogue_bubble(name, text, player=True)
-            run_async(
-                lambda: self._controller.submit_player_input(text),
-                present_turn,
-                "il Game Master sta pensando…",
-            )
+
+            def run_turn(check_decision: CheckDecision | None = None) -> None:
+                run_async(
+                    lambda: self._controller.submit_player_input(
+                        text,
+                        check_decision=check_decision,
+                    ),
+                    present_turn,
+                    "il Game Master sta pensando…",
+                    handle_turn_error,
+                )
+
+            def handle_turn_error(error: Exception) -> None:
+                if not isinstance(error, CheckDecisionRequiredError):
+                    show_operation_error(error)
+                    return
+                answer = qt_widgets.QMessageBox.question(
+                    window,
+                    "Prova richiesta",
+                    "Questa azione richiede una prova.\n\n"
+                    "Sì: tira i dadi\nNo: rinuncia all'azione",
+                    qt_widgets.QMessageBox.Yes
+                    | qt_widgets.QMessageBox.No
+                    | qt_widgets.QMessageBox.Cancel,
+                    qt_widgets.QMessageBox.Yes,
+                )
+                if answer == qt_widgets.QMessageBox.Cancel:
+                    system_line("[prova annullata dal giocatore]")
+                    return
+                decision = (
+                    CheckDecision.ROLL
+                    if answer == qt_widgets.QMessageBox.Yes
+                    else CheckDecision.DECLINE
+                )
+                run_turn(decision)
+
+            run_turn()
 
         def retry() -> None:
             def presented(current: DesktopViewState) -> None:

@@ -10,7 +10,10 @@ TASK_PROFILES: dict[LLMTask, LLMTaskProfile] = {
             "Do not roll dice, resolve randomness, mutate world state, invent player actions, "
             "thoughts, emotions, dialogue, inventory, knowledge, or outcomes. For an explicit "
             "adult intimacy request, describe only the player's requested scope and visual "
-            "intent; never invent or predict the NPC's consent."
+            "intent; never invent or predict the NPC's consent. For an observation request, "
+            "populate the observation subject and body/object region explicitly. Treat simple "
+            "looking as check-free; propose a check only for real uncertainty, concealment, "
+            "danger, or resistance."
         ),
     ),
     LLMTask.INTERPRET_EVENT: LLMTaskProfile(
