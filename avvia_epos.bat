@@ -16,7 +16,7 @@ if not exist ".env" (
   exit /b 1
 )
 
-".venv\Scripts\python.exe" -m epos.cli --project-root "%~dp0" desktop
+".venv\Scripts\python.exe" -m epos.cli desktop
 if errorlevel 1 (
   echo.
   echo EPOS NEXT si e' chiuso con un errore. Leggi il messaggio sopra.
