@@ -11,7 +11,7 @@ from epos.application.visual.prompt import RenderPromptContract, WorldpackVisual
 from epos.application.visual.vst import RawVST
 from epos.application.worldpacks.models import LoadedWorldpack
 
-RequestT_co = TypeVar("RequestT_co", covariant=True)
+RequestT = TypeVar("RequestT")
 
 
 class VisualDirectorPort(Protocol):
@@ -36,13 +36,13 @@ class PromptCompilerPort(Protocol):
     ) -> RenderPromptContract: ...
 
 
-class RenderRequestBuilderPort(Protocol[RequestT_co]):
+class RenderRequestBuilderPort(Protocol[RequestT]):
     def build(
         self,
         contract: RenderPromptContract,
         *,
         seed: int,
-    ) -> BuiltRenderRequest[RequestT_co]: ...
+    ) -> BuiltRenderRequest[RequestT]: ...
 
 
 class VisualDiagnosticsStorePort(Protocol):
