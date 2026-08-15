@@ -35,11 +35,15 @@ from epos.application.worldpacks.models import (
     SemanticLibraryDocument,
     VisualDocument,
 )
-from epos.domain.ids import EntityId, LocationId, SceneId, WorldpackId
+from epos.domain.ids import EntityId, LocationId, SceneId, SessionId, WorldpackId
 
 
 def _scene() -> ObservableSceneState:
-    return ObservableSceneState.model_construct(scene_id=SceneId("session:12"))
+    return ObservableSceneState.model_construct(
+        scene_id=SceneId("session:12"),
+        session_id=SessionId("session"),
+        time=SceneTime(turn_number=12, day=1, world_phase="sunset"),
+    )
 
 
 def _raw() -> RawVST:
@@ -272,6 +276,26 @@ class FakeDiagnosticsStore:
         return "diagnostics/session_12.visual.json"
 
 
+class FakePendingRenderStore:
+    def __init__(self, calls: list[str]) -> None:
+        self.calls = calls
+        self.pending = None
+        self.deleted: list[tuple[object, object]] = []
+
+    async def save(self, pending):
+        self.calls.append("pending_save")
+        self.pending = pending
+        return "pending/session.pending-render.json"
+
+    async def load(self, session_id):
+        return self.pending
+
+    async def delete(self, session_id, turn_number):
+        self.calls.append("pending_delete")
+        self.deleted.append((session_id, turn_number))
+        self.pending = None
+
+
 def _resources():
     from epos.application.visual.bridge import VisualPipelineResources
 
@@ -286,6 +310,7 @@ def _pipeline(
     calls: list[str],
     renderer_result: RenderResult,
     diagnostics: FakeDiagnosticsStore,
+    pending_renders=None,
 ):
     from epos.application.visual.bridge import VisualTurnPipeline
 
@@ -296,6 +321,7 @@ def _pipeline(
         render_request_builder=FakeRenderRequestBuilder(calls),
         renderer=FakeRenderer(calls, renderer_result),
         diagnostics=diagnostics,
+        pending_renders=pending_renders,
     )
 
 
@@ -358,6 +384,45 @@ async def test_renderer_failure_is_persisted_and_returned_without_new_llm_call()
     final = diagnostics.snapshots[-1]
     assert final.phase == "rendered"
     assert final.render_result == _render_failure()
+
+
+@pytest.mark.asyncio
+async def test_failed_render_keeps_prepared_pending_contract_for_retry() -> None:
+    calls: list[str] = []
+    diagnostics = FakeDiagnosticsStore(calls)
+    pending = FakePendingRenderStore(calls)
+    pipeline = _pipeline(calls, _render_failure(), diagnostics, pending)
+
+    result = await pipeline.run(scene=_scene(), resources=_resources())
+
+    assert result.render_result.status == "failed"
+    assert calls == [
+        "director",
+        "canonicalizer",
+        "compiler",
+        "render_request",
+        "diagnostics",
+        "pending_save",
+        "renderer",
+        "diagnostics",
+    ]
+    assert pending.pending is not None
+    assert pending.pending.canonical_vst == _canonical()
+    assert pending.pending.prompt_contract == _prompt_contract()
+    assert pending.pending.render_request == _request_snapshot()
+
+
+@pytest.mark.asyncio
+async def test_successful_render_clears_pending_contract() -> None:
+    calls: list[str] = []
+    diagnostics = FakeDiagnosticsStore(calls)
+    pending = FakePendingRenderStore(calls)
+    pipeline = _pipeline(calls, _render_success(), diagnostics, pending)
+
+    await pipeline.run(scene=_scene(), resources=_resources())
+
+    assert pending.pending is None
+    assert calls[-1] == "pending_delete"
 
 
 @pytest.mark.asyncio
