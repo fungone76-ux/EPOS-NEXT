@@ -21,6 +21,8 @@ from epos.infrastructure.llm.models import (
 
 _DEFAULT_OPENAI_BASE_URL = "https://api.openai.com/v1"
 _DEFAULT_GEMINI_INTERACTIONS_BASE_URL = "https://generativelanguage.googleapis.com/v1beta"
+_MAX_PROVIDER_ERROR_MESSAGE_LENGTH = 500
+_MAX_PROVIDER_ERROR_FIELD_LENGTH = 120
 
 
 class StructuredLLMBackend(Protocol):
@@ -109,15 +111,47 @@ def _normalize_openai_schema(value: JSONValue) -> JSONValue:
 
     result: JSONObject = {}
     for key, item in value.items():
-        if key == "default":
+        if key in {"default", "minLength", "maxLength", "discriminator"}:
             continue
-        result[key] = _normalize_openai_schema(item)
+        normalized_key = "anyOf" if key == "oneOf" else key
+        result[normalized_key] = _normalize_openai_schema(item)
 
     properties = result.get("properties")
     if isinstance(properties, dict):
         result["required"] = list(properties)
         result["additionalProperties"] = False
     return result
+
+
+def _sanitized_provider_error(response: httpx.Response) -> str:
+    """Extract only documented, non-secret provider error fields."""
+    try:
+        raw: object = response.json()
+    except ValueError:
+        return ""
+    if not isinstance(raw, dict):
+        return ""
+    error = raw.get("error")
+    if not isinstance(error, dict):
+        return ""
+
+    message = error.get("message")
+    if not isinstance(message, str):
+        message = ""
+    message = " ".join(message.split())[:_MAX_PROVIDER_ERROR_MESSAGE_LENGTH]
+
+    fields: list[str] = []
+    for key in ("type", "param", "code"):
+        value = error.get(key)
+        if not isinstance(value, str) or not value.strip():
+            continue
+        sanitized = " ".join(value.split())[:_MAX_PROVIDER_ERROR_FIELD_LENGTH]
+        fields.append(f"{key}={sanitized}")
+
+    metadata = f" ({', '.join(fields)})" if fields else ""
+    if message:
+        return f": {message}{metadata}"
+    return metadata
 
 
 class _HTTPBackend:
@@ -173,8 +207,10 @@ class _HTTPBackend:
                 f"{provider_label} request failed: {type(exc).__name__}"
             ) from exc
         if response.status_code >= 400:
+            provider_detail = _sanitized_provider_error(response)
             raise LLMProviderResponseError(
-                f"{provider_label} request failed with HTTP {response.status_code}",
+                f"{provider_label} request failed with HTTP {response.status_code}"
+                f"{provider_detail}",
                 http_status=response.status_code,
             )
         return response
