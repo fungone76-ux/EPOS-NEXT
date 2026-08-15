@@ -132,26 +132,39 @@ class TurnOrchestrator:
             producer=MutationAuthority.ENGINE_ONLY,
             mutations=(AdvanceTurnMutation(),),
         )
-        all_batches = (
+        base_batches = (
             action_resolution.mutation_batches
             + psychology_plan.mutation_batches
             + (reaction_batch, advance_batch)
         )
-        projected_final = self._state.project_many(all_batches, base_state=pre_state)
+        projected_turn = self._state.project_many(base_batches, base_state=pre_state)
 
         scene = self._scene_builder.build(
-            state=projected_final,
+            state=projected_turn,
             action=action,
             resolved_check=resolved_check,
             resolution=action_resolution,
         )
         narration = await self._narration.generate(
-            state=projected_final,
+            state=projected_turn,
             scene=scene,
             player_input=command.player_input,
             action=action,
             reactions=cognition_results,
         )
+        memory_plan = await self._memory.prepare(
+            TurnMemoryContext(
+                state=projected_turn,
+                player_input=command.player_input,
+                action=action,
+                resolved_check=resolved_check,
+                reactions=tuple(result.reaction for result in cognition_results),
+                scene=scene,
+                narration=narration,
+            )
+        )
+        all_batches = base_batches + memory_plan.mutation_batches
+        projected_final = self._state.project_many(all_batches, base_state=pre_state)
 
         committed = await self._state.commit_many(
             all_batches,
@@ -166,31 +179,21 @@ class TurnOrchestrator:
         if checkpoint is not None or (action.check is not None and decision is CheckDecision.ROLL):
             try:
                 await self._checkpoint.clear(state=committed)
-            except EposError as exc:
+            except Exception as exc:
                 issues.append(self._issue("checkpoint_clear", exc))
 
         visual_result = None
         try:
             visual_result = await self._visual.render(scene)
-        except EposError as exc:
+        except Exception as exc:
             issues.append(self._issue("visual", exc))
 
         memory_stored = False
         try:
-            await self._memory.remember(
-                TurnMemoryContext(
-                    committed_state=committed,
-                    player_input=command.player_input,
-                    action=action,
-                    resolved_check=resolved_check,
-                    reactions=tuple(result.reaction for result in cognition_results),
-                    scene=scene,
-                    narration=narration,
-                )
-            )
+            await self._memory.store(memory_plan)
             memory_stored = True
-        except EposError as exc:
-            issues.append(self._issue("memory", exc))
+        except Exception as exc:
+            issues.append(self._issue("memory_store", exc))
 
         return TurnOrchestrationResult(
             committed_state=committed,
@@ -313,5 +316,11 @@ class TurnOrchestrator:
         )
 
     @staticmethod
-    def _issue(phase: str, exc: EposError) -> PostCommitIssue:
-        return PostCommitIssue(phase=phase, code=exc.code, message=str(exc))
+    def _issue(phase: str, exc: Exception) -> PostCommitIssue:
+        if isinstance(exc, EposError):
+            code = exc.code
+            message = str(exc)
+        else:
+            code = f"turn.post_commit.{phase}_unexpected"
+            message = f"{type(exc).__name__}: {exc}"
+        return PostCommitIssue(phase=phase, code=code, message=message)
