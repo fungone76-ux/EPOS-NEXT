@@ -72,7 +72,7 @@ class PythonTurnCheckResolver:
 
 
 class DefaultTurnActionResolver:
-    """Generic engine baseline; Worldpacks may replace it with richer authoritative rules."""
+    """Generic baseline for only the authoritative action effects it can prove."""
 
     def resolve(
         self,
@@ -83,6 +83,12 @@ class DefaultTurnActionResolver:
         resolved_check: ResolvedCheck | None,
     ) -> TurnActionResolution:
         del state, resolved_check
+        if action.outfit_request is not None:
+            raise TurnOrchestrationError(
+                "default turn resolver has no canonical outfit mutation policy; "
+                "inject a Worldpack-specific TurnActionResolverPort",
+                code="turn.action.unsupported_outfit_request",
+            )
         if action.check is not None and check_decision is CheckDecision.DECLINE:
             return TurnActionResolution()
 
