@@ -14,11 +14,7 @@ from epos.application.conversation import (
     NarrationResult,
     NarrationService,
 )
-from epos.application.memory import (
-    LongTermMemoryRecord,
-    MemoryHit,
-    MemoryRecallQuery,
-)
+from epos.application.memory import LongTermMemoryRecord, MemoryHit, MemoryRecallQuery
 from epos.application.ports import MemoryStorePort
 from epos.application.psychology import PsychologyService
 from epos.application.state import (
@@ -314,7 +310,7 @@ class LongTermTurnMemoryWriter:
         records = await self._derivation.derive(context)
         present_npcs = {
             subject.entity_id
-            for subject in context.scene.subjects
+            for subject in context.scene.visible_subjects
             if subject.kind is SubjectKind.NPC
         }
         seen: set[tuple[EntityId, str]] = set()
