@@ -9,6 +9,7 @@ from pydantic import Field, field_validator
 from epos.application.actions.models import ResolvedCheck, ValidatedAction
 from epos.application.cognition.models import CognitionResult, ValidatedNPCReaction
 from epos.application.conversation.models import NarrationResult
+from epos.application.memory import LongTermMemoryRecord
 from epos.application.psychology.models import PsychologicalEvent
 from epos.application.state import MutationBatch
 from epos.application.visual.bridge import VisualPipelineResult
@@ -75,13 +76,22 @@ class TurnPsychologyPlan(DomainModel):
 
 
 class TurnMemoryContext(DomainModel):
-    committed_state: WorldState
+    """Disclosure-safe material from which resulting NPC memories may be derived."""
+
+    state: WorldState
     player_input: str
     action: ValidatedAction
     resolved_check: ResolvedCheck | None = None
     reactions: tuple[ValidatedNPCReaction, ...] = ()
     scene: ObservableSceneState
     narration: NarrationResult
+
+
+class TurnMemoryPlan(DomainModel):
+    """One derivation pass: active-layer state effects plus long-term archive records."""
+
+    records: tuple[LongTermMemoryRecord, ...] = ()
+    mutation_batches: tuple[MutationBatch, ...] = ()
 
 
 class PostCommitIssue(DomainModel):
