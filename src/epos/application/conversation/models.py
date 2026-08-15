@@ -16,9 +16,10 @@ from epos.domain.ids import EntityId, LocationId
 from epos.domain.memory import MemoryEntryState
 from epos.domain.psychology import EmotionalState
 from epos.domain.relationships import RelationshipState
+from epos.domain.semantic import SEMANTIC_TOKEN_PATTERN, SemanticToken
 from epos.domain.world_state import WorldState
 
-_SEMANTIC_TOKEN = re.compile(r"^[a-z0-9][a-z0-9_.:-]*$")
+_SEMANTIC_TOKEN = re.compile(SEMANTIC_TOKEN_PATTERN)
 _EVIDENCE_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.:%-]*$")
 
 
@@ -89,7 +90,7 @@ class ConversationFocusProposal(DomainModel):
 
     speaker_id: EntityId
     target_npc_id: EntityId | None = None
-    topic: str
+    topic: SemanticToken
     mode: NarrationMode
 
     @field_validator("topic")
@@ -103,7 +104,7 @@ class ConversationFocus(DomainModel):
 
     speaker_id: EntityId
     target_npc_id: EntityId | None = None
-    topic: str
+    topic: SemanticToken
     mode: NarrationMode
 
     @field_validator("topic")

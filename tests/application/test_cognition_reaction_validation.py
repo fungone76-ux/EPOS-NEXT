@@ -89,6 +89,15 @@ def test_reaction_contract_has_no_free_text_channel_for_secret_smuggling() -> No
         )
 
 
+def test_reaction_json_schema_exposes_semantic_token_rules_to_openai() -> None:
+    schema = NPCReactionProposal.model_json_schema()
+    properties = schema["properties"]
+    expected = r"^[a-z0-9][a-z0-9_.:-]*$"
+    assert properties["intent"]["pattern"] == expected
+    assert properties["speech_act"]["pattern"] == expected
+    assert properties["topic_tags"]["items"]["pattern"] == expected
+
+
 def test_reaction_tokens_reject_prose() -> None:
     with pytest.raises(ValidationError):
         NPCReactionProposal(

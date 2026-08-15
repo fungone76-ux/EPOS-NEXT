@@ -19,8 +19,9 @@ from epos.domain.memory import MemoryEntryState
 from epos.domain.outfit import OutfitState
 from epos.domain.psychology import EmotionalState
 from epos.domain.relationships import RelationshipState
+from epos.domain.semantic import SEMANTIC_TOKEN_PATTERN, SemanticToken
 
-_TOKEN_PATTERN = re.compile(r"^[a-z0-9][a-z0-9_.:-]*$")
+_TOKEN_PATTERN = re.compile(SEMANTIC_TOKEN_PATTERN)
 
 
 def _normalize_token(value: str, *, field_name: str) -> str:
@@ -91,9 +92,9 @@ class GeneratedOutfitItemProposal(DomainModel):
     """One bounded visual garment proposed by cognition for a missing outfit."""
 
     name: str = Field(min_length=1, max_length=80)
-    slot: str
+    slot: SemanticToken
     layer: int = Field(ge=0, le=100)
-    coverage: tuple[str, ...] = Field(default=(), max_length=12)
+    coverage: tuple[SemanticToken, ...] = Field(default=(), max_length=12)
     material: str | None = Field(default=None, max_length=80)
     color: str | None = Field(default=None, max_length=80)
 
@@ -127,7 +128,7 @@ class GeneratedOutfitProposal(DomainModel):
     """Creative outfit draft that becomes canonical only after Python validation."""
 
     name: str = Field(min_length=1, max_length=100)
-    tags: tuple[str, ...] = Field(default=(), max_length=12)
+    tags: tuple[SemanticToken, ...] = Field(default=(), max_length=12)
     items: tuple[GeneratedOutfitItemProposal, ...] = Field(min_length=1, max_length=12)
 
     @field_validator("name")
@@ -180,11 +181,11 @@ class NPCReactionProposal(DomainModel):
     """Token-only semantic LLM proposal; it has no player-facing prose channel."""
 
     npc_id: EntityId
-    intent: str
-    speech_act: str
-    topic_tags: tuple[str, ...] = ()
-    emotional_tone: tuple[str, ...] = ()
-    action_intent: str | None = None
+    intent: SemanticToken
+    speech_act: SemanticToken
+    topic_tags: tuple[SemanticToken, ...] = ()
+    emotional_tone: tuple[SemanticToken, ...] = ()
+    action_intent: SemanticToken | None = None
     target_ids: tuple[EntityId, ...] = ()
     referenced_memory_ids: tuple[MemoryId, ...] = ()
     requested_secret_disclosures: tuple[str, ...] = ()

@@ -4,7 +4,7 @@ import json
 
 import httpx
 import pytest
-from pydantic import Field
+from pydantic import Field, field_validator
 
 from epos.application.memory import MemorySummaryDraft, MemorySummaryRequest
 from epos.domain.base import DomainModel
@@ -33,6 +33,17 @@ class SampleRequest(DomainModel):
 class SampleResponse(DomainModel):
     answer: str
     score: int = Field(ge=0, le=10)
+
+
+class SemanticTokenResponse(DomainModel):
+    token: str
+
+    @field_validator("token")
+    @classmethod
+    def require_semantic_token(cls, value: str) -> str:
+        if " " in value:
+            raise ValueError("token must not contain spaces")
+        return value
 
 
 def _json_response(answer: str = "ok", score: int = 7) -> str:
@@ -177,7 +188,9 @@ async def test_openai_responses_backend_uses_structured_output_and_environment_m
     assert isinstance(payload, dict)
     assert payload["model"] == "openai-model-from-env"
     assert payload["store"] is False
-    assert payload["instructions"] == TASK_PROFILES[LLMTask.INTERPRET_ACTION].system_instruction
+    instructions = payload["instructions"]
+    assert isinstance(instructions, str)
+    assert instructions.startswith(TASK_PROFILES[LLMTask.INTERPRET_ACTION].system_instruction)
     assert json.loads(str(payload["input"])) == {"text": "open the door"}
     text_config = payload["text"]
     assert isinstance(text_config, dict)
@@ -188,6 +201,71 @@ async def test_openai_responses_backend_uses_structured_output_and_environment_m
     schema = output_format["schema"]
     assert isinstance(schema, dict)
     assert set(schema["required"]) == {"answer", "score"}
+
+
+@pytest.mark.asyncio
+async def test_openai_receives_explicit_contract_guidance_on_first_attempt() -> None:
+    captured: dict[str, object] = {}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        captured["payload"] = json.loads(request.content)
+        return httpx.Response(200, json=_openai_response(_json_response()))
+
+    client = httpx.AsyncClient(transport=httpx.MockTransport(handler))
+    port = StructuredLLMPort(
+        backends=(OpenAIResponsesBackend(api_key="key", model="gpt-4o-mini", client=client),),
+        task=LLMTask.INTERPRET_ACTION,
+        response_model=SampleResponse,
+        retry_policy=LLMRetryPolicy(max_attempts_per_provider=1),
+    )
+
+    await port.invoke(SampleRequest(text="look at Luna's feet"))
+    await client.aclose()
+
+    payload = captured["payload"]
+    assert isinstance(payload, dict)
+    instructions = payload["instructions"]
+    assert isinstance(instructions, str)
+    assert "copy identifiers exactly" in instructions.casefold()
+    assert "semantic token" in instructions.casefold()
+    assert "strict json schema" in instructions.casefold()
+
+
+@pytest.mark.asyncio
+async def test_openai_semantic_contract_retry_receives_actionable_validation_feedback() -> None:
+    payloads: list[dict[str, object]] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        payload = json.loads(request.content)
+        assert isinstance(payload, dict)
+        payloads.append(payload)
+        text = (
+            json.dumps({"token": "two words"})
+            if len(payloads) == 1
+            else json.dumps({"token": "two_words"})
+        )
+        return httpx.Response(200, json=_openai_response(text))
+
+    client = httpx.AsyncClient(transport=httpx.MockTransport(handler))
+    port = StructuredLLMPort(
+        backends=(OpenAIResponsesBackend(api_key="key", model="gpt-4o-mini", client=client),),
+        task=LLMTask.REASON_NPC,
+        response_model=SemanticTokenResponse,
+        retry_policy=LLMRetryPolicy(max_attempts_per_provider=2),
+    )
+
+    result = await port.invoke(SampleRequest(text="react"))
+    await client.aclose()
+
+    assert result.token == "two_words"
+    assert len(payloads) == 2
+    repair_instructions = payloads[1]["instructions"]
+    assert isinstance(repair_instructions, str)
+    assert "repair" in repair_instructions.casefold()
+    repair_input = json.loads(str(payloads[1]["input"]))
+    assert repair_input["original_input_json"] == '{"text":"react"}'
+    assert repair_input["invalid_output_json"] == '{"token": "two words"}'
+    assert "token must not contain spaces" in repair_input["validation_errors_json"]
 
 
 @pytest.mark.asyncio
@@ -223,7 +301,9 @@ async def test_gemini_interactions_backend_uses_structured_output_and_environmen
     assert isinstance(payload, dict)
     assert payload["model"] == "gemini-model-from-env"
     assert payload["store"] is False
-    assert payload["system_instruction"] == TASK_PROFILES[LLMTask.GENERATE_VST].system_instruction
+    system_instruction = payload["system_instruction"]
+    assert isinstance(system_instruction, str)
+    assert system_instruction.startswith(TASK_PROFILES[LLMTask.GENERATE_VST].system_instruction)
     assert json.loads(str(payload["input"])) == {"text": "scene"}
     formats = payload["response_format"]
     assert isinstance(formats, list)

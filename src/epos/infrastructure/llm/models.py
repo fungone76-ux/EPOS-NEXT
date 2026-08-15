@@ -56,6 +56,14 @@ class StructuredLLMRequest(DomainModel):
     json_schema: dict[str, JsonValue]
 
 
+class StructuredLLMRepairInput(DomainModel):
+    """Bounded feedback supplied only after a locally invalid structured response."""
+
+    original_input_json: str = Field(min_length=1)
+    invalid_output_json: str = Field(min_length=1)
+    validation_errors_json: str = Field(min_length=1)
+
+
 class ProviderCompletion(DomainModel):
     provider: LLMProviderName
     model: str
