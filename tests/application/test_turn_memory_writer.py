@@ -130,7 +130,7 @@ class RecordingMemoryStore:
 
 
 @pytest.mark.asyncio
-async def test_turn_memory_coordinator_derives_once_commits_active_layer_then_archives_same_record() -> None:
+async def test_turn_memory_derives_once_then_archives_same_record() -> None:
     context = _context()
     record = _record("victoria")
     derivation = FixedDerivation((record,))
