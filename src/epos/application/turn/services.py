@@ -64,7 +64,10 @@ class DefaultTurnActionResolver:
         check_decision: CheckDecision | None,
         resolved_check: ResolvedCheck | None,
     ) -> TurnActionResolution:
-        del state, check_decision, resolved_check
+        del state, resolved_check
+        if action.check is not None and check_decision is CheckDecision.DECLINE:
+            return TurnActionResolution()
+
         mutations = ()
         if action.movement is not None:
             mutations = (
