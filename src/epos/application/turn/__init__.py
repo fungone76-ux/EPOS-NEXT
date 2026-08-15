@@ -14,6 +14,7 @@ from epos.application.turn.models import (
     TurnActionResolution,
     TurnCommand,
     TurnMemoryContext,
+    TurnMemoryPlan,
     TurnOrchestrationResult,
     TurnPsychologyPlan,
 )
@@ -40,9 +41,9 @@ from epos.application.turn.services import (
     DefaultTurnActionResolver,
     DefaultTurnNarrationCoordinator,
     DefaultTurnSceneBuilder,
-    LongTermTurnMemoryWriter,
     PythonTurnCheckResolver,
     PythonTurnPsychologyPlanner,
+    TurnMemoryCoordinator,
     VisualTurnPipelineAdapter,
 )
 
@@ -55,7 +56,6 @@ __all__ = [
     "DefaultTurnActionResolver",
     "DefaultTurnNarrationCoordinator",
     "DefaultTurnSceneBuilder",
-    "LongTermTurnMemoryWriter",
     "PendingDiceCheckpointError",
     "PostCommitIssue",
     "PsychologyProfilePort",
@@ -71,7 +71,9 @@ __all__ = [
     "TurnCommand",
     "TurnCommitMismatchError",
     "TurnMemoryContext",
+    "TurnMemoryCoordinator",
     "TurnMemoryDerivationPort",
+    "TurnMemoryPlan",
     "TurnMemoryPort",
     "TurnNarrationPort",
     "TurnOrchestrationError",
