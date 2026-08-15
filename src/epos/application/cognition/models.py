@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 import re
+from enum import StrEnum
 
-from pydantic import field_validator
+from pydantic import Field, field_validator
 
 from epos.application.actions.models import ResolvedCheck, ValidatedAction
 from epos.application.memory import RankedMemory
@@ -14,6 +15,7 @@ from epos.domain.ids import EntityId, LocationId, MemoryId
 from epos.domain.intimacy import IntimacyState
 from epos.domain.knowledge import KnowledgeState
 from epos.domain.memory import MemoryEntryState
+from epos.domain.outfit import OutfitState
 from epos.domain.psychology import EmotionalState
 from epos.domain.relationships import RelationshipState
 
@@ -74,6 +76,96 @@ class PrivateCognitiveContext(DomainModel):
     player_input: str
     action: ValidatedAction
     resolved_check: ResolvedCheck | None = None
+    current_outfit: OutfitState = OutfitState()
+    available_outfit_ids: tuple[str, ...] = ()
+
+
+class OutfitRequestDisposition(StrEnum):
+    ACCEPTED = "accepted"
+    REJECTED = "rejected"
+    COUNTEROFFER = "counteroffer"
+
+
+class GeneratedOutfitItemProposal(DomainModel):
+    """One bounded visual garment proposed by cognition for a missing outfit."""
+
+    name: str = Field(min_length=1, max_length=80)
+    slot: str
+    layer: int = Field(ge=0, le=100)
+    coverage: tuple[str, ...] = Field(default=(), max_length=12)
+    material: str | None = Field(default=None, max_length=80)
+    color: str | None = Field(default=None, max_length=80)
+
+    @field_validator("name", "material", "color")
+    @classmethod
+    def normalize_optional_text(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        normalized = " ".join(value.split())
+        if not normalized:
+            raise ValueError("generated outfit text must not be empty")
+        return normalized
+
+    @field_validator("slot")
+    @classmethod
+    def normalize_slot(cls, value: str) -> str:
+        return _normalize_token(value, field_name="generated outfit slot")
+
+    @field_validator("coverage")
+    @classmethod
+    def normalize_coverage(cls, values: tuple[str, ...]) -> tuple[str, ...]:
+        return tuple(
+            dict.fromkeys(
+                _normalize_token(value, field_name="generated outfit coverage")
+                for value in values
+            )
+        )
+
+
+class GeneratedOutfitProposal(DomainModel):
+    """Creative outfit draft that becomes canonical only after Python validation."""
+
+    name: str = Field(min_length=1, max_length=100)
+    tags: tuple[str, ...] = Field(default=(), max_length=12)
+    items: tuple[GeneratedOutfitItemProposal, ...] = Field(min_length=1, max_length=12)
+
+    @field_validator("name")
+    @classmethod
+    def normalize_name(cls, value: str) -> str:
+        return " ".join(value.split())
+
+    @field_validator("tags")
+    @classmethod
+    def normalize_tags(cls, values: tuple[str, ...]) -> tuple[str, ...]:
+        return tuple(
+            dict.fromkeys(
+                _normalize_token(value, field_name="generated outfit tag") for value in values
+            )
+        )
+
+
+class NPCOutfitRequestResponse(DomainModel):
+    """NPC decision about a player request; it is not a state mutation."""
+
+    disposition: OutfitRequestDisposition
+    selected_outfit_id: str | None = None
+    generated_outfit: GeneratedOutfitProposal | None = None
+
+
+class NPCOutfitAction(DomainModel):
+    """Structured in-scene outfit action proposed by the NPC."""
+
+    requested_state: str
+    outfit_id: str | None = None
+    item_ids: tuple[str, ...] = ()
+
+    @field_validator("requested_state")
+    @classmethod
+    def normalize_requested_state(cls, value: str) -> str:
+        normalized = value.strip().casefold()
+        if normalized not in {"wear_outfit", "remove_items", "rewear_items"}:
+            raise ValueError("unsupported NPC outfit action")
+        return normalized
 
 
 class NPCReactionProposal(DomainModel):
@@ -88,6 +180,8 @@ class NPCReactionProposal(DomainModel):
     target_ids: tuple[EntityId, ...] = ()
     referenced_memory_ids: tuple[MemoryId, ...] = ()
     requested_secret_disclosures: tuple[str, ...] = ()
+    outfit_request_response: NPCOutfitRequestResponse | None = None
+    autonomous_outfit_action: NPCOutfitAction | None = None
 
     @field_validator("intent", "speech_act")
     @classmethod
@@ -119,6 +213,8 @@ class ValidatedNPCReaction(DomainModel):
     target_ids: tuple[EntityId, ...] = ()
     referenced_memory_ids: tuple[MemoryId, ...] = ()
     authorized_secret_disclosures: tuple[str, ...] = ()
+    outfit_request_response: NPCOutfitRequestResponse | None = None
+    autonomous_outfit_action: NPCOutfitAction | None = None
 
 
 class CognitionResult(DomainModel):

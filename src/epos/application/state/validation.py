@@ -53,6 +53,20 @@ class WorldStateCommitValidator:
                     f"skill key {skill_id} does not match {skill.skill_id}"
                 )
 
+        actor_ids = {validated.player.entity_id, *validated.npcs}
+        for outfit_id, outfit in validated.wardrobes.items():
+            if outfit.outfit_id != outfit_id:
+                raise StateMutationError(
+                    f"wardrobe key {outfit_id} does not match {outfit.outfit_id}"
+                )
+            if outfit.owner_id not in actor_ids:
+                raise StateMutationError(
+                    f"wardrobe outfit {outfit_id} has unknown owner {outfit.owner_id}"
+                )
+            item_ids = tuple(item.item_id for item in outfit.items)
+            if len(item_ids) != len(set(item_ids)):
+                raise StateMutationError(f"wardrobe outfit {outfit_id} has duplicate items")
+
         for mission_id, mission in validated.missions.items():
             if mission.mission_id != mission_id:
                 raise StateMutationError(

@@ -7,8 +7,14 @@ from epos.application.actions.models import (
     CheckProposal,
     ResolvedCheck,
     ValidatedAction,
+    ValidatedOutfitRequest,
 )
-from epos.application.cognition.models import CognitionResult, ValidatedNPCReaction
+from epos.application.cognition.models import (
+    CognitionResult,
+    NPCOutfitRequestResponse,
+    OutfitRequestDisposition,
+    ValidatedNPCReaction,
+)
 from epos.application.conversation.models import (
     ConversationFocus,
     NarrationMode,
@@ -32,6 +38,7 @@ from epos.application.turn import (
 from epos.domain.errors import ExternalServiceError, PersistenceError
 from epos.domain.ids import EntityId, LocationId, SessionId, SkillId, WorldpackId
 from epos.domain.npc import NPCIdentity, NPCState
+from epos.domain.outfit import OutfitItem, OutfitState, WardrobeOutfit
 from epos.domain.player import PlayerState
 from epos.domain.world_state import LocationState, SkillDefinition, WorldState
 
@@ -57,6 +64,16 @@ def _world() -> WorldState:
                     role="director",
                 ),
                 location_id=LocationId("lobby"),
+                outfit=OutfitState(
+                    items=(
+                        OutfitItem(
+                            item_id="victoria_day_dress",
+                            name="day dress",
+                            slot="body",
+                            layer=10,
+                        ),
+                    )
+                ),
             ),
             EntityId("stella"): NPCState(
                 identity=NPCIdentity(
@@ -79,6 +96,21 @@ def _world() -> WorldState:
             SkillId("negoziazione"): SkillDefinition(
                 skill_id=SkillId("negoziazione"),
                 name="Negoziazione",
+            )
+        },
+        wardrobes={
+            "victoria_evening": WardrobeOutfit(
+                outfit_id="victoria_evening",
+                owner_id=EntityId("victoria"),
+                tags=("sexy", "elegant"),
+                items=(
+                    OutfitItem(
+                        item_id="victoria_evening_dress",
+                        name="evening dress",
+                        slot="body",
+                        layer=10,
+                    ),
+                ),
             )
         },
     )
@@ -190,6 +222,22 @@ class FakeCognition:
         )
 
 
+class AcceptingOutfitCognition:
+    async def react(self, **kwargs) -> CognitionResult:
+        npc_id = kwargs["npc_id"]
+        return CognitionResult(
+            reaction=ValidatedNPCReaction(
+                npc_id=npc_id,
+                intent="accept_request",
+                speech_act="agree",
+                outfit_request_response=NPCOutfitRequestResponse(
+                    disposition=OutfitRequestDisposition.ACCEPTED,
+                    selected_outfit_id="victoria_evening",
+                ),
+            )
+        )
+
+
 class FakeNarration:
     def __init__(self, calls: list[str]) -> None:
         self.calls = calls
@@ -278,13 +326,17 @@ def _orchestrator(
     calls: list[str],
     interpreter=None,
     check_resolver=None,
+    cognition=None,
 ):
     psychology = FakePsychology(calls)
-    cognition = FakeCognition(calls)
+    cognition = cognition or FakeCognition(calls)
     narration = FakeNarration(calls)
     visual = FailingVisual(calls)
     memory = RecordingMemory(calls)
-    manager = AuthoritativeStateManager(initial_state=_world(), state_store=state_store)
+    manager = AuthoritativeStateManager(
+        initial_state=state_store.state,
+        state_store=state_store,
+    )
     orchestrator = TurnOrchestrator(
         state=manager,
         checkpoint=DiceCheckpointService(store=checkpoint_store),
@@ -300,6 +352,46 @@ def _orchestrator(
         memory=memory,
     )
     return orchestrator, manager, psychology, cognition, narration, visual, memory
+
+
+@pytest.mark.asyncio
+async def test_accepted_npc_outfit_is_committed_before_shared_scene_and_render() -> None:
+    calls: list[str] = []
+    store = RecordingStateStore(_world())
+    checkpoints = MemoryCheckpointStore()
+    action = ValidatedAction(
+        intent="request_outfit_change",
+        target_ids=(EntityId("victoria"),),
+        outfit_request=ValidatedOutfitRequest(
+            target_id=EntityId("victoria"),
+            requested_state="wear_outfit",
+            semantic_tags=("sexy",),
+            candidate_outfit_ids=("victoria_evening",),
+        ),
+    )
+    orchestrator, _, _, _, narration, visual, memory = _orchestrator(
+        action=action,
+        state_store=store,
+        checkpoint_store=checkpoints,
+        calls=calls,
+        cognition=AcceptingOutfitCognition(),
+    )
+
+    result = await orchestrator.run(
+        TurnCommand(player_input="Victoria, mettiti qualcosa di sexy")
+    )
+
+    expected = ("victoria_evening_dress",)
+    assert tuple(
+        item.item_id for item in result.committed_state.npcs[EntityId("victoria")].outfit.items
+    ) == expected
+    victoria = next(
+        subject for subject in result.scene.visible_subjects if subject.entity_id == "victoria"
+    )
+    assert tuple(item.item_id for item in victoria.outfit.items) == expected
+    assert narration.scene == result.scene
+    assert visual.scene == result.scene
+    assert memory.context is not None and memory.context.scene == result.scene
 
 
 @pytest.mark.asyncio

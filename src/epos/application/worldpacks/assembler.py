@@ -12,7 +12,7 @@ from epos.application.worldpacks.models import (
 from epos.domain.errors import EposValidationError
 from epos.domain.ids import EntityId, LocationId, MissionId, SessionId, SkillId, TurnNumber
 from epos.domain.npc import NPCIdentity, NPCState
-from epos.domain.outfit import OutfitState
+from epos.domain.outfit import OutfitState, WardrobeOutfit
 from epos.domain.player import PlayerState
 from epos.domain.world_state import (
     EventState,
@@ -82,6 +82,15 @@ class WorldpackAssembler:
                 for event_id, definition in events.items()
             },
             skill_definitions=skills,
+            wardrobes={
+                outfit_id: WardrobeOutfit(
+                    outfit_id=definition.outfit_id,
+                    owner_id=definition.owner_id,
+                    tags=definition.tags,
+                    items=definition.items,
+                )
+                for outfit_id, definition in outfits.items()
+            },
             world_truth=bundle.world.world_truth,
             rendering_config=RenderingConfig(settings=bundle.world.rendering_config),
             narrative_config=NarrativeConfig(settings=bundle.world.narrative_config),

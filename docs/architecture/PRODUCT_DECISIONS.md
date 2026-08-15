@@ -61,6 +61,25 @@ expressions, eyebrow/eye/mouth expressions, or equivalent face-emotion instructi
 Psychological emotion remains part of the game state but is not translated automatically
 into facial prompt text.
 
+## DEC-006 — Player visual attention and persistent outfit continuity
+
+Player language may express an observation target and a body-region focus without changing
+world truth. `ObservationIntent` is validated against the local scene and its region is
+carried through `ObservableSceneState`. For explicit player observation, Python overrides a
+contradictory Visual Director focus and resolves a compatible camera from the Worldpack
+camera library.
+
+Outfit requests directed at NPCs are requests, never completed actions. Python first exposes
+canonical wardrobe candidates. The present NPC may accept, reject, or counteroffer through
+a structured cognition result. If no matching outfit exists, cognition may instead return a
+bounded structured outfit draft. Python generates stable IDs, validates every garment, adds
+the result to the runtime wardrobe, and only then applies it as an engine-owned mutation
+before the shared scene is built.
+
+Removed items remain in authoritative outfit state with `state=removed` but are omitted from
+visual prompt compilation. Other layers remain visible. This persists across turns until a
+later authoritative action changes the item state or replaces the outfit.
+
 The Visual Director therefore has no dedicated facial-expression output field. Observable
 mood/expression cues are not exposed to its Module 11 context. Later canonicalization and
 prompt compilation must preserve this boundary.

@@ -27,7 +27,9 @@ from epos.application.turn.models import (
     TurnMemoryContext,
     TurnOrchestrationResult,
 )
+from epos.application.turn.outfits import PythonNPCOutfitMutationPlanner
 from epos.application.turn.ports import (
+    NPCOutfitMutationPlannerPort,
     ReactionMutationPlannerPort,
     TurnActionInterpreterPort,
     TurnActionResolverPort,
@@ -63,6 +65,7 @@ class TurnOrchestrator:
         narration: TurnNarrationPort,
         visual: TurnVisualPort,
         memory: TurnMemoryPort,
+        npc_outfits: NPCOutfitMutationPlannerPort | None = None,
     ) -> None:
         self._state = state
         self._checkpoint = checkpoint
@@ -76,6 +79,7 @@ class TurnOrchestrator:
         self._narration = narration
         self._visual = visual
         self._memory = memory
+        self._npc_outfits = npc_outfits or PythonNPCOutfitMutationPlanner()
         self._turn_lock = asyncio.Lock()
 
     async def run(self, command: TurnCommand) -> TurnOrchestrationResult:
@@ -128,6 +132,11 @@ class TurnOrchestrator:
             resolved_check=resolved_check,
         )
         reaction_batch = self._reaction_mutations.plan(cognition_results)
+        outfit_batch = self._npc_outfits.plan(
+            state=psychological_state,
+            action_request=action.outfit_request,
+            reactions=cognition_results,
+        )
         advance_batch = MutationBatch(
             producer=MutationAuthority.ENGINE_ONLY,
             mutations=(AdvanceTurnMutation(),),
@@ -135,7 +144,9 @@ class TurnOrchestrator:
         base_batches = (
             action_resolution.mutation_batches
             + psychology_plan.mutation_batches
-            + (reaction_batch, advance_batch)
+            + (reaction_batch,)
+            + ((outfit_batch,) if outfit_batch.mutations else ())
+            + (advance_batch,)
         )
         projected_turn = self._state.project_many(base_batches, base_state=pre_state)
 

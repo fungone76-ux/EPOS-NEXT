@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from pydantic import model_validator
+from pydantic import field_validator, model_validator
 
 from epos.application.visual.models import SceneTime, SubjectKind
 from epos.application.visual.vst import (
@@ -69,6 +69,17 @@ class CanonicalAction(DomainModel):
 class CanonicalVisualFocus(DomainModel):
     subject_ids: tuple[EntityId, ...]
     intent: SemanticIntent
+    region: str | None = None
+
+    @field_validator("region")
+    @classmethod
+    def validate_region(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        normalized = value.strip().casefold()
+        if not normalized or not all(part.isalnum() for part in normalized.split("_")):
+            raise ValueError("canonical focus region must be a stable semantic token")
+        return normalized
 
 
 class CanonicalCamera(DomainModel):

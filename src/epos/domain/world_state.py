@@ -15,6 +15,7 @@ from epos.domain.ids import (
 )
 from epos.domain.knowledge import KnowledgeState
 from epos.domain.npc import NPCState
+from epos.domain.outfit import WardrobeOutfit
 from epos.domain.player import PlayerState
 
 
@@ -67,6 +68,7 @@ class WorldState(DomainModel):
     flags: dict[str, bool] = Field(default_factory=dict)
     threads: dict[str, NarrativeThreadState] = Field(default_factory=dict)
     skill_definitions: dict[SkillId, SkillDefinition] = Field(default_factory=dict)
+    wardrobes: dict[str, WardrobeOutfit] = Field(default_factory=dict)
     world_truth: KnowledgeState = Field(default_factory=KnowledgeState)
     rendering_config: RenderingConfig = Field(default_factory=RenderingConfig)
     narrative_config: NarrativeConfig = Field(default_factory=NarrativeConfig)

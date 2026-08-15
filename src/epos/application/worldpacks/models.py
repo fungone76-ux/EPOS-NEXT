@@ -97,6 +97,7 @@ class EventsDocument(DomainModel):
 class OutfitDefinition(DomainModel):
     outfit_id: str
     owner_id: EntityId
+    tags: tuple[str, ...] = ()
     items: tuple[OutfitItem, ...] = ()
 
 

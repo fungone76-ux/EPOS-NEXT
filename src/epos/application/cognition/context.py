@@ -85,6 +85,12 @@ class PrivateCognitiveContextBuilder:
             player_input=player_input,
             action=action.model_copy(deep=True),
             resolved_check=None if resolved_check is None else resolved_check.model_copy(deep=True),
+            current_outfit=npc.outfit.model_copy(deep=True),
+            available_outfit_ids=tuple(
+                outfit.outfit_id
+                for outfit in sorted(state.wardrobes.values(), key=lambda item: item.outfit_id)
+                if outfit.owner_id == npc_id
+            ),
         )
 
     def _core_memories(self, npc: NPCState) -> tuple[MemoryEntryState, ...]:

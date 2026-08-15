@@ -29,6 +29,7 @@ from epos.application.state import (
     ReplaceNPCEmotionalStateMutation,
     ReplaceNPCMemoryLayersMutation,
     ReplaceNPCRelationshipMutation,
+    ReplacePlayerOutfitMutation,
     SetNPCIntentionsMutation,
     SetPlayerLocationMutation,
     StateMutation,
@@ -42,6 +43,7 @@ from epos.application.turn.models import (
     TurnMemoryPlan,
     TurnPsychologyPlan,
 )
+from epos.application.turn.outfits import outfit_from_validated_request
 from epos.application.turn.ports import (
     BondDerivationPort,
     PsychologyProfilePort,
@@ -82,13 +84,32 @@ class DefaultTurnActionResolver:
         check_decision: CheckDecision | None,
         resolved_check: ResolvedCheck | None,
     ) -> TurnActionResolution:
-        del state
         if action.outfit_request is not None:
-            raise TurnOrchestrationError(
-                "default turn resolver has no canonical outfit mutation policy; "
-                "inject a Worldpack-specific TurnActionResolverPort",
-                code="turn.action.unsupported_outfit_request",
-            )
+            request = action.outfit_request
+            if request.target_id == state.player.entity_id:
+                if request.requested_state == "wear_outfit":
+                    if len(request.candidate_outfit_ids) != 1:
+                        raise TurnOrchestrationError(
+                            "ambiguous player outfit request requires clarification",
+                            code="turn.outfit.player_choice_required",
+                        )
+                    selected = request.candidate_outfit_ids[0]
+                else:
+                    selected = None
+                outfit = outfit_from_validated_request(
+                    state,
+                    request=request,
+                    current=state.player.outfit,
+                    selected_outfit_id=selected,
+                )
+                return TurnActionResolution(
+                    mutation_batches=(
+                        MutationBatch(
+                            producer=MutationAuthority.ENGINE_ONLY,
+                            mutations=(ReplacePlayerOutfitMutation(outfit=outfit),),
+                        ),
+                    )
+                )
         if action.check is not None and check_decision is CheckDecision.DECLINE:
             return TurnActionResolution()
         if action.movement is not None and action.check is not None:

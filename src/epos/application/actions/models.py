@@ -4,10 +4,11 @@ from __future__ import annotations
 
 from enum import StrEnum
 
-from pydantic import Field, field_validator
+from pydantic import Field, field_validator, model_validator
 
 from epos.domain.base import DomainModel
 from epos.domain.ids import EntityId, LocationId, SkillId
+from epos.domain.outfit import OutfitState
 from epos.domain.world_state import SkillDefinition, WorldState
 
 
@@ -38,6 +39,57 @@ class OutfitRequestProposal(DomainModel):
     target_id: EntityId
     item_id: str | None = None
     requested_state: str
+    outfit_id: str | None = None
+    item_ids: tuple[str, ...] = ()
+    semantic_tags: tuple[str, ...] = ()
+
+    @field_validator("requested_state")
+    @classmethod
+    def normalize_requested_state(cls, value: str) -> str:
+        normalized = value.strip().casefold()
+        if not normalized:
+            raise ValueError("requested_state must not be empty")
+        return normalized
+
+    @field_validator("semantic_tags")
+    @classmethod
+    def normalize_semantic_tags(cls, values: tuple[str, ...]) -> tuple[str, ...]:
+        return tuple(dict.fromkeys(value.strip().casefold() for value in values if value.strip()))
+
+
+class OutfitOption(DomainModel):
+    """Disclosure-safe canonical wardrobe option exposed to interpretation/cognition."""
+
+    outfit_id: str
+    owner_id: EntityId
+    tags: tuple[str, ...] = ()
+
+
+class ValidatedOutfitRequest(DomainModel):
+    """Python-resolved request with canonical candidates or bounded generation permission."""
+
+    target_id: EntityId
+    requested_state: str
+    item_ids: tuple[str, ...] = ()
+    semantic_tags: tuple[str, ...] = ()
+    candidate_outfit_ids: tuple[str, ...] = ()
+    requested_concept: str | None = None
+    allow_generated_outfit: bool = False
+
+
+class ObservationIntent(DomainModel):
+    """Player-controlled visual attention without changing authoritative world state."""
+
+    subject_id: EntityId
+    region: str
+
+    @field_validator("region")
+    @classmethod
+    def normalize_region(cls, value: str) -> str:
+        normalized = value.strip().casefold().replace(" ", "_")
+        if not normalized or not all(part.isalnum() for part in normalized.split("_")):
+            raise ValueError("observation region must be a stable semantic token")
+        return normalized
 
 
 class ActionInterpretation(DomainModel):
@@ -48,6 +100,7 @@ class ActionInterpretation(DomainModel):
     movement: MovementProposal | None = None
     check: CheckProposal | None = None
     outfit_request: OutfitRequestProposal | None = None
+    observation: ObservationIntent | None = None
 
     @field_validator("intent")
     @classmethod
@@ -68,6 +121,8 @@ class ActionInterpreterContext(DomainModel):
     known_location_ids: tuple[LocationId, ...] = ()
     skill_catalog: tuple[SkillDefinition, ...] = ()
     player_skill_ratings: dict[SkillId, int] = Field(default_factory=dict)
+    wardrobe_options: tuple[OutfitOption, ...] = ()
+    current_outfits: dict[EntityId, OutfitState] = Field(default_factory=dict)
 
     @classmethod
     def from_world_state(
@@ -106,6 +161,22 @@ class ActionInterpreterContext(DomainModel):
             known_location_ids=known_location_ids,
             skill_catalog=skills,
             player_skill_ratings=ratings,
+            wardrobe_options=tuple(
+                OutfitOption(
+                    outfit_id=outfit.outfit_id,
+                    owner_id=outfit.owner_id,
+                    tags=outfit.tags,
+                )
+                for outfit in sorted(state.wardrobes.values(), key=lambda item: item.outfit_id)
+                if outfit.owner_id in {state.player.entity_id, *present_npcs}
+            ),
+            current_outfits={
+                state.player.entity_id: state.player.outfit.model_copy(deep=True),
+                **{
+                    npc_id: state.npcs[npc_id].outfit.model_copy(deep=True)
+                    for npc_id in present_npcs
+                },
+            },
         )
 
 
@@ -116,8 +187,15 @@ class ValidatedAction(DomainModel):
     target_ids: tuple[EntityId, ...] = ()
     movement: MovementProposal | None = None
     check: CheckProposal | None = None
-    outfit_request: OutfitRequestProposal | None = None
+    outfit_request: ValidatedOutfitRequest | None = None
+    observation: ObservationIntent | None = None
     skill_rating: int | None = Field(default=None, ge=1)
+
+    @model_validator(mode="after")
+    def validate_observation_target(self) -> ValidatedAction:
+        if self.observation is not None and self.observation.subject_id not in self.target_ids:
+            raise ValueError("observation subject must also be an action target")
+        return self
 
 
 class CheckOutcome(StrEnum):

@@ -6,9 +6,9 @@ from epos.application.actions.models import (
     CheckOutcome,
     CheckProposal,
     MovementProposal,
-    OutfitRequestProposal,
     ResolvedCheck,
     ValidatedAction,
+    ValidatedOutfitRequest,
 )
 from epos.application.psychology import (
     PsychologicalEvent,
@@ -116,25 +116,25 @@ def test_unchecked_movement_becomes_engine_only_location_mutation() -> None:
     )
 
 
-def test_outfit_request_requires_explicit_worldpack_resolution_policy() -> None:
+def test_npc_outfit_request_waits_for_npc_cognition_without_preemptive_mutation() -> None:
     action = ValidatedAction(
         intent="change_outfit",
-        outfit_request=OutfitRequestProposal(
-            target_id=EntityId("player"),
-            item_id="linen_shirt",
-            requested_state="wear",
+        target_ids=(EntityId("victoria"),),
+        outfit_request=ValidatedOutfitRequest(
+            target_id=EntityId("victoria"),
+            requested_state="wear_outfit",
+            candidate_outfit_ids=("victoria_evening",),
         ),
     )
 
-    with pytest.raises(TurnOrchestrationError) as exc_info:
-        DefaultTurnActionResolver().resolve(
-            state=_world(),
-            action=action,
-            check_decision=None,
-            resolved_check=None,
-        )
+    result = DefaultTurnActionResolver().resolve(
+        state=_world(),
+        action=action,
+        check_decision=None,
+        resolved_check=None,
+    )
 
-    assert exc_info.value.code == "turn.action.unsupported_outfit_request"
+    assert result.mutation_batches == ()
 
 
 def test_checked_movement_requires_explicit_outcome_to_mutation_policy() -> None:

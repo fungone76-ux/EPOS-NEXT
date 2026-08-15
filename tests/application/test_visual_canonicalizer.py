@@ -4,7 +4,7 @@ from copy import deepcopy
 
 import pytest
 
-from epos.application.actions.models import ValidatedAction
+from epos.application.actions.models import ObservationIntent, ValidatedAction
 from epos.application.visual import (
     ObservableSceneBuilder,
     SceneObservationInput,
@@ -193,6 +193,12 @@ def _loaded_worldpack() -> LoadedWorldpack:
                 "medium_shot",
                 "eye_level",
             ),
+            _entry(
+                "extreme_close_up",
+                "extreme close up",
+                "extreme_close",
+                "detail",
+            ),
         ),
         outfit_library=SemanticLibraryDocument(),
     )
@@ -361,6 +367,41 @@ def test_focus_must_target_a_rendered_subject() -> None:
 
     with pytest.raises(VisualCanonicalizationError, match="focus"):
         _canonicalize(raw=raw)
+
+
+def test_player_observation_region_overrides_llm_visual_focus_semantics() -> None:
+    scene = ObservableSceneBuilder().build(
+        state=_world(),
+        observation=SceneObservationInput(
+            action=ValidatedAction(
+                intent="observe",
+                target_ids=(EntityId("victoria"),),
+                observation=ObservationIntent(
+                    subject_id=EntityId("victoria"),
+                    region="feet",
+                ),
+            )
+        ),
+    )
+    raw = _raw().model_copy(
+        update={
+            "visual_focus": VSTVisualFocus(
+                subject_ids=(EntityId("player"),),
+                intent=SemanticIntent(description="close portrait of her face"),
+            )
+        }
+    )
+
+    canonical = VisualCanonicalizer().canonicalize(
+        scene=scene,
+        raw_vst=raw,
+        worldpack=_loaded_worldpack(),
+    )
+
+    assert canonical.visual_focus.subject_ids == (EntityId("victoria"),)
+    assert canonical.visual_focus.region == "feet"
+    assert canonical.visual_focus.intent.description == "feet"
+    assert canonical.camera.semantic.entry_id == "extreme_close_up"
 
 
 def test_missing_visual_character_canon_is_rejected() -> None:

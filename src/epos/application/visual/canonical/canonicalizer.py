@@ -46,11 +46,26 @@ class VisualCanonicalizer:
         visible_by_id = {subject.entity_id: subject for subject in scene.visible_subjects}
         raw_by_id = {subject.entity_id: subject for subject in raw_vst.subjects}
         rendered_ids = set(raw_by_id)
+        requested_focus = scene.visual_focus_candidate
+        player_observation = (
+            requested_focus is not None and requested_focus.reason == "player_observation"
+        )
         self._validate_subject_references(
             raw_vst=raw_vst,
             visible_ids=set(visible_by_id),
             rendered_ids=rendered_ids,
+            validate_raw_focus=not player_observation,
         )
+        if player_observation and requested_focus is not None:
+            missing = tuple(
+                subject_id
+                for subject_id in requested_focus.subject_ids
+                if subject_id not in rendered_ids
+            )
+            if missing:
+                raise VisualCanonicalizationError(
+                    f"player-observed subject is not rendered: {missing[0]}"
+                )
 
         subjects = tuple(
             self._canonical_subject(
@@ -72,15 +87,26 @@ class VisualCanonicalizer:
             ),
             shared=raw_vst.action.shared,
         )
-        camera_components = tuple(
-            item
-            for item in (
-                raw_vst.camera.shot,
-                raw_vst.camera.angle,
-                raw_vst.camera.composition,
+        camera_components: tuple[SemanticIntent, ...]
+        if requested_focus is not None and requested_focus.reason == "player_observation":
+            if requested_focus.region is None:
+                raise VisualCanonicalizationError("player observation lost its body region")
+            camera_components = (
+                SemanticIntent(
+                    description=self._observation_camera(requested_focus.region),
+                    tags=("player_observation",),
+                ),
             )
-            if item is not None
-        )
+        else:
+            camera_components = tuple(
+                item
+                for item in (
+                    raw_vst.camera.shot,
+                    raw_vst.camera.angle,
+                    raw_vst.camera.composition,
+                )
+                if item is not None
+            )
         camera = CanonicalCamera(
             semantic=self._resolver.resolve_components(
                 camera_components,
@@ -88,10 +114,23 @@ class VisualCanonicalizer:
                 library_name="camera",
             )
         )
-        focus = CanonicalVisualFocus(
-            subject_ids=self._order_ids(raw_vst.visual_focus.subject_ids, subject_order),
-            intent=raw_vst.visual_focus.intent.model_copy(deep=True),
-        )
+        if requested_focus is not None and requested_focus.reason == "player_observation":
+            if requested_focus.region is None:
+                raise VisualCanonicalizationError("player observation lost its body region")
+            focus = CanonicalVisualFocus(
+                subject_ids=self._order_ids(requested_focus.subject_ids, subject_order),
+                intent=SemanticIntent(
+                    description=requested_focus.region.replace("_", " "),
+                    tags=("player_observation", requested_focus.region),
+                ),
+                region=requested_focus.region,
+            )
+        else:
+            focus = CanonicalVisualFocus(
+                subject_ids=self._order_ids(raw_vst.visual_focus.subject_ids, subject_order),
+                intent=raw_vst.visual_focus.intent.model_copy(deep=True),
+                region=None,
+            )
 
         return CanonicalVST(
             scene_id=scene.scene_id,
@@ -114,6 +153,14 @@ class VisualCanonicalizer:
             style=raw_vst.style.model_copy(deep=True),
             safety=raw_vst.safety.model_copy(deep=True),
         )
+
+    @staticmethod
+    def _observation_camera(region: str) -> str:
+        if region in {"face", "head"}:
+            return "close up"
+        if region in {"feet", "hands", "eyes", "mouth"}:
+            return "extreme close up"
+        return "full body"
 
     @staticmethod
     def _validate_top_level(
@@ -142,6 +189,7 @@ class VisualCanonicalizer:
         raw_vst: RawVST,
         visible_ids: set[EntityId],
         rendered_ids: set[EntityId],
+        validate_raw_focus: bool = True,
     ) -> None:
         for subject in raw_vst.subjects:
             if subject.entity_id not in visible_ids:
@@ -159,15 +207,16 @@ class VisualCanonicalizer:
                     f"RAW VST action participant is not rendered: {participant}"
                 )
 
-        for subject_id in raw_vst.visual_focus.subject_ids:
-            if subject_id not in visible_ids:
-                raise VisualCanonicalizationError(
-                    f"RAW VST visual focus target is not visible: {subject_id}"
-                )
-            if subject_id not in rendered_ids:
-                raise VisualCanonicalizationError(
-                    f"RAW VST visual focus target is not rendered: {subject_id}"
-                )
+        if validate_raw_focus:
+            for subject_id in raw_vst.visual_focus.subject_ids:
+                if subject_id not in visible_ids:
+                    raise VisualCanonicalizationError(
+                        f"RAW VST visual focus target is not visible: {subject_id}"
+                    )
+                if subject_id not in rendered_ids:
+                    raise VisualCanonicalizationError(
+                        f"RAW VST visual focus target is not rendered: {subject_id}"
+                    )
 
         if not rendered_ids:
             raise VisualCanonicalizationError("RAW VST must render at least one visible subject")

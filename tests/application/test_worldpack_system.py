@@ -92,6 +92,7 @@ def _base_documents() -> dict[str, dict[str, object]]:
                 {
                     "outfit_id": "victoria_day",
                     "owner_id": "victoria",
+                    "tags": ["day", "formal"],
                     "items": [
                         {
                             "item_id": "v_jacket",
@@ -142,6 +143,7 @@ async def test_loader_builds_authoritative_world_state_and_keeps_visual_canon_se
     assert loaded.world_state.player.location_id == LocationId("lobby")
     assert loaded.world_state.get_npc(EntityId("victoria")).identity.name == "Victoria"
     assert loaded.world_state.get_npc(EntityId("victoria")).outfit.items[0].item_id == "v_jacket"
+    assert loaded.world_state.wardrobes["victoria_day"].tags == ("day", "formal")
     assert SkillId("negoziazione") in loaded.world_state.skill_definitions
     assert loaded.visual.characters[EntityId("victoria")].base_prompt == "adult woman, dark hair"
     assert not hasattr(loaded.world_state.get_npc(EntityId("victoria")), "base_prompt")

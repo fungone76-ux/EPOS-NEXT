@@ -9,6 +9,7 @@ from epos.application.actions.models import (
     CheckProposal,
     ResolvedCheck,
     ValidatedAction,
+    ValidatedOutfitRequest,
 )
 from epos.application.cognition.models import CognitionResult, CognitionScene
 from epos.application.conversation.models import NarrationResult
@@ -96,6 +97,16 @@ class TurnCognitionPort(Protocol):
 
 class ReactionMutationPlannerPort(Protocol):
     def plan(self, reactions: tuple[CognitionResult, ...]) -> MutationBatch: ...
+
+
+class NPCOutfitMutationPlannerPort(Protocol):
+    def plan(
+        self,
+        *,
+        state: WorldState,
+        action_request: ValidatedOutfitRequest | None,
+        reactions: tuple[CognitionResult, ...],
+    ) -> MutationBatch: ...
 
 
 class TurnScenePort(Protocol):

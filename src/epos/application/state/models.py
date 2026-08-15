@@ -12,6 +12,7 @@ from epos.domain.base import DomainModel
 from epos.domain.bond import BondState
 from epos.domain.ids import EntityId, LocationId, SessionId, TurnNumber
 from epos.domain.memory import EmotionalMemoryState, MemoryEntryState
+from epos.domain.outfit import OutfitState, WardrobeOutfit
 from epos.domain.psychology import EmotionalState
 from epos.domain.relationships import RelationshipState
 
@@ -65,6 +66,27 @@ class SetNPCIntentionsMutation(DomainModel):
         if any(not value for value in normalized):
             raise ValueError("intentions must not contain empty values")
         return normalized
+
+
+class ReplacePlayerOutfitMutation(DomainModel):
+    kind: Literal["replace_player_outfit"] = "replace_player_outfit"
+    authority: Literal[MutationAuthority.ENGINE_ONLY] = MutationAuthority.ENGINE_ONLY
+    outfit: OutfitState
+
+
+class ReplaceNPCOutfitMutation(DomainModel):
+    kind: Literal["replace_npc_outfit"] = "replace_npc_outfit"
+    authority: Literal[MutationAuthority.ENGINE_ONLY] = MutationAuthority.ENGINE_ONLY
+    npc_id: EntityId
+    outfit: OutfitState
+
+
+class UpsertWardrobeOutfitMutation(DomainModel):
+    """Persist one runtime-created canonical outfit for later reuse."""
+
+    kind: Literal["upsert_wardrobe_outfit"] = "upsert_wardrobe_outfit"
+    authority: Literal[MutationAuthority.ENGINE_ONLY] = MutationAuthority.ENGINE_ONLY
+    outfit: WardrobeOutfit
 
 
 class ReplaceNPCEmotionalStateMutation(DomainModel):
@@ -134,6 +156,9 @@ StateMutation = Annotated[
     | SetPlayerLocationMutation
     | SetNPCLocationMutation
     | SetNPCIntentionsMutation
+    | ReplacePlayerOutfitMutation
+    | ReplaceNPCOutfitMutation
+    | UpsertWardrobeOutfitMutation
     | ReplaceNPCEmotionalStateMutation
     | ReplaceNPCRelationshipMutation
     | ReplaceNPCBondStateMutation
