@@ -9,8 +9,9 @@ from pydantic import Field, field_validator, model_validator
 
 from epos.domain.base import DomainModel
 from epos.domain.ids import EntityId, LocationId, SceneId
+from epos.domain.semantic import SEMANTIC_TOKEN_PATTERN, SemanticToken
 
-_TOKEN = re.compile(r"^[a-z0-9][a-z0-9_.:-]*$")
+_TOKEN = re.compile(SEMANTIC_TOKEN_PATTERN)
 _FORBIDDEN_RENDER_MARKERS = (
     "<lora:",
     "positive prompt",
@@ -51,7 +52,7 @@ class SemanticIntent(DomainModel):
     """Short human-readable semantic intent, never Stable Diffusion syntax."""
 
     description: str = Field(min_length=1, max_length=180)
-    tags: tuple[str, ...] = ()
+    tags: tuple[SemanticToken, ...] = ()
 
     @field_validator("description")
     @classmethod

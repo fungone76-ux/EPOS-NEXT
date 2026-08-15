@@ -10,6 +10,7 @@ from epos.application.intimacy.models import ConsentScope
 from epos.domain.base import DomainModel
 from epos.domain.ids import EntityId, LocationId, SkillId
 from epos.domain.outfit import OutfitState
+from epos.domain.semantic import SemanticToken
 from epos.domain.world_state import SkillDefinition, WorldState
 
 
@@ -42,7 +43,7 @@ class OutfitRequestProposal(DomainModel):
     requested_state: str
     outfit_id: str | None = None
     item_ids: tuple[str, ...] = ()
-    semantic_tags: tuple[str, ...] = ()
+    semantic_tags: tuple[SemanticToken, ...] = ()
 
     @field_validator("requested_state")
     @classmethod
@@ -82,7 +83,7 @@ class ObservationIntent(DomainModel):
     """Player-controlled visual attention without changing authoritative world state."""
 
     subject_id: EntityId
-    region: str
+    region: SemanticToken
 
     @field_validator("region")
     @classmethod
@@ -99,7 +100,7 @@ class IntimacyRequestProposal(DomainModel):
     target_id: EntityId
     scope: ConsentScope
     visual_intent: str = Field(min_length=1, max_length=180)
-    visual_tags: tuple[str, ...] = ()
+    visual_tags: tuple[SemanticToken, ...] = ()
 
     @field_validator("visual_intent")
     @classmethod
@@ -129,7 +130,7 @@ class ValidatedIntimacyRequest(IntimacyRequestProposal):
 class ActionInterpretation(DomainModel):
     """LLM-produced semantic interpretation with no authoritative outcome fields."""
 
-    intent: str
+    intent: SemanticToken
     target_ids: tuple[EntityId, ...] = ()
     movement: MovementProposal | None = None
     check: CheckProposal | None = None

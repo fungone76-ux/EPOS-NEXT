@@ -50,6 +50,17 @@ def test_llm_action_contract_forbids_authoritative_dice_and_outcome() -> None:
         )
 
 
+def test_action_json_schema_exposes_semantic_token_rules_to_openai() -> None:
+    schema = ActionInterpretation.model_json_schema()
+    properties = schema["properties"]
+    assert properties["intent"]["pattern"] == r"^[a-z0-9][a-z0-9_.:-]*$"
+    definitions = schema["$defs"]
+    observation = definitions["ObservationIntent"]
+    assert observation["properties"]["region"]["pattern"] == (
+        r"^[a-z0-9][a-z0-9_.:-]*$"
+    )
+
+
 def test_simple_dialogue_needs_no_check() -> None:
     action = ActionInterpretation(intent="dialogue", target_ids=(EntityId("victoria"),))
 
