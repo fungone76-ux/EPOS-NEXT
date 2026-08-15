@@ -18,6 +18,7 @@ from epos.application.conversation.models import (
     NarrationKnowledgeSource,
     NarrationMode,
     NarrationProposal,
+    NarrationRepairFeedback,
     NarrationResult,
     NarrationViolationKind,
     NPCDialogueDraft,
@@ -25,7 +26,12 @@ from epos.application.conversation.models import (
     ValidatedNarration,
     WorldNarrationDraft,
 )
-from epos.application.conversation.narration import NarrationComposer, NarrationService
+from epos.application.conversation.narration import (
+    NarrationComposer,
+    NarrationOrderCanonicalizer,
+    NarrationService,
+    ObservationNarrationFallback,
+)
 from epos.application.conversation.validation import (
     ConversationFocusValidationError,
     NarrationValidationError,
@@ -55,12 +61,15 @@ __all__ = [
     "NarrationKnowledgeSelection",
     "NarrationKnowledgeSource",
     "NarrationMode",
+    "NarrationOrderCanonicalizer",
     "NarrationProposal",
+    "NarrationRepairFeedback",
     "NarrationResult",
     "NarrationService",
     "NarrationValidationError",
     "NarrationValidator",
     "NarrationViolationKind",
+    "ObservationNarrationFallback",
     "ValidatedNarration",
     "WorldNarrationDraft",
 ]
