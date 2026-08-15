@@ -3,15 +3,20 @@
 from __future__ import annotations
 
 from enum import StrEnum
+from typing import Self
 
-from pydantic import Field, field_validator
+from pydantic import Field, field_validator, model_validator
 
 from epos.application.actions.models import ResolvedCheck, ValidatedAction
 from epos.application.cognition.models import CognitionResult, ValidatedNPCReaction
 from epos.application.conversation.models import NarrationResult
 from epos.application.memory import LongTermMemoryRecord
 from epos.application.psychology.models import PsychologicalEvent
-from epos.application.state import MutationBatch
+from epos.application.state import (
+    MutationAuthority,
+    MutationBatch,
+    ReplaceNPCMemoryLayersMutation,
+)
 from epos.application.visual.bridge import VisualPipelineResult
 from epos.application.visual.models import (
     ObservableConsequence,
@@ -92,6 +97,18 @@ class TurnMemoryPlan(DomainModel):
 
     records: tuple[LongTermMemoryRecord, ...] = ()
     mutation_batches: tuple[MutationBatch, ...] = ()
+
+    @model_validator(mode="after")
+    def validate_memory_only_mutations(self) -> Self:
+        for batch in self.mutation_batches:
+            if batch.producer is not MutationAuthority.ENGINE_ONLY:
+                raise ValueError("turn memory mutations must be engine-owned")
+            if any(
+                not isinstance(mutation, ReplaceNPCMemoryLayersMutation)
+                for mutation in batch.mutations
+            ):
+                raise ValueError("turn memory plan may mutate only NPC memory layers")
+        return self
 
 
 class PostCommitIssue(DomainModel):
