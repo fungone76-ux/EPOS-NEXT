@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 import json
+from typing import Annotated, Literal
 
 import httpx
 import pytest
-from pydantic import Field, field_validator
+from pydantic import Field, StringConstraints, field_validator
 
 from epos.application.memory import MemorySummaryDraft, MemorySummaryRequest
 from epos.domain.base import DomainModel
@@ -44,6 +45,28 @@ class SemanticTokenResponse(DomainModel):
         if " " in value:
             raise ValueError("token must not contain spaces")
         return value
+
+
+class _FirstSchemaVariant(DomainModel):
+    kind: Literal["first"] = "first"
+    value: str
+
+
+class _SecondSchemaVariant(DomainModel):
+    kind: Literal["second"] = "second"
+    value: int
+
+
+_SchemaVariant = Annotated[
+    _FirstSchemaVariant | _SecondSchemaVariant,
+    Field(discriminator="kind"),
+]
+
+
+class OpenAISchemaSubsetResponse(DomainModel):
+    label: str = Field(min_length=1, max_length=32)
+    token: Annotated[str, StringConstraints(pattern=r"^[a-z_]+$")]
+    variants: tuple[_SchemaVariant, ...] = ()
 
 
 def _json_response(answer: str = "ok", score: int = 7) -> str:
@@ -201,6 +224,83 @@ async def test_openai_responses_backend_uses_structured_output_and_environment_m
     schema = output_format["schema"]
     assert isinstance(schema, dict)
     assert set(schema["required"]) == {"answer", "score"}
+
+
+@pytest.mark.asyncio
+async def test_openai_schema_is_rewritten_to_the_supported_strict_subset() -> None:
+    captured: dict[str, object] = {}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        captured["payload"] = json.loads(request.content)
+        return httpx.Response(
+            200,
+            json=_openai_response(
+                json.dumps({"label": "ok", "token": "valid_token", "variants": []})
+            ),
+        )
+
+    client = httpx.AsyncClient(transport=httpx.MockTransport(handler))
+    port = StructuredLLMPort(
+        backends=(OpenAIResponsesBackend(api_key="key", model="gpt-4o-mini", client=client),),
+        task=LLMTask.INTERPRET_ACTION,
+        response_model=OpenAISchemaSubsetResponse,
+        retry_policy=LLMRetryPolicy(max_attempts_per_provider=1),
+    )
+
+    await port.invoke(SampleRequest(text="probe schema"))
+    await client.aclose()
+
+    payload = captured["payload"]
+    assert isinstance(payload, dict)
+    text_config = payload["text"]
+    assert isinstance(text_config, dict)
+    output_format = text_config["format"]
+    assert isinstance(output_format, dict)
+    schema = output_format["schema"]
+    assert isinstance(schema, dict)
+    serialized_schema = json.dumps(schema)
+    assert '"minLength"' not in serialized_schema
+    assert '"maxLength"' not in serialized_schema
+    assert '"oneOf"' not in serialized_schema
+    assert '"discriminator"' not in serialized_schema
+    assert '"anyOf"' in serialized_schema
+    assert '"pattern"' in serialized_schema
+
+
+@pytest.mark.asyncio
+async def test_openai_http_error_exposes_sanitized_provider_diagnostic() -> None:
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(
+            400,
+            json={
+                "error": {
+                    "message": "Invalid schema: unsupported keyword minLength",
+                    "type": "invalid_request_error",
+                    "param": "text.format.schema",
+                    "code": "invalid_json_schema",
+                    "internal_secret": "must-not-leak",
+                }
+            },
+        )
+
+    client = httpx.AsyncClient(transport=httpx.MockTransport(handler))
+    port = StructuredLLMPort(
+        backends=(OpenAIResponsesBackend(api_key="key", model="gpt-4o-mini", client=client),),
+        task=LLMTask.INTERPRET_ACTION,
+        response_model=SampleResponse,
+        retry_policy=LLMRetryPolicy(max_attempts_per_provider=1),
+    )
+
+    with pytest.raises(LLMError) as exc_info:
+        await port.invoke(SampleRequest(text="probe error"))
+    await client.aclose()
+
+    diagnostic = str(exc_info.value)
+    assert "Invalid schema: unsupported keyword minLength" in diagnostic
+    assert "type=invalid_request_error" in diagnostic
+    assert "param=text.format.schema" in diagnostic
+    assert "code=invalid_json_schema" in diagnostic
+    assert "must-not-leak" not in diagnostic
 
 
 @pytest.mark.asyncio
