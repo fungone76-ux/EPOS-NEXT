@@ -21,6 +21,7 @@ from epos.application.turn.models import (
     TargetedPsychologicalEvent,
     TurnActionResolution,
     TurnMemoryContext,
+    TurnMemoryDerivationContext,
     TurnMemoryPlan,
     TurnPsychologyPlan,
 )
@@ -131,7 +132,7 @@ class TurnVisualPort(Protocol):
 class TurnMemoryDerivationPort(Protocol):
     async def derive(
         self,
-        context: TurnMemoryContext,
+        context: TurnMemoryDerivationContext,
     ) -> tuple[LongTermMemoryRecord, ...]: ...
 
 
