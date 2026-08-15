@@ -11,7 +11,12 @@ from epos.application.conversation.models import (
 )
 from epos.application.memory import LongTermMemoryRecord, MemoryService
 from epos.application.state import ReplaceNPCMemoryLayersMutation
-from epos.application.turn import TurnMemoryContext, TurnMemoryCoordinator, TurnOrchestrationError
+from epos.application.turn import (
+    TurnMemoryContext,
+    TurnMemoryCoordinator,
+    TurnMemoryDerivationContext,
+    TurnOrchestrationError,
+)
 from epos.application.visual.models import SceneObservationInput
 from epos.application.visual.observable_scene import ObservableSceneBuilder
 from epos.domain.ids import EntityId, LocationId, MemoryId, SessionId, WorldpackId
@@ -109,10 +114,13 @@ def _record(npc_id: str, *, memory_id: str = "memory-1", turn: int = 2) -> LongT
 class FixedDerivation:
     def __init__(self, records: tuple[LongTermMemoryRecord, ...]) -> None:
         self.records = records
-        self.context: TurnMemoryContext | None = None
+        self.context: TurnMemoryDerivationContext | None = None
         self.calls = 0
 
-    async def derive(self, context: TurnMemoryContext) -> tuple[LongTermMemoryRecord, ...]:
+    async def derive(
+        self,
+        context: TurnMemoryDerivationContext,
+    ) -> tuple[LongTermMemoryRecord, ...]:
         self.calls += 1
         self.context = context.model_copy(deep=True)
         return tuple(record.model_copy(deep=True) for record in self.records)
@@ -144,7 +152,9 @@ async def test_turn_memory_derives_once_then_archives_same_record() -> None:
     plan = await memory.prepare(context)
 
     assert derivation.calls == 1
-    assert derivation.context == context
+    assert derivation.context == context.derivation_context()
+    assert derivation.context is not None
+    assert "state" not in derivation.context.model_fields
     assert plan.records == (record,)
     assert len(plan.mutation_batches) == 1
     mutation = plan.mutation_batches[0].mutations[0]
