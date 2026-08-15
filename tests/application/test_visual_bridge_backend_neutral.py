@@ -1,6 +1,10 @@
 from __future__ import annotations
 
-from epos.application.visual.bridge import RenderRequestSnapshot, VisualPipelineResources, VisualPipelineResult
+from epos.application.visual.bridge import (
+    RenderRequestSnapshot,
+    VisualPipelineResources,
+    VisualPipelineResult,
+)
 
 
 def test_visual_pipeline_resources_are_backend_neutral() -> None:
