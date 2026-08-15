@@ -39,7 +39,7 @@ from epos.application.turn.ports import (
     TurnScenePort,
     TurnVisualPort,
 )
-from epos.application.visual.models import SubjectKind
+from epos.application.visual.models import ObservableConsequence
 from epos.domain.errors import EposError
 from epos.domain.ids import EntityId
 from epos.domain.world_state import WorldState
@@ -302,18 +302,13 @@ class TurnOrchestrator:
     @staticmethod
     def _cognition_scene(
         state: WorldState,
-        consequences: tuple[object, ...],
+        consequences: tuple[ObservableConsequence, ...],
     ) -> CognitionScene:
-        facts = tuple(
-            consequence.fact
-            for consequence in consequences
-            if hasattr(consequence, "fact") and isinstance(consequence.fact, str)
-        )
         present = (state.player.entity_id, *TurnOrchestrator._present_npc_ids(state))
         return CognitionScene(
             location_id=state.player.location_id,
             present_entity_ids=present,
-            observable_facts=facts,
+            observable_facts=tuple(consequence.fact for consequence in consequences),
             summary=f"turn {int(state.turn_number)} at {state.player.location_id}",
         )
 
