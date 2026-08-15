@@ -1,10 +1,2694 @@
 outfits:
-  - outfit_id: victoria_day
-    owner_id: victoria
-    items:
-      - item_id: victoria_jacket
-        name: White jacket
-        slot: torso
-        layer: 2
-        coverage: [torso]
-        color: white
+- outfit_id: player_starting
+  owner_id: player
+  tags:
+  - starting
+  items:
+  - item_id: player_starting_item_1
+    name: luxury travel suit
+    slot: body
+    layer: 1
+  - item_id: player_starting_item_2
+    name: tailored shirt
+    slot: body
+    layer: 2
+  - item_id: player_starting_item_3
+    name: elegant shoes
+    slot: accessory
+    layer: 3
+- outfit_id: victoria_starting
+  owner_id: victoria
+  tags:
+  - starting
+  items:
+  - item_id: victoria_starting_item_1
+    name: black bodycon blazer mini dress
+    slot: body
+    layer: 1
+  - item_id: victoria_starting_item_2
+    name: deep neckline
+    slot: accessory
+    layer: 2
+  - item_id: victoria_starting_item_3
+    name: sheer black stockings
+    slot: legs
+    layer: 3
+  - item_id: victoria_starting_item_4
+    name: black stilettos
+    slot: feet
+    layer: 4
+  - item_id: victoria_starting_item_5
+    name: elegant jewelry
+    slot: accessory
+    layer: 5
+- outfit_id: stella_starting
+  owner_id: stella
+  tags:
+  - starting
+  items:
+  - item_id: stella_starting_item_1
+    name: fitted resort hostess micro dress
+    slot: body
+    layer: 1
+  - item_id: stella_starting_item_2
+    name: plunging neckline
+    slot: accessory
+    layer: 2
+  - item_id: stella_starting_item_3
+    name: very short hem
+    slot: accessory
+    layer: 3
+  - item_id: stella_starting_item_4
+    name: sheer stockings
+    slot: legs
+    layer: 4
+  - item_id: stella_starting_item_5
+    name: gold name tag
+    slot: accessory
+    layer: 5
+  - item_id: stella_starting_item_6
+    name: high heels
+    slot: feet
+    layer: 6
+- outfit_id: maria_starting
+  owner_id: maria
+  tags:
+  - starting
+  items:
+  - item_id: maria_starting_item_1
+    name: fitted luxury maid mini dress
+    slot: body
+    layer: 1
+  - item_id: maria_starting_item_2
+    name: deep neckline
+    slot: accessory
+    layer: 2
+  - item_id: maria_starting_item_3
+    name: white lace trim
+    slot: accessory
+    layer: 3
+  - item_id: maria_starting_item_4
+    name: sheer stockings
+    slot: legs
+    layer: 4
+  - item_id: maria_starting_item_5
+    name: high heels
+    slot: feet
+    layer: 5
+- outfit_id: luna_starting
+  owner_id: luna
+  tags:
+  - starting
+  items:
+  - item_id: luna_starting_item_1
+    name: fitted ivory VIP attendant mini dress
+    slot: body
+    layer: 1
+  - item_id: luna_starting_item_2
+    name: low neckline
+    slot: accessory
+    layer: 2
+  - item_id: luna_starting_item_3
+    name: open back
+    slot: accessory
+    layer: 3
+  - item_id: luna_starting_item_4
+    name: sheer stockings
+    slot: legs
+    layer: 4
+  - item_id: luna_starting_item_5
+    name: delicate high heels
+    slot: feet
+    layer: 5
+- outfit_id: victoria_day_1_mattina
+  owner_id: victoria
+  tags:
+  - day_1
+  - mattina
+  - loc_lobby
+  items:
+  - item_id: victoria_day_1_mattina_item_1
+    name: ivory bodycon blazer mini dress
+    slot: body
+    layer: 1
+  - item_id: victoria_day_1_mattina_item_2
+    name: deep neckline
+    slot: accessory
+    layer: 2
+  - item_id: victoria_day_1_mattina_item_3
+    name: nude stiletto pumps
+    slot: feet
+    layer: 3
+  - item_id: victoria_day_1_mattina_item_4
+    name: pearl earrings
+    slot: accessory
+    layer: 4
+- outfit_id: victoria_day_1_pomeriggio
+  owner_id: victoria
+  tags:
+  - day_1
+  - pomeriggio
+  - loc_victoria_office
+  items:
+  - item_id: victoria_day_1_pomeriggio_item_1
+    name: black ultra fitted blazer dress
+    slot: body
+    layer: 1
+  - item_id: victoria_day_1_pomeriggio_item_2
+    name: plunging neckline
+    slot: accessory
+    layer: 2
+  - item_id: victoria_day_1_pomeriggio_item_3
+    name: sheer black stockings
+    slot: legs
+    layer: 3
+  - item_id: victoria_day_1_pomeriggio_item_4
+    name: black stilettos
+    slot: feet
+    layer: 4
+- outfit_id: victoria_day_1_sera
+  owner_id: victoria
+  tags:
+  - day_1
+  - sera
+  - loc_restaurant
+  items:
+  - item_id: victoria_day_1_sera_item_1
+    name: emerald satin slit gown
+    slot: body
+    layer: 1
+  - item_id: victoria_day_1_sera_item_2
+    name: low cut bodice
+    slot: accessory
+    layer: 2
+  - item_id: victoria_day_1_sera_item_3
+    name: gold high heels
+    slot: feet
+    layer: 3
+  - item_id: victoria_day_1_sera_item_4
+    name: emerald earrings
+    slot: accessory
+    layer: 4
+- outfit_id: victoria_day_1_notte
+  owner_id: victoria
+  tags:
+  - day_1
+  - notte
+  - loc_lounge
+  items:
+  - item_id: victoria_day_1_notte_item_1
+    name: midnight blue backless cocktail mini dress
+    slot: body
+    layer: 1
+  - item_id: victoria_day_1_notte_item_2
+    name: thigh high stockings
+    slot: legs
+    layer: 2
+  - item_id: victoria_day_1_notte_item_3
+    name: silver stilettos
+    slot: feet
+    layer: 3
+- outfit_id: victoria_day_2_mattina
+  owner_id: victoria
+  tags:
+  - day_2
+  - mattina
+  - loc_restaurant
+  items:
+  - item_id: victoria_day_2_mattina_item_1
+    name: cream silk wrap blouse
+    slot: body
+    layer: 1
+  - item_id: victoria_day_2_mattina_item_2
+    name: fitted white pencil skirt
+    slot: legs
+    layer: 2
+  - item_id: victoria_day_2_mattina_item_3
+    name: nude stockings
+    slot: legs
+    layer: 3
+  - item_id: victoria_day_2_mattina_item_4
+    name: beige stilettos
+    slot: feet
+    layer: 4
+- outfit_id: victoria_day_2_pomeriggio
+  owner_id: victoria
+  tags:
+  - day_2
+  - pomeriggio
+  - loc_victoria_office
+  items:
+  - item_id: victoria_day_2_pomeriggio_item_1
+    name: charcoal bodycon executive dress
+    slot: body
+    layer: 1
+  - item_id: victoria_day_2_pomeriggio_item_2
+    name: deep V neckline
+    slot: accessory
+    layer: 2
+  - item_id: victoria_day_2_pomeriggio_item_3
+    name: sheer stockings
+    slot: legs
+    layer: 3
+  - item_id: victoria_day_2_pomeriggio_item_4
+    name: black pumps
+    slot: feet
+    layer: 4
+- outfit_id: victoria_day_2_sera
+  owner_id: victoria
+  tags:
+  - day_2
+  - sera
+  - loc_lounge
+  items:
+  - item_id: victoria_day_2_sera_item_1
+    name: burgundy off shoulder slit dress
+    slot: body
+    layer: 1
+  - item_id: victoria_day_2_sera_item_2
+    name: sculpted bodice
+    slot: accessory
+    layer: 2
+  - item_id: victoria_day_2_sera_item_3
+    name: black stilettos
+    slot: feet
+    layer: 3
+  - item_id: victoria_day_2_sera_item_4
+    name: ruby earrings
+    slot: accessory
+    layer: 4
+- outfit_id: victoria_day_2_notte
+  owner_id: victoria
+  tags:
+  - day_2
+  - notte
+  - loc_suite
+  items:
+  - item_id: victoria_day_2_notte_item_1
+    name: black silk slip mini dress
+    slot: body
+    layer: 1
+  - item_id: victoria_day_2_notte_item_2
+    name: lace trim
+    slot: accessory
+    layer: 2
+  - item_id: victoria_day_2_notte_item_3
+    name: barefoot
+    slot: feet
+    layer: 3
+  - item_id: victoria_day_2_notte_item_4
+    name: gold necklace
+    slot: accessory
+    layer: 4
+- outfit_id: victoria_day_3_mattina
+  owner_id: victoria
+  tags:
+  - day_3
+  - mattina
+  - loc_lobby
+  items:
+  - item_id: victoria_day_3_mattina_item_1
+    name: white fitted blazer mini dress
+    slot: body
+    layer: 1
+  - item_id: victoria_day_3_mattina_item_2
+    name: champagne camisole
+    slot: body
+    layer: 2
+  - item_id: victoria_day_3_mattina_item_3
+    name: sheer stockings
+    slot: legs
+    layer: 3
+  - item_id: victoria_day_3_mattina_item_4
+    name: white heels
+    slot: feet
+    layer: 4
+- outfit_id: victoria_day_3_pomeriggio
+  owner_id: victoria
+  tags:
+  - day_3
+  - pomeriggio
+  - loc_pool
+  items:
+  - item_id: victoria_day_3_pomeriggio_item_1
+    name: navy high cut one piece swimsuit
+    slot: body
+    layer: 1
+  - item_id: victoria_day_3_pomeriggio_item_2
+    name: plunging neckline
+    slot: accessory
+    layer: 2
+  - item_id: victoria_day_3_pomeriggio_item_3
+    name: sheer white cover up
+    slot: accessory
+    layer: 3
+  - item_id: victoria_day_3_pomeriggio_item_4
+    name: barefoot
+    slot: feet
+    layer: 4
+- outfit_id: victoria_day_3_sera
+  owner_id: victoria
+  tags:
+  - day_3
+  - sera
+  - loc_victoria_office
+  items:
+  - item_id: victoria_day_3_sera_item_1
+    name: plum bodycon office dress
+    slot: body
+    layer: 1
+  - item_id: victoria_day_3_sera_item_2
+    name: deep neckline
+    slot: accessory
+    layer: 2
+  - item_id: victoria_day_3_sera_item_3
+    name: pointed stilettos
+    slot: feet
+    layer: 3
+  - item_id: victoria_day_3_sera_item_4
+    name: pearl necklace
+    slot: accessory
+    layer: 4
+- outfit_id: victoria_day_3_notte
+  owner_id: victoria
+  tags:
+  - day_3
+  - notte
+  - loc_lounge
+  items:
+  - item_id: victoria_day_3_notte_item_1
+    name: deep red satin wrap mini dress
+    slot: body
+    layer: 1
+  - item_id: victoria_day_3_notte_item_2
+    name: high slit
+    slot: accessory
+    layer: 2
+  - item_id: victoria_day_3_notte_item_3
+    name: gold strappy heels
+    slot: feet
+    layer: 3
+  - item_id: victoria_day_3_notte_item_4
+    name: delicate bracelet
+    slot: accessory
+    layer: 4
+- outfit_id: victoria_day_4_mattina
+  owner_id: victoria
+  tags:
+  - day_4
+  - mattina
+  - loc_victoria_office
+  items:
+  - item_id: victoria_day_4_mattina_item_1
+    name: stone grey fitted skirt suit
+    slot: legs
+    layer: 1
+  - item_id: victoria_day_4_mattina_item_2
+    name: low cut ivory blouse
+    slot: body
+    layer: 2
+  - item_id: victoria_day_4_mattina_item_3
+    name: sheer stockings
+    slot: legs
+    layer: 3
+  - item_id: victoria_day_4_mattina_item_4
+    name: black stilettos
+    slot: feet
+    layer: 4
+- outfit_id: victoria_day_4_pomeriggio
+  owner_id: victoria
+  tags:
+  - day_4
+  - pomeriggio
+  - loc_spa
+  items:
+  - item_id: victoria_day_4_pomeriggio_item_1
+    name: short white spa robe
+    slot: body
+    layer: 1
+  - item_id: victoria_day_4_pomeriggio_item_2
+    name: loosely tied
+    slot: accessory
+    layer: 2
+  - item_id: victoria_day_4_pomeriggio_item_3
+    name: lace lingerie glimpses
+    slot: body
+    layer: 3
+  - item_id: victoria_day_4_pomeriggio_item_4
+    name: barefoot
+    slot: feet
+    layer: 4
+- outfit_id: victoria_day_4_sera
+  owner_id: victoria
+  tags:
+  - day_4
+  - sera
+  - loc_restaurant
+  items:
+  - item_id: victoria_day_4_sera_item_1
+    name: black velvet thigh slit gown
+    slot: body
+    layer: 1
+  - item_id: victoria_day_4_sera_item_2
+    name: plunging neckline
+    slot: accessory
+    layer: 2
+  - item_id: victoria_day_4_sera_item_3
+    name: crystal stilettos
+    slot: feet
+    layer: 3
+  - item_id: victoria_day_4_sera_item_4
+    name: diamond earrings
+    slot: accessory
+    layer: 4
+- outfit_id: victoria_day_4_notte
+  owner_id: victoria
+  tags:
+  - day_4
+  - notte
+  - loc_victoria_office
+  items:
+  - item_id: victoria_day_4_notte_item_1
+    name: dark green silk wrap mini dress
+    slot: body
+    layer: 1
+  - item_id: victoria_day_4_notte_item_2
+    name: deep neckline
+    slot: accessory
+    layer: 2
+  - item_id: victoria_day_4_notte_item_3
+    name: thigh high stockings
+    slot: legs
+    layer: 3
+  - item_id: victoria_day_4_notte_item_4
+    name: low heels
+    slot: feet
+    layer: 4
+- outfit_id: victoria_day_5_mattina
+  owner_id: victoria
+  tags:
+  - day_5
+  - mattina
+  - loc_private_beach
+  items:
+  - item_id: victoria_day_5_mattina_item_1
+    name: black cutout swimsuit
+    slot: body
+    layer: 1
+  - item_id: victoria_day_5_mattina_item_2
+    name: high cut hips
+    slot: accessory
+    layer: 2
+  - item_id: victoria_day_5_mattina_item_3
+    name: sheer black beach kaftan
+    slot: body
+    layer: 3
+  - item_id: victoria_day_5_mattina_item_4
+    name: barefoot
+    slot: feet
+    layer: 4
+- outfit_id: victoria_day_5_pomeriggio
+  owner_id: victoria
+  tags:
+  - day_5
+  - pomeriggio
+  - loc_victoria_office
+  items:
+  - item_id: victoria_day_5_pomeriggio_item_1
+    name: sand bodycon executive dress
+    slot: body
+    layer: 1
+  - item_id: victoria_day_5_pomeriggio_item_2
+    name: low neckline
+    slot: accessory
+    layer: 2
+  - item_id: victoria_day_5_pomeriggio_item_3
+    name: sheer stockings
+    slot: legs
+    layer: 3
+  - item_id: victoria_day_5_pomeriggio_item_4
+    name: brown stilettos
+    slot: feet
+    layer: 4
+- outfit_id: victoria_day_5_sera
+  owner_id: victoria
+  tags:
+  - day_5
+  - sera
+  - loc_lounge
+  items:
+  - item_id: victoria_day_5_sera_item_1
+    name: white sculpted mini cocktail dress
+    slot: body
+    layer: 1
+  - item_id: victoria_day_5_sera_item_2
+    name: open back
+    slot: accessory
+    layer: 2
+  - item_id: victoria_day_5_sera_item_3
+    name: metallic stilettos
+    slot: feet
+    layer: 3
+  - item_id: victoria_day_5_sera_item_4
+    name: pearl earrings
+    slot: accessory
+    layer: 4
+- outfit_id: victoria_day_5_notte
+  owner_id: victoria
+  tags:
+  - day_5
+  - notte
+  - loc_suite
+  items:
+  - item_id: victoria_day_5_notte_item_1
+    name: champagne satin slip mini dress
+    slot: body
+    layer: 1
+  - item_id: victoria_day_5_notte_item_2
+    name: lace trim
+    slot: accessory
+    layer: 2
+  - item_id: victoria_day_5_notte_item_3
+    name: barefoot
+    slot: feet
+    layer: 3
+  - item_id: victoria_day_5_notte_item_4
+    name: fine gold necklace
+    slot: accessory
+    layer: 4
+- outfit_id: victoria_day_6_mattina
+  owner_id: victoria
+  tags:
+  - day_6
+  - mattina
+  - loc_lobby
+  items:
+  - item_id: victoria_day_6_mattina_item_1
+    name: powder blue bodycon blazer dress
+    slot: body
+    layer: 1
+  - item_id: victoria_day_6_mattina_item_2
+    name: deep neckline
+    slot: accessory
+    layer: 2
+  - item_id: victoria_day_6_mattina_item_3
+    name: nude stockings
+    slot: legs
+    layer: 3
+  - item_id: victoria_day_6_mattina_item_4
+    name: nude stilettos
+    slot: feet
+    layer: 4
+- outfit_id: victoria_day_6_pomeriggio
+  owner_id: victoria
+  tags:
+  - day_6
+  - pomeriggio
+  - loc_restaurant
+  items:
+  - item_id: victoria_day_6_pomeriggio_item_1
+    name: cream silk fitted blouse
+    slot: body
+    layer: 1
+  - item_id: victoria_day_6_pomeriggio_item_2
+    name: black leather pencil skirt
+    slot: legs
+    layer: 2
+  - item_id: victoria_day_6_pomeriggio_item_3
+    name: sheer stockings
+    slot: legs
+    layer: 3
+  - item_id: victoria_day_6_pomeriggio_item_4
+    name: black heels
+    slot: feet
+    layer: 4
+- outfit_id: victoria_day_6_sera
+  owner_id: victoria
+  tags:
+  - day_6
+  - sera
+  - loc_victoria_office
+  items:
+  - item_id: victoria_day_6_sera_item_1
+    name: sapphire satin slit gown
+    slot: body
+    layer: 1
+  - item_id: victoria_day_6_sera_item_2
+    name: plunging bodice
+    slot: accessory
+    layer: 2
+  - item_id: victoria_day_6_sera_item_3
+    name: silver stilettos
+    slot: feet
+    layer: 3
+  - item_id: victoria_day_6_sera_item_4
+    name: sapphire earrings
+    slot: accessory
+    layer: 4
+- outfit_id: victoria_day_6_notte
+  owner_id: victoria
+  tags:
+  - day_6
+  - notte
+  - loc_lounge
+  items:
+  - item_id: victoria_day_6_notte_item_1
+    name: black asymmetric mini dress
+    slot: body
+    layer: 1
+  - item_id: victoria_day_6_notte_item_2
+    name: cutout waist
+    slot: accessory
+    layer: 2
+  - item_id: victoria_day_6_notte_item_3
+    name: red stilettos
+    slot: feet
+    layer: 3
+  - item_id: victoria_day_6_notte_item_4
+    name: diamond bracelet
+    slot: accessory
+    layer: 4
+- outfit_id: victoria_day_7_mattina
+  owner_id: victoria
+  tags:
+  - day_7
+  - mattina
+  - loc_victoria_office
+  items:
+  - item_id: victoria_day_7_mattina_item_1
+    name: white fitted power suit
+    slot: body
+    layer: 1
+  - item_id: victoria_day_7_mattina_item_2
+    name: low cut silk camisole
+    slot: body
+    layer: 2
+  - item_id: victoria_day_7_mattina_item_3
+    name: pencil skirt
+    slot: legs
+    layer: 3
+  - item_id: victoria_day_7_mattina_item_4
+    name: white stilettos
+    slot: feet
+    layer: 4
+- outfit_id: victoria_day_7_pomeriggio
+  owner_id: victoria
+  tags:
+  - day_7
+  - pomeriggio
+  - loc_lobby
+  items:
+  - item_id: victoria_day_7_pomeriggio_item_1
+    name: black bodycon lobby dress
+    slot: body
+    layer: 1
+  - item_id: victoria_day_7_pomeriggio_item_2
+    name: deep neckline
+    slot: accessory
+    layer: 2
+  - item_id: victoria_day_7_pomeriggio_item_3
+    name: gold belt
+    slot: accessory
+    layer: 3
+  - item_id: victoria_day_7_pomeriggio_item_4
+    name: black heels
+    slot: feet
+    layer: 4
+- outfit_id: victoria_day_7_sera
+  owner_id: victoria
+  tags:
+  - day_7
+  - sera
+  - loc_victoria_office
+  items:
+  - item_id: victoria_day_7_sera_item_1
+    name: crimson formal slit gown
+    slot: body
+    layer: 1
+  - item_id: victoria_day_7_sera_item_2
+    name: sculpted corset bodice
+    slot: accessory
+    layer: 2
+  - item_id: victoria_day_7_sera_item_3
+    name: black stilettos
+    slot: feet
+    layer: 3
+  - item_id: victoria_day_7_sera_item_4
+    name: diamond necklace
+    slot: accessory
+    layer: 4
+- outfit_id: victoria_day_7_notte
+  owner_id: victoria
+  tags:
+  - day_7
+  - notte
+  - loc_suite
+  items:
+  - item_id: victoria_day_7_notte_item_1
+    name: ivory silk private mini dress
+    slot: body
+    layer: 1
+  - item_id: victoria_day_7_notte_item_2
+    name: open back
+    slot: accessory
+    layer: 2
+  - item_id: victoria_day_7_notte_item_3
+    name: barefoot
+    slot: feet
+    layer: 3
+  - item_id: victoria_day_7_notte_item_4
+    name: pearl bracelet
+    slot: accessory
+    layer: 4
+- outfit_id: stella_day_1_mattina
+  owner_id: stella
+  tags:
+  - day_1
+  - mattina
+  - loc_pool
+  items:
+  - item_id: stella_day_1_mattina_item_1
+    name: red micro bikini
+    slot: body
+    layer: 1
+  - item_id: stella_day_1_mattina_item_2
+    name: high cut bottoms
+    slot: legs
+    layer: 2
+  - item_id: stella_day_1_mattina_item_3
+    name: oversized sunglasses
+    slot: accessory
+    layer: 3
+  - item_id: stella_day_1_mattina_item_4
+    name: barefoot
+    slot: feet
+    layer: 4
+- outfit_id: stella_day_1_pomeriggio
+  owner_id: stella
+  tags:
+  - day_1
+  - pomeriggio
+  - loc_private_beach
+  items:
+  - item_id: stella_day_1_pomeriggio_item_1
+    name: coral string bikini
+    slot: body
+    layer: 1
+  - item_id: stella_day_1_pomeriggio_item_2
+    name: sheer coral sarong
+    slot: legs
+    layer: 2
+  - item_id: stella_day_1_pomeriggio_item_3
+    name: gold anklet
+    slot: accessory
+    layer: 3
+  - item_id: stella_day_1_pomeriggio_item_4
+    name: barefoot
+    slot: feet
+    layer: 4
+- outfit_id: stella_day_1_sera
+  owner_id: stella
+  tags:
+  - day_1
+  - sera
+  - loc_lounge
+  items:
+  - item_id: stella_day_1_sera_item_1
+    name: gold sequin bodycon mini dress
+    slot: body
+    layer: 1
+  - item_id: stella_day_1_sera_item_2
+    name: plunging neckline
+    slot: accessory
+    layer: 2
+  - item_id: stella_day_1_sera_item_3
+    name: gold stilettos
+    slot: feet
+    layer: 3
+  - item_id: stella_day_1_sera_item_4
+    name: hoop earrings
+    slot: accessory
+    layer: 4
+- outfit_id: stella_day_1_notte
+  owner_id: stella
+  tags:
+  - day_1
+  - notte
+  - loc_suite
+  items:
+  - item_id: stella_day_1_notte_item_1
+    name: black lace lingerie set
+    slot: body
+    layer: 1
+  - item_id: stella_day_1_notte_item_2
+    name: sheer thigh high stockings
+    slot: legs
+    layer: 2
+  - item_id: stella_day_1_notte_item_3
+    name: black stilettos
+    slot: feet
+    layer: 3
+- outfit_id: stella_day_2_mattina
+  owner_id: stella
+  tags:
+  - day_2
+  - mattina
+  - loc_restaurant
+  items:
+  - item_id: stella_day_2_mattina_item_1
+    name: white halter bodycon mini dress
+    slot: body
+    layer: 1
+  - item_id: stella_day_2_mattina_item_2
+    name: deep neckline
+    slot: accessory
+    layer: 2
+  - item_id: stella_day_2_mattina_item_3
+    name: nude stockings
+    slot: legs
+    layer: 3
+  - item_id: stella_day_2_mattina_item_4
+    name: wedge heels
+    slot: feet
+    layer: 4
+- outfit_id: stella_day_2_pomeriggio
+  owner_id: stella
+  tags:
+  - day_2
+  - pomeriggio
+  - loc_pool
+  items:
+  - item_id: stella_day_2_pomeriggio_item_1
+    name: electric blue micro bikini
+    slot: body
+    layer: 1
+  - item_id: stella_day_2_pomeriggio_item_2
+    name: white mesh crop cover up
+    slot: accessory
+    layer: 2
+  - item_id: stella_day_2_pomeriggio_item_3
+    name: barefoot
+    slot: feet
+    layer: 3
+- outfit_id: stella_day_2_sera
+  owner_id: stella
+  tags:
+  - day_2
+  - sera
+  - loc_lounge
+  items:
+  - item_id: stella_day_2_sera_item_1
+    name: scarlet satin backless mini dress
+    slot: body
+    layer: 1
+  - item_id: stella_day_2_sera_item_2
+    name: thigh slit
+    slot: accessory
+    layer: 2
+  - item_id: stella_day_2_sera_item_3
+    name: black stilettos
+    slot: feet
+    layer: 3
+  - item_id: stella_day_2_sera_item_4
+    name: crystal earrings
+    slot: accessory
+    layer: 4
+- outfit_id: stella_day_2_notte
+  owner_id: stella
+  tags:
+  - day_2
+  - notte
+  - loc_private_beach
+  items:
+  - item_id: stella_day_2_notte_item_1
+    name: silver metallic micro bikini
+    slot: body
+    layer: 1
+  - item_id: stella_day_2_notte_item_2
+    name: side cutout bottoms
+    slot: legs
+    layer: 2
+  - item_id: stella_day_2_notte_item_3
+    name: sheer silver beach wrap
+    slot: accessory
+    layer: 3
+  - item_id: stella_day_2_notte_item_4
+    name: barefoot
+    slot: feet
+    layer: 4
+  - item_id: stella_day_2_notte_item_5
+    name: choker
+    slot: accessory
+    layer: 5
+- outfit_id: stella_day_3_mattina
+  owner_id: stella
+  tags:
+  - day_3
+  - mattina
+  - loc_private_beach
+  items:
+  - item_id: stella_day_3_mattina_item_1
+    name: yellow bandeau bikini
+    slot: body
+    layer: 1
+  - item_id: stella_day_3_mattina_item_2
+    name: tiny bottoms
+    slot: legs
+    layer: 2
+  - item_id: stella_day_3_mattina_item_3
+    name: open white shirt
+    slot: body
+    layer: 3
+  - item_id: stella_day_3_mattina_item_4
+    name: barefoot
+    slot: feet
+    layer: 4
+- outfit_id: stella_day_3_pomeriggio
+  owner_id: stella
+  tags:
+  - day_3
+  - pomeriggio
+  - loc_spa
+  items:
+  - item_id: stella_day_3_pomeriggio_item_1
+    name: short sheer spa robe
+    slot: body
+    layer: 1
+  - item_id: stella_day_3_pomeriggio_item_2
+    name: loosely tied
+    slot: accessory
+    layer: 2
+  - item_id: stella_day_3_pomeriggio_item_3
+    name: lace lingerie
+    slot: body
+    layer: 3
+  - item_id: stella_day_3_pomeriggio_item_4
+    name: barefoot
+    slot: feet
+    layer: 4
+- outfit_id: stella_day_3_sera
+  owner_id: stella
+  tags:
+  - day_3
+  - sera
+  - loc_restaurant
+  items:
+  - item_id: stella_day_3_sera_item_1
+    name: violet bodycon dinner mini dress
+    slot: body
+    layer: 1
+  - item_id: stella_day_3_sera_item_2
+    name: plunging neckline
+    slot: accessory
+    layer: 2
+  - item_id: stella_day_3_sera_item_3
+    name: nude stilettos
+    slot: feet
+    layer: 3
+  - item_id: stella_day_3_sera_item_4
+    name: statement earrings
+    slot: accessory
+    layer: 4
+- outfit_id: stella_day_3_notte
+  owner_id: stella
+  tags:
+  - day_3
+  - notte
+  - loc_lounge
+  items:
+  - item_id: stella_day_3_notte_item_1
+    name: midnight blue backless micro dress
+    slot: body
+    layer: 1
+  - item_id: stella_day_3_notte_item_2
+    name: thigh high stockings
+    slot: legs
+    layer: 2
+  - item_id: stella_day_3_notte_item_3
+    name: black heels
+    slot: feet
+    layer: 3
+- outfit_id: stella_day_4_mattina
+  owner_id: stella
+  tags:
+  - day_4
+  - mattina
+  - loc_lobby
+  items:
+  - item_id: stella_day_4_mattina_item_1
+    name: luxury resort hostess mini dress
+    slot: body
+    layer: 1
+  - item_id: stella_day_4_mattina_item_2
+    name: plunging neckline
+    slot: accessory
+    layer: 2
+  - item_id: stella_day_4_mattina_item_3
+    name: sheer stockings
+    slot: legs
+    layer: 3
+  - item_id: stella_day_4_mattina_item_4
+    name: high heels
+    slot: feet
+    layer: 4
+- outfit_id: stella_day_4_pomeriggio
+  owner_id: stella
+  tags:
+  - day_4
+  - pomeriggio
+  - loc_pool
+  items:
+  - item_id: stella_day_4_pomeriggio_item_1
+    name: black high cut one piece swimsuit
+    slot: body
+    layer: 1
+  - item_id: stella_day_4_pomeriggio_item_2
+    name: deep V front
+    slot: accessory
+    layer: 2
+  - item_id: stella_day_4_pomeriggio_item_3
+    name: sheer red cover up
+    slot: accessory
+    layer: 3
+  - item_id: stella_day_4_pomeriggio_item_4
+    name: barefoot
+    slot: feet
+    layer: 4
+- outfit_id: stella_day_4_sera
+  owner_id: stella
+  tags:
+  - day_4
+  - sera
+  - loc_lounge
+  items:
+  - item_id: stella_day_4_sera_item_1
+    name: emerald sequin micro cocktail dress
+    slot: body
+    layer: 1
+  - item_id: stella_day_4_sera_item_2
+    name: open back
+    slot: accessory
+    layer: 2
+  - item_id: stella_day_4_sera_item_3
+    name: gold stilettos
+    slot: feet
+    layer: 3
+  - item_id: stella_day_4_sera_item_4
+    name: emerald earrings
+    slot: accessory
+    layer: 4
+- outfit_id: stella_day_4_notte
+  owner_id: stella
+  tags:
+  - day_4
+  - notte
+  - loc_suite
+  items:
+  - item_id: stella_day_4_notte_item_1
+    name: red silk lingerie slip
+    slot: body
+    layer: 1
+  - item_id: stella_day_4_notte_item_2
+    name: lace trim
+    slot: accessory
+    layer: 2
+  - item_id: stella_day_4_notte_item_3
+    name: thigh high stockings
+    slot: legs
+    layer: 3
+  - item_id: stella_day_4_notte_item_4
+    name: barefoot
+    slot: feet
+    layer: 4
+- outfit_id: stella_day_5_mattina
+  owner_id: stella
+  tags:
+  - day_5
+  - mattina
+  - loc_restaurant
+  items:
+  - item_id: stella_day_5_mattina_item_1
+    name: pink bodycon restaurant mini dress
+    slot: body
+    layer: 1
+  - item_id: stella_day_5_mattina_item_2
+    name: deep neckline
+    slot: accessory
+    layer: 2
+  - item_id: stella_day_5_mattina_item_3
+    name: sheer stockings
+    slot: legs
+    layer: 3
+  - item_id: stella_day_5_mattina_item_4
+    name: white stilettos
+    slot: feet
+    layer: 4
+- outfit_id: stella_day_5_pomeriggio
+  owner_id: stella
+  tags:
+  - day_5
+  - pomeriggio
+  - loc_private_beach
+  items:
+  - item_id: stella_day_5_pomeriggio_item_1
+    name: white string bikini
+    slot: body
+    layer: 1
+  - item_id: stella_day_5_pomeriggio_item_2
+    name: turquoise sheer sarong
+    slot: legs
+    layer: 2
+  - item_id: stella_day_5_pomeriggio_item_3
+    name: barefoot
+    slot: feet
+    layer: 3
+- outfit_id: stella_day_5_sera
+  owner_id: stella
+  tags:
+  - day_5
+  - sera
+  - loc_victoria_office
+  items:
+  - item_id: stella_day_5_sera_item_1
+    name: black blazer micro dress
+    slot: body
+    layer: 1
+  - item_id: stella_day_5_sera_item_2
+    name: no blouse
+    slot: body
+    layer: 2
+  - item_id: stella_day_5_sera_item_3
+    name: sheer stockings
+    slot: legs
+    layer: 3
+  - item_id: stella_day_5_sera_item_4
+    name: high heels
+    slot: feet
+    layer: 4
+  - item_id: stella_day_5_sera_item_5
+    name: gold chain
+    slot: accessory
+    layer: 5
+- outfit_id: stella_day_5_notte
+  owner_id: stella
+  tags:
+  - day_5
+  - notte
+  - loc_lounge
+  items:
+  - item_id: stella_day_5_notte_item_1
+    name: purple satin cutout club dress
+    slot: body
+    layer: 1
+  - item_id: stella_day_5_notte_item_2
+    name: very short hem
+    slot: accessory
+    layer: 2
+  - item_id: stella_day_5_notte_item_3
+    name: silver stilettos
+    slot: feet
+    layer: 3
+  - item_id: stella_day_5_notte_item_4
+    name: crystal bracelet
+    slot: accessory
+    layer: 4
+- outfit_id: stella_day_6_mattina
+  owner_id: stella
+  tags:
+  - day_6
+  - mattina
+  - loc_pool
+  items:
+  - item_id: stella_day_6_mattina_item_1
+    name: turquoise cutout swimsuit
+    slot: body
+    layer: 1
+  - item_id: stella_day_6_mattina_item_2
+    name: high cut hips
+    slot: accessory
+    layer: 2
+  - item_id: stella_day_6_mattina_item_3
+    name: sheer white kaftan
+    slot: body
+    layer: 3
+  - item_id: stella_day_6_mattina_item_4
+    name: barefoot
+    slot: feet
+    layer: 4
+- outfit_id: stella_day_6_pomeriggio
+  owner_id: stella
+  tags:
+  - day_6
+  - pomeriggio
+  - loc_spa
+  items:
+  - item_id: stella_day_6_pomeriggio_item_1
+    name: champagne short spa robe
+    slot: body
+    layer: 1
+  - item_id: stella_day_6_pomeriggio_item_2
+    name: loosely tied
+    slot: accessory
+    layer: 2
+  - item_id: stella_day_6_pomeriggio_item_3
+    name: black lace lingerie
+    slot: body
+    layer: 3
+  - item_id: stella_day_6_pomeriggio_item_4
+    name: barefoot
+    slot: feet
+    layer: 4
+- outfit_id: stella_day_6_sera
+  owner_id: stella
+  tags:
+  - day_6
+  - sera
+  - loc_restaurant
+  items:
+  - item_id: stella_day_6_sera_item_1
+    name: red off shoulder bodycon mini dress
+    slot: body
+    layer: 1
+  - item_id: stella_day_6_sera_item_2
+    name: thigh slit
+    slot: accessory
+    layer: 2
+  - item_id: stella_day_6_sera_item_3
+    name: black stilettos
+    slot: feet
+    layer: 3
+  - item_id: stella_day_6_sera_item_4
+    name: ruby earrings
+    slot: accessory
+    layer: 4
+- outfit_id: stella_day_6_notte
+  owner_id: stella
+  tags:
+  - day_6
+  - notte
+  - loc_private_beach
+  items:
+  - item_id: stella_day_6_notte_item_1
+    name: gold string bikini
+    slot: body
+    layer: 1
+  - item_id: stella_day_6_notte_item_2
+    name: high cut bottoms
+    slot: legs
+    layer: 2
+  - item_id: stella_day_6_notte_item_3
+    name: sheer gold beach kaftan
+    slot: body
+    layer: 3
+  - item_id: stella_day_6_notte_item_4
+    name: barefoot
+    slot: feet
+    layer: 4
+  - item_id: stella_day_6_notte_item_5
+    name: gold anklet
+    slot: accessory
+    layer: 5
+- outfit_id: stella_day_7_mattina
+  owner_id: stella
+  tags:
+  - day_7
+  - mattina
+  - loc_lobby
+  items:
+  - item_id: stella_day_7_mattina_item_1
+    name: white tailored micro romper
+    slot: body
+    layer: 1
+  - item_id: stella_day_7_mattina_item_2
+    name: deep neckline
+    slot: accessory
+    layer: 2
+  - item_id: stella_day_7_mattina_item_3
+    name: sheer stockings
+    slot: legs
+    layer: 3
+  - item_id: stella_day_7_mattina_item_4
+    name: gold sandals
+    slot: feet
+    layer: 4
+- outfit_id: stella_day_7_pomeriggio
+  owner_id: stella
+  tags:
+  - day_7
+  - pomeriggio
+  - loc_lounge
+  items:
+  - item_id: stella_day_7_pomeriggio_item_1
+    name: black fitted cocktail mini dress
+    slot: body
+    layer: 1
+  - item_id: stella_day_7_pomeriggio_item_2
+    name: side cutouts
+    slot: accessory
+    layer: 2
+  - item_id: stella_day_7_pomeriggio_item_3
+    name: red stilettos
+    slot: feet
+    layer: 3
+  - item_id: stella_day_7_pomeriggio_item_4
+    name: hoop earrings
+    slot: accessory
+    layer: 4
+- outfit_id: stella_day_7_sera
+  owner_id: stella
+  tags:
+  - day_7
+  - sera
+  - loc_victoria_office
+  items:
+  - item_id: stella_day_7_sera_item_1
+    name: gold gala slit gown
+    slot: body
+    layer: 1
+  - item_id: stella_day_7_sera_item_2
+    name: plunging neckline
+    slot: accessory
+    layer: 2
+  - item_id: stella_day_7_sera_item_3
+    name: metallic stilettos
+    slot: feet
+    layer: 3
+  - item_id: stella_day_7_sera_item_4
+    name: diamond choker
+    slot: accessory
+    layer: 4
+- outfit_id: stella_day_7_notte
+  owner_id: stella
+  tags:
+  - day_7
+  - notte
+  - loc_suite
+  items:
+  - item_id: stella_day_7_notte_item_1
+    name: crimson silk lingerie dress
+    slot: body
+    layer: 1
+  - item_id: stella_day_7_notte_item_2
+    name: lace trim
+    slot: accessory
+    layer: 2
+  - item_id: stella_day_7_notte_item_3
+    name: barefoot
+    slot: feet
+    layer: 3
+  - item_id: stella_day_7_notte_item_4
+    name: gold bracelet
+    slot: accessory
+    layer: 4
+- outfit_id: maria_day_1_mattina
+  owner_id: maria
+  tags:
+  - day_1
+  - mattina
+  - loc_restaurant
+  items:
+  - item_id: maria_day_1_mattina_item_1
+    name: cream fitted service mini dress
+    slot: body
+    layer: 1
+  - item_id: maria_day_1_mattina_item_2
+    name: low neckline
+    slot: accessory
+    layer: 2
+  - item_id: maria_day_1_mattina_item_3
+    name: sheer stockings
+    slot: legs
+    layer: 3
+  - item_id: maria_day_1_mattina_item_4
+    name: low heels
+    slot: feet
+    layer: 4
+- outfit_id: maria_day_1_pomeriggio
+  owner_id: maria
+  tags:
+  - day_1
+  - pomeriggio
+  - loc_suite
+  items:
+  - item_id: maria_day_1_pomeriggio_item_1
+    name: black fitted maid mini dress
+    slot: body
+    layer: 1
+  - item_id: maria_day_1_pomeriggio_item_2
+    name: white lace trim
+    slot: accessory
+    layer: 2
+  - item_id: maria_day_1_pomeriggio_item_3
+    name: sheer stockings
+    slot: legs
+    layer: 3
+  - item_id: maria_day_1_pomeriggio_item_4
+    name: high heels
+    slot: feet
+    layer: 4
+- outfit_id: maria_day_1_sera
+  owner_id: maria
+  tags:
+  - day_1
+  - sera
+  - loc_suite
+  items:
+  - item_id: maria_day_1_sera_item_1
+    name: black silk service mini dress
+    slot: body
+    layer: 1
+  - item_id: maria_day_1_sera_item_2
+    name: deep neckline
+    slot: accessory
+    layer: 2
+  - item_id: maria_day_1_sera_item_3
+    name: sheer stockings
+    slot: legs
+    layer: 3
+  - item_id: maria_day_1_sera_item_4
+    name: black pumps
+    slot: feet
+    layer: 4
+- outfit_id: maria_day_1_notte
+  owner_id: maria
+  tags:
+  - day_1
+  - notte
+  - loc_spa
+  items:
+  - item_id: maria_day_1_notte_item_1
+    name: short white spa robe
+    slot: body
+    layer: 1
+  - item_id: maria_day_1_notte_item_2
+    name: loosely tied
+    slot: accessory
+    layer: 2
+  - item_id: maria_day_1_notte_item_3
+    name: lace lingerie
+    slot: body
+    layer: 3
+  - item_id: maria_day_1_notte_item_4
+    name: barefoot
+    slot: feet
+    layer: 4
+- outfit_id: maria_day_2_mattina
+  owner_id: maria
+  tags:
+  - day_2
+  - mattina
+  - loc_lobby
+  items:
+  - item_id: maria_day_2_mattina_item_1
+    name: ivory fitted blouse
+    slot: body
+    layer: 1
+  - item_id: maria_day_2_mattina_item_2
+    name: deep neckline
+    slot: accessory
+    layer: 2
+  - item_id: maria_day_2_mattina_item_3
+    name: beige pencil skirt
+    slot: legs
+    layer: 3
+  - item_id: maria_day_2_mattina_item_4
+    name: sheer stockings
+    slot: legs
+    layer: 4
+  - item_id: maria_day_2_mattina_item_5
+    name: nude pumps
+    slot: feet
+    layer: 5
+- outfit_id: maria_day_2_pomeriggio
+  owner_id: maria
+  tags:
+  - day_2
+  - pomeriggio
+  - loc_spa
+  items:
+  - item_id: maria_day_2_pomeriggio_item_1
+    name: white fitted spa tunic mini dress
+    slot: body
+    layer: 1
+  - item_id: maria_day_2_pomeriggio_item_2
+    name: side slit
+    slot: accessory
+    layer: 2
+  - item_id: maria_day_2_pomeriggio_item_3
+    name: barefoot
+    slot: feet
+    layer: 3
+- outfit_id: maria_day_2_sera
+  owner_id: maria
+  tags:
+  - day_2
+  - sera
+  - loc_restaurant
+  items:
+  - item_id: maria_day_2_sera_item_1
+    name: navy bodycon dinner service dress
+    slot: body
+    layer: 1
+  - item_id: maria_day_2_sera_item_2
+    name: plunging neckline
+    slot: accessory
+    layer: 2
+  - item_id: maria_day_2_sera_item_3
+    name: sheer stockings
+    slot: legs
+    layer: 3
+  - item_id: maria_day_2_sera_item_4
+    name: low heels
+    slot: feet
+    layer: 4
+- outfit_id: maria_day_2_notte
+  owner_id: maria
+  tags:
+  - day_2
+  - notte
+  - loc_suite
+  items:
+  - item_id: maria_day_2_notte_item_1
+    name: champagne satin private service mini dress
+    slot: body
+    layer: 1
+  - item_id: maria_day_2_notte_item_2
+    name: lace trim
+    slot: accessory
+    layer: 2
+  - item_id: maria_day_2_notte_item_3
+    name: barefoot
+    slot: feet
+    layer: 3
+  - item_id: maria_day_2_notte_item_4
+    name: pearl earrings
+    slot: accessory
+    layer: 4
+- outfit_id: maria_day_3_mattina
+  owner_id: maria
+  tags:
+  - day_3
+  - mattina
+  - loc_suite
+  items:
+  - item_id: maria_day_3_mattina_item_1
+    name: white tailored maid mini dress
+    slot: body
+    layer: 1
+  - item_id: maria_day_3_mattina_item_2
+    name: corset waist
+    slot: accessory
+    layer: 2
+  - item_id: maria_day_3_mattina_item_3
+    name: nude stockings
+    slot: legs
+    layer: 3
+  - item_id: maria_day_3_mattina_item_4
+    name: low heels
+    slot: feet
+    layer: 4
+- outfit_id: maria_day_3_pomeriggio
+  owner_id: maria
+  tags:
+  - day_3
+  - pomeriggio
+  - loc_restaurant
+  items:
+  - item_id: maria_day_3_pomeriggio_item_1
+    name: sage fitted service blouse
+    slot: body
+    layer: 1
+  - item_id: maria_day_3_pomeriggio_item_2
+    name: black leather pencil skirt
+    slot: legs
+    layer: 2
+  - item_id: maria_day_3_pomeriggio_item_3
+    name: sheer stockings
+    slot: legs
+    layer: 3
+  - item_id: maria_day_3_pomeriggio_item_4
+    name: black pumps
+    slot: feet
+    layer: 4
+- outfit_id: maria_day_3_sera
+  owner_id: maria
+  tags:
+  - day_3
+  - sera
+  - loc_spa
+  items:
+  - item_id: maria_day_3_sera_item_1
+    name: burgundy short spa wrap dress
+    slot: body
+    layer: 1
+  - item_id: maria_day_3_sera_item_2
+    name: loosely tied
+    slot: accessory
+    layer: 2
+  - item_id: maria_day_3_sera_item_3
+    name: lace lingerie
+    slot: body
+    layer: 3
+  - item_id: maria_day_3_sera_item_4
+    name: barefoot
+    slot: feet
+    layer: 4
+- outfit_id: maria_day_3_notte
+  owner_id: maria
+  tags:
+  - day_3
+  - notte
+  - loc_suite
+  items:
+  - item_id: maria_day_3_notte_item_1
+    name: ivory silk lingerie dress
+    slot: body
+    layer: 1
+  - item_id: maria_day_3_notte_item_2
+    name: lace cups
+    slot: accessory
+    layer: 2
+  - item_id: maria_day_3_notte_item_3
+    name: barefoot
+    slot: feet
+    layer: 3
+  - item_id: maria_day_3_notte_item_4
+    name: pearl necklace
+    slot: accessory
+    layer: 4
+- outfit_id: maria_day_4_mattina
+  owner_id: maria
+  tags:
+  - day_4
+  - mattina
+  - loc_restaurant
+  items:
+  - item_id: maria_day_4_mattina_item_1
+    name: light blue fitted restaurant mini dress
+    slot: body
+    layer: 1
+  - item_id: maria_day_4_mattina_item_2
+    name: low neckline
+    slot: accessory
+    layer: 2
+  - item_id: maria_day_4_mattina_item_3
+    name: sheer stockings
+    slot: legs
+    layer: 3
+  - item_id: maria_day_4_mattina_item_4
+    name: white pumps
+    slot: feet
+    layer: 4
+- outfit_id: maria_day_4_pomeriggio
+  owner_id: maria
+  tags:
+  - day_4
+  - pomeriggio
+  - loc_private_beach
+  items:
+  - item_id: maria_day_4_pomeriggio_item_1
+    name: navy cutout one piece swimsuit
+    slot: body
+    layer: 1
+  - item_id: maria_day_4_pomeriggio_item_2
+    name: high cut hips
+    slot: accessory
+    layer: 2
+  - item_id: maria_day_4_pomeriggio_item_3
+    name: sheer white cover up
+    slot: accessory
+    layer: 3
+  - item_id: maria_day_4_pomeriggio_item_4
+    name: barefoot
+    slot: feet
+    layer: 4
+- outfit_id: maria_day_4_sera
+  owner_id: maria
+  tags:
+  - day_4
+  - sera
+  - loc_suite
+  items:
+  - item_id: maria_day_4_sera_item_1
+    name: black fitted suite mini dress
+    slot: body
+    layer: 1
+  - item_id: maria_day_4_sera_item_2
+    name: deep neckline
+    slot: accessory
+    layer: 2
+  - item_id: maria_day_4_sera_item_3
+    name: sheer stockings
+    slot: legs
+    layer: 3
+  - item_id: maria_day_4_sera_item_4
+    name: black stilettos
+    slot: feet
+    layer: 4
+- outfit_id: maria_day_4_notte
+  owner_id: maria
+  tags:
+  - day_4
+  - notte
+  - loc_lounge
+  items:
+  - item_id: maria_day_4_notte_item_1
+    name: deep green bodycon lounge mini dress
+    slot: body
+    layer: 1
+  - item_id: maria_day_4_notte_item_2
+    name: open back
+    slot: accessory
+    layer: 2
+  - item_id: maria_day_4_notte_item_3
+    name: low heels
+    slot: feet
+    layer: 3
+  - item_id: maria_day_4_notte_item_4
+    name: gold earrings
+    slot: accessory
+    layer: 4
+- outfit_id: maria_day_5_mattina
+  owner_id: maria
+  tags:
+  - day_5
+  - mattina
+  - loc_spa
+  items:
+  - item_id: maria_day_5_mattina_item_1
+    name: short white spa robe
+    slot: body
+    layer: 1
+  - item_id: maria_day_5_mattina_item_2
+    name: loosely tied
+    slot: accessory
+    layer: 2
+  - item_id: maria_day_5_mattina_item_3
+    name: nude lingerie
+    slot: body
+    layer: 3
+  - item_id: maria_day_5_mattina_item_4
+    name: barefoot
+    slot: feet
+    layer: 4
+- outfit_id: maria_day_5_pomeriggio
+  owner_id: maria
+  tags:
+  - day_5
+  - pomeriggio
+  - loc_suite
+  items:
+  - item_id: maria_day_5_pomeriggio_item_1
+    name: cream tailored suite mini uniform
+    slot: body
+    layer: 1
+  - item_id: maria_day_5_pomeriggio_item_2
+    name: fitted bodice
+    slot: accessory
+    layer: 2
+  - item_id: maria_day_5_pomeriggio_item_3
+    name: nude stockings
+    slot: legs
+    layer: 3
+  - item_id: maria_day_5_pomeriggio_item_4
+    name: pumps
+    slot: feet
+    layer: 4
+- outfit_id: maria_day_5_sera
+  owner_id: maria
+  tags:
+  - day_5
+  - sera
+  - loc_restaurant
+  items:
+  - item_id: maria_day_5_sera_item_1
+    name: wine red bodycon dinner mini dress
+    slot: body
+    layer: 1
+  - item_id: maria_day_5_sera_item_2
+    name: thigh slit
+    slot: accessory
+    layer: 2
+  - item_id: maria_day_5_sera_item_3
+    name: black stilettos
+    slot: feet
+    layer: 3
+  - item_id: maria_day_5_sera_item_4
+    name: pearl earrings
+    slot: accessory
+    layer: 4
+- outfit_id: maria_day_5_notte
+  owner_id: maria
+  tags:
+  - day_5
+  - notte
+  - loc_suite
+  items:
+  - item_id: maria_day_5_notte_item_1
+    name: soft pink satin lingerie dress
+    slot: body
+    layer: 1
+  - item_id: maria_day_5_notte_item_2
+    name: lace trim
+    slot: accessory
+    layer: 2
+  - item_id: maria_day_5_notte_item_3
+    name: barefoot
+    slot: feet
+    layer: 3
+  - item_id: maria_day_5_notte_item_4
+    name: delicate necklace
+    slot: accessory
+    layer: 4
+- outfit_id: maria_day_6_mattina
+  owner_id: maria
+  tags:
+  - day_6
+  - mattina
+  - loc_lobby
+  items:
+  - item_id: maria_day_6_mattina_item_1
+    name: grey fitted lobby mini dress
+    slot: body
+    layer: 1
+  - item_id: maria_day_6_mattina_item_2
+    name: deep neckline
+    slot: accessory
+    layer: 2
+  - item_id: maria_day_6_mattina_item_3
+    name: sheer stockings
+    slot: legs
+    layer: 3
+  - item_id: maria_day_6_mattina_item_4
+    name: black pumps
+    slot: feet
+    layer: 4
+- outfit_id: maria_day_6_pomeriggio
+  owner_id: maria
+  tags:
+  - day_6
+  - pomeriggio
+  - loc_restaurant
+  items:
+  - item_id: maria_day_6_pomeriggio_item_1
+    name: ivory silk blouse
+    slot: body
+    layer: 1
+  - item_id: maria_day_6_pomeriggio_item_2
+    name: black leather pencil skirt
+    slot: legs
+    layer: 2
+  - item_id: maria_day_6_pomeriggio_item_3
+    name: sheer stockings
+    slot: legs
+    layer: 3
+  - item_id: maria_day_6_pomeriggio_item_4
+    name: low heels
+    slot: feet
+    layer: 4
+- outfit_id: maria_day_6_sera
+  owner_id: maria
+  tags:
+  - day_6
+  - sera
+  - loc_spa
+  items:
+  - item_id: maria_day_6_sera_item_1
+    name: short white spa wrap dress
+    slot: body
+    layer: 1
+  - item_id: maria_day_6_sera_item_2
+    name: loosely tied
+    slot: accessory
+    layer: 2
+  - item_id: maria_day_6_sera_item_3
+    name: lace bodysuit
+    slot: body
+    layer: 3
+  - item_id: maria_day_6_sera_item_4
+    name: barefoot
+    slot: feet
+    layer: 4
+- outfit_id: maria_day_6_notte
+  owner_id: maria
+  tags:
+  - day_6
+  - notte
+  - loc_suite
+  items:
+  - item_id: maria_day_6_notte_item_1
+    name: midnight blue suite mini dress
+    slot: body
+    layer: 1
+  - item_id: maria_day_6_notte_item_2
+    name: open back
+    slot: accessory
+    layer: 2
+  - item_id: maria_day_6_notte_item_3
+    name: sheer stockings
+    slot: legs
+    layer: 3
+  - item_id: maria_day_6_notte_item_4
+    name: barefoot
+    slot: feet
+    layer: 4
+- outfit_id: maria_day_7_mattina
+  owner_id: maria
+  tags:
+  - day_7
+  - mattina
+  - loc_suite
+  items:
+  - item_id: maria_day_7_mattina_item_1
+    name: champagne fitted maid mini dress
+    slot: body
+    layer: 1
+  - item_id: maria_day_7_mattina_item_2
+    name: low neckline
+    slot: accessory
+    layer: 2
+  - item_id: maria_day_7_mattina_item_3
+    name: nude stockings
+    slot: legs
+    layer: 3
+  - item_id: maria_day_7_mattina_item_4
+    name: low heels
+    slot: feet
+    layer: 4
+- outfit_id: maria_day_7_pomeriggio
+  owner_id: maria
+  tags:
+  - day_7
+  - pomeriggio
+  - loc_victoria_office
+  items:
+  - item_id: maria_day_7_pomeriggio_item_1
+    name: black formal office mini dress
+    slot: body
+    layer: 1
+  - item_id: maria_day_7_pomeriggio_item_2
+    name: fitted waist
+    slot: accessory
+    layer: 2
+  - item_id: maria_day_7_pomeriggio_item_3
+    name: sheer stockings
+    slot: legs
+    layer: 3
+  - item_id: maria_day_7_pomeriggio_item_4
+    name: pumps
+    slot: feet
+    layer: 4
+- outfit_id: maria_day_7_sera
+  owner_id: maria
+  tags:
+  - day_7
+  - sera
+  - loc_restaurant
+  items:
+  - item_id: maria_day_7_sera_item_1
+    name: ivory elegant dinner slit dress
+    slot: body
+    layer: 1
+  - item_id: maria_day_7_sera_item_2
+    name: deep neckline
+    slot: accessory
+    layer: 2
+  - item_id: maria_day_7_sera_item_3
+    name: gold stilettos
+    slot: feet
+    layer: 3
+  - item_id: maria_day_7_sera_item_4
+    name: pearl necklace
+    slot: accessory
+    layer: 4
+- outfit_id: maria_day_7_notte
+  owner_id: maria
+  tags:
+  - day_7
+  - notte
+  - loc_suite
+  items:
+  - item_id: maria_day_7_notte_item_1
+    name: white silk private lingerie dress
+    slot: body
+    layer: 1
+  - item_id: maria_day_7_notte_item_2
+    name: lace trim
+    slot: accessory
+    layer: 2
+  - item_id: maria_day_7_notte_item_3
+    name: barefoot
+    slot: feet
+    layer: 3
+  - item_id: maria_day_7_notte_item_4
+    name: delicate bracelet
+    slot: accessory
+    layer: 4
+- outfit_id: luna_day_1_mattina
+  owner_id: luna
+  tags:
+  - day_1
+  - mattina
+  - loc_private_beach
+  items:
+  - item_id: luna_day_1_mattina_item_1
+    name: ivory string bikini
+    slot: body
+    layer: 1
+  - item_id: luna_day_1_mattina_item_2
+    name: high cut bottoms
+    slot: legs
+    layer: 2
+  - item_id: luna_day_1_mattina_item_3
+    name: sheer white crop cover up
+    slot: accessory
+    layer: 3
+  - item_id: luna_day_1_mattina_item_4
+    name: barefoot
+    slot: feet
+    layer: 4
+- outfit_id: luna_day_1_pomeriggio
+  owner_id: luna
+  tags:
+  - day_1
+  - pomeriggio
+  - loc_wild_beach
+  items:
+  - item_id: luna_day_1_pomeriggio_item_1
+    name: sand colored micro bikini
+    slot: body
+    layer: 1
+  - item_id: luna_day_1_pomeriggio_item_2
+    name: sheer linen sarong
+    slot: legs
+    layer: 2
+  - item_id: luna_day_1_pomeriggio_item_3
+    name: woven bracelet
+    slot: accessory
+    layer: 3
+  - item_id: luna_day_1_pomeriggio_item_4
+    name: barefoot
+    slot: feet
+    layer: 4
+- outfit_id: luna_day_1_sera
+  owner_id: luna
+  tags:
+  - day_1
+  - sera
+  - loc_lounge
+  items:
+  - item_id: luna_day_1_sera_item_1
+    name: ivory backless bodycon mini dress
+    slot: body
+    layer: 1
+  - item_id: luna_day_1_sera_item_2
+    name: deep neckline
+    slot: accessory
+    layer: 2
+  - item_id: luna_day_1_sera_item_3
+    name: delicate stilettos
+    slot: feet
+    layer: 3
+- outfit_id: luna_day_1_notte
+  owner_id: luna
+  tags:
+  - day_1
+  - notte
+  - loc_wild_beach
+  items:
+  - item_id: luna_day_1_notte_item_1
+    name: moonlight blue string bikini
+    slot: body
+    layer: 1
+  - item_id: luna_day_1_notte_item_2
+    name: sheer layered beach mini dress
+    slot: body
+    layer: 2
+  - item_id: luna_day_1_notte_item_3
+    name: high slit
+    slot: accessory
+    layer: 3
+  - item_id: luna_day_1_notte_item_4
+    name: barefoot
+    slot: feet
+    layer: 4
+  - item_id: luna_day_1_notte_item_5
+    name: silver pendant
+    slot: accessory
+    layer: 5
+- outfit_id: luna_day_2_mattina
+  owner_id: luna
+  tags:
+  - day_2
+  - mattina
+  - loc_pool
+  items:
+  - item_id: luna_day_2_mattina_item_1
+    name: white high cut one piece swimsuit
+    slot: body
+    layer: 1
+  - item_id: luna_day_2_mattina_item_2
+    name: plunging neckline
+    slot: accessory
+    layer: 2
+  - item_id: luna_day_2_mattina_item_3
+    name: sheer ivory shirt
+    slot: body
+    layer: 3
+  - item_id: luna_day_2_mattina_item_4
+    name: barefoot
+    slot: feet
+    layer: 4
+- outfit_id: luna_day_2_pomeriggio
+  owner_id: luna
+  tags:
+  - day_2
+  - pomeriggio
+  - loc_private_beach
+  items:
+  - item_id: luna_day_2_pomeriggio_item_1
+    name: pale blue string bikini
+    slot: body
+    layer: 1
+  - item_id: luna_day_2_pomeriggio_item_2
+    name: sheer white sarong
+    slot: legs
+    layer: 2
+  - item_id: luna_day_2_pomeriggio_item_3
+    name: shell necklace
+    slot: accessory
+    layer: 3
+  - item_id: luna_day_2_pomeriggio_item_4
+    name: barefoot
+    slot: feet
+    layer: 4
+- outfit_id: luna_day_2_sera
+  owner_id: luna
+  tags:
+  - day_2
+  - sera
+  - loc_restaurant
+  items:
+  - item_id: luna_day_2_sera_item_1
+    name: sage green bodycon dinner mini dress
+    slot: body
+    layer: 1
+  - item_id: luna_day_2_sera_item_2
+    name: deep neckline
+    slot: accessory
+    layer: 2
+  - item_id: luna_day_2_sera_item_3
+    name: low heels
+    slot: feet
+    layer: 3
+  - item_id: luna_day_2_sera_item_4
+    name: silver earrings
+    slot: accessory
+    layer: 4
+- outfit_id: luna_day_2_notte
+  owner_id: luna
+  tags:
+  - day_2
+  - notte
+  - loc_lounge
+  items:
+  - item_id: luna_day_2_notte_item_1
+    name: black soft knit bodycon mini dress
+    slot: body
+    layer: 1
+  - item_id: luna_day_2_notte_item_2
+    name: open back
+    slot: accessory
+    layer: 2
+  - item_id: luna_day_2_notte_item_3
+    name: thigh high stockings
+    slot: legs
+    layer: 3
+  - item_id: luna_day_2_notte_item_4
+    name: barefoot
+    slot: feet
+    layer: 4
+- outfit_id: luna_day_3_mattina
+  owner_id: luna
+  tags:
+  - day_3
+  - mattina
+  - loc_wild_beach
+  items:
+  - item_id: luna_day_3_mattina_item_1
+    name: cream crochet micro bikini
+    slot: body
+    layer: 1
+  - item_id: luna_day_3_mattina_item_2
+    name: sheer beach wrap
+    slot: accessory
+    layer: 2
+  - item_id: luna_day_3_mattina_item_3
+    name: leather anklet
+    slot: accessory
+    layer: 3
+  - item_id: luna_day_3_mattina_item_4
+    name: barefoot
+    slot: feet
+    layer: 4
+- outfit_id: luna_day_3_pomeriggio
+  owner_id: luna
+  tags:
+  - day_3
+  - pomeriggio
+  - loc_spa
+  items:
+  - item_id: luna_day_3_pomeriggio_item_1
+    name: short white spa robe
+    slot: body
+    layer: 1
+  - item_id: luna_day_3_pomeriggio_item_2
+    name: loosely tied
+    slot: accessory
+    layer: 2
+  - item_id: luna_day_3_pomeriggio_item_3
+    name: pale lace lingerie
+    slot: body
+    layer: 3
+  - item_id: luna_day_3_pomeriggio_item_4
+    name: barefoot
+    slot: feet
+    layer: 4
+- outfit_id: luna_day_3_sera
+  owner_id: luna
+  tags:
+  - day_3
+  - sera
+  - loc_wild_beach
+  items:
+  - item_id: luna_day_3_sera_item_1
+    name: dark blue sheer beach dress
+    slot: body
+    layer: 1
+  - item_id: luna_day_3_sera_item_2
+    name: high slit
+    slot: accessory
+    layer: 2
+  - item_id: luna_day_3_sera_item_3
+    name: bikini visible beneath
+    slot: body
+    layer: 3
+  - item_id: luna_day_3_sera_item_4
+    name: barefoot
+    slot: feet
+    layer: 4
+- outfit_id: luna_day_3_notte
+  owner_id: luna
+  tags:
+  - day_3
+  - notte
+  - loc_suite
+  items:
+  - item_id: luna_day_3_notte_item_1
+    name: ivory silk lingerie slip
+    slot: body
+    layer: 1
+  - item_id: luna_day_3_notte_item_2
+    name: lace trim
+    slot: accessory
+    layer: 2
+  - item_id: luna_day_3_notte_item_3
+    name: barefoot
+    slot: feet
+    layer: 3
+  - item_id: luna_day_3_notte_item_4
+    name: delicate anklet
+    slot: accessory
+    layer: 4
+- outfit_id: luna_day_4_mattina
+  owner_id: luna
+  tags:
+  - day_4
+  - mattina
+  - loc_private_beach
+  items:
+  - item_id: luna_day_4_mattina_item_1
+    name: white micro bikini
+    slot: body
+    layer: 1
+  - item_id: luna_day_4_mattina_item_2
+    name: light blue sheer sarong
+    slot: legs
+    layer: 2
+  - item_id: luna_day_4_mattina_item_3
+    name: barefoot
+    slot: feet
+    layer: 3
+- outfit_id: luna_day_4_pomeriggio
+  owner_id: luna
+  tags:
+  - day_4
+  - pomeriggio
+  - loc_lobby
+  items:
+  - item_id: luna_day_4_pomeriggio_item_1
+    name: ivory fitted lobby mini dress
+    slot: body
+    layer: 1
+  - item_id: luna_day_4_pomeriggio_item_2
+    name: open back
+    slot: accessory
+    layer: 2
+  - item_id: luna_day_4_pomeriggio_item_3
+    name: deep neckline
+    slot: accessory
+    layer: 3
+  - item_id: luna_day_4_pomeriggio_item_4
+    name: delicate heels
+    slot: feet
+    layer: 4
+- outfit_id: luna_day_4_sera
+  owner_id: luna
+  tags:
+  - day_4
+  - sera
+  - loc_restaurant
+  items:
+  - item_id: luna_day_4_sera_item_1
+    name: burgundy bodycon dinner mini dress
+    slot: body
+    layer: 1
+  - item_id: luna_day_4_sera_item_2
+    name: thigh slit
+    slot: accessory
+    layer: 2
+  - item_id: luna_day_4_sera_item_3
+    name: low heels
+    slot: feet
+    layer: 3
+  - item_id: luna_day_4_sera_item_4
+    name: silver necklace
+    slot: accessory
+    layer: 4
+- outfit_id: luna_day_4_notte
+  owner_id: luna
+  tags:
+  - day_4
+  - notte
+  - loc_wild_beach
+  items:
+  - item_id: luna_day_4_notte_item_1
+    name: deep violet micro bikini
+    slot: body
+    layer: 1
+  - item_id: luna_day_4_notte_item_2
+    name: sheer beach mini dress
+    slot: body
+    layer: 2
+  - item_id: luna_day_4_notte_item_3
+    name: side cutouts
+    slot: accessory
+    layer: 3
+  - item_id: luna_day_4_notte_item_4
+    name: barefoot
+    slot: feet
+    layer: 4
+  - item_id: luna_day_4_notte_item_5
+    name: moon pendant
+    slot: accessory
+    layer: 5
+- outfit_id: luna_day_5_mattina
+  owner_id: luna
+  tags:
+  - day_5
+  - mattina
+  - loc_pool
+  items:
+  - item_id: luna_day_5_mattina_item_1
+    name: pale green high cut one piece swimsuit
+    slot: body
+    layer: 1
+  - item_id: luna_day_5_mattina_item_2
+    name: deep V neckline
+    slot: accessory
+    layer: 2
+  - item_id: luna_day_5_mattina_item_3
+    name: sheer cream cover up
+    slot: accessory
+    layer: 3
+  - item_id: luna_day_5_mattina_item_4
+    name: barefoot
+    slot: feet
+    layer: 4
+- outfit_id: luna_day_5_pomeriggio
+  owner_id: luna
+  tags:
+  - day_5
+  - pomeriggio
+  - loc_wild_beach
+  items:
+  - item_id: luna_day_5_pomeriggio_item_1
+    name: white string bikini
+    slot: body
+    layer: 1
+  - item_id: luna_day_5_pomeriggio_item_2
+    name: transparent linen shirt
+    slot: body
+    layer: 2
+  - item_id: luna_day_5_pomeriggio_item_3
+    name: woven bracelet
+    slot: accessory
+    layer: 3
+  - item_id: luna_day_5_pomeriggio_item_4
+    name: barefoot
+    slot: feet
+    layer: 4
+- outfit_id: luna_day_5_sera
+  owner_id: luna
+  tags:
+  - day_5
+  - sera
+  - loc_lounge
+  items:
+  - item_id: luna_day_5_sera_item_1
+    name: black backless bodycon mini dress
+    slot: body
+    layer: 1
+  - item_id: luna_day_5_sera_item_2
+    name: plunging neckline
+    slot: accessory
+    layer: 2
+  - item_id: luna_day_5_sera_item_3
+    name: silver stilettos
+    slot: feet
+    layer: 3
+  - item_id: luna_day_5_sera_item_4
+    name: moon earrings
+    slot: accessory
+    layer: 4
+- outfit_id: luna_day_5_notte
+  owner_id: luna
+  tags:
+  - day_5
+  - notte
+  - loc_private_beach
+  items:
+  - item_id: luna_day_5_notte_item_1
+    name: soft ivory sheer beach wrap dress
+    slot: body
+    layer: 1
+  - item_id: luna_day_5_notte_item_2
+    name: bikini visible beneath
+    slot: body
+    layer: 2
+  - item_id: luna_day_5_notte_item_3
+    name: barefoot
+    slot: feet
+    layer: 3
+  - item_id: luna_day_5_notte_item_4
+    name: silver pendant
+    slot: accessory
+    layer: 4
+- outfit_id: luna_day_6_mattina
+  owner_id: luna
+  tags:
+  - day_6
+  - mattina
+  - loc_spa
+  items:
+  - item_id: luna_day_6_mattina_item_1
+    name: short white spa wrap dress
+    slot: body
+    layer: 1
+  - item_id: luna_day_6_mattina_item_2
+    name: loosely tied
+    slot: accessory
+    layer: 2
+  - item_id: luna_day_6_mattina_item_3
+    name: ivory lace lingerie
+    slot: body
+    layer: 3
+  - item_id: luna_day_6_mattina_item_4
+    name: barefoot
+    slot: feet
+    layer: 4
+- outfit_id: luna_day_6_pomeriggio
+  owner_id: luna
+  tags:
+  - day_6
+  - pomeriggio
+  - loc_private_beach
+  items:
+  - item_id: luna_day_6_pomeriggio_item_1
+    name: sky blue micro bikini
+    slot: body
+    layer: 1
+  - item_id: luna_day_6_pomeriggio_item_2
+    name: sheer white sarong
+    slot: legs
+    layer: 2
+  - item_id: luna_day_6_pomeriggio_item_3
+    name: shell necklace
+    slot: accessory
+    layer: 3
+  - item_id: luna_day_6_pomeriggio_item_4
+    name: barefoot
+    slot: feet
+    layer: 4
+- outfit_id: luna_day_6_sera
+  owner_id: luna
+  tags:
+  - day_6
+  - sera
+  - loc_restaurant
+  items:
+  - item_id: luna_day_6_sera_item_1
+    name: emerald bodycon dinner mini dress
+    slot: body
+    layer: 1
+  - item_id: luna_day_6_sera_item_2
+    name: deep neckline
+    slot: accessory
+    layer: 2
+  - item_id: luna_day_6_sera_item_3
+    name: thigh slit
+    slot: accessory
+    layer: 3
+  - item_id: luna_day_6_sera_item_4
+    name: low heels
+    slot: feet
+    layer: 4
+- outfit_id: luna_day_6_notte
+  owner_id: luna
+  tags:
+  - day_6
+  - notte
+  - loc_wild_beach
+  items:
+  - item_id: luna_day_6_notte_item_1
+    name: midnight blue string bikini
+    slot: body
+    layer: 1
+  - item_id: luna_day_6_notte_item_2
+    name: sheer beach mini dress
+    slot: body
+    layer: 2
+  - item_id: luna_day_6_notte_item_3
+    name: side slit
+    slot: accessory
+    layer: 3
+  - item_id: luna_day_6_notte_item_4
+    name: barefoot
+    slot: feet
+    layer: 4
+  - item_id: luna_day_6_notte_item_5
+    name: moon pendant
+    slot: accessory
+    layer: 5
+- outfit_id: luna_day_7_mattina
+  owner_id: luna
+  tags:
+  - day_7
+  - mattina
+  - loc_wild_beach
+  items:
+  - item_id: luna_day_7_mattina_item_1
+    name: cream crochet bikini
+    slot: body
+    layer: 1
+  - item_id: luna_day_7_mattina_item_2
+    name: sheer wild beach cover up
+    slot: accessory
+    layer: 2
+  - item_id: luna_day_7_mattina_item_3
+    name: woven bracelet
+    slot: accessory
+    layer: 3
+  - item_id: luna_day_7_mattina_item_4
+    name: barefoot
+    slot: feet
+    layer: 4
+- outfit_id: luna_day_7_pomeriggio
+  owner_id: luna
+  tags:
+  - day_7
+  - pomeriggio
+  - loc_lobby
+  items:
+  - item_id: luna_day_7_pomeriggio_item_1
+    name: ivory tailored lobby mini dress
+    slot: body
+    layer: 1
+  - item_id: luna_day_7_pomeriggio_item_2
+    name: plunging neckline
+    slot: accessory
+    layer: 2
+  - item_id: luna_day_7_pomeriggio_item_3
+    name: sheer stockings
+    slot: legs
+    layer: 3
+  - item_id: luna_day_7_pomeriggio_item_4
+    name: delicate heels
+    slot: feet
+    layer: 4
+- outfit_id: luna_day_7_sera
+  owner_id: luna
+  tags:
+  - day_7
+  - sera
+  - loc_victoria_office
+  items:
+  - item_id: luna_day_7_sera_item_1
+    name: silver grey fitted office mini dress
+    slot: body
+    layer: 1
+  - item_id: luna_day_7_sera_item_2
+    name: low neckline
+    slot: accessory
+    layer: 2
+  - item_id: luna_day_7_sera_item_3
+    name: sheer stockings
+    slot: legs
+    layer: 3
+  - item_id: luna_day_7_sera_item_4
+    name: low heels
+    slot: feet
+    layer: 4
+- outfit_id: luna_day_7_notte
+  owner_id: luna
+  tags:
+  - day_7
+  - notte
+  - loc_suite
+  items:
+  - item_id: luna_day_7_notte_item_1
+    name: white silk private lingerie dress
+    slot: body
+    layer: 1
+  - item_id: luna_day_7_notte_item_2
+    name: lace trim
+    slot: accessory
+    layer: 2
+  - item_id: luna_day_7_notte_item_3
+    name: barefoot
+    slot: feet
+    layer: 3
+  - item_id: luna_day_7_notte_item_4
+    name: delicate silver bracelet
+    slot: accessory
+    layer: 4

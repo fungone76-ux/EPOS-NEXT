@@ -8,6 +8,7 @@ from enum import StrEnum
 from pydantic import field_validator, model_validator
 
 from epos.application.actions.models import ResolvedCheck, ValidatedAction
+from epos.application.intimacy.models import AuthorizedIntimacyVisual
 from epos.domain.base import DomainModel
 from epos.domain.ids import EntityId, LocationId, SceneId, SessionId, TurnNumber, WorldpackId
 from epos.domain.outfit import OutfitState
@@ -173,6 +174,7 @@ class SceneObservationInput(DomainModel):
     resolved_check: ResolvedCheck | None = None
     subject_cues: tuple[SceneSubjectCue, ...] = ()
     observable_consequences: tuple[ObservableConsequence, ...] = ()
+    authorized_intimacy_visual: AuthorizedIntimacyVisual | None = None
 
     @model_validator(mode="after")
     def validate_unique_entries(self) -> SceneObservationInput:
@@ -198,6 +200,7 @@ class ObservableSceneState(DomainModel):
     observable_consequences: tuple[ObservableConsequence, ...] = ()
     authorized_dialogue: tuple[AuthorizedDialogueLine, ...] = ()
     visual_focus_candidate: VisualFocusCandidate | None = None
+    authorized_intimacy_visual: AuthorizedIntimacyVisual | None = None
 
     @model_validator(mode="after")
     def validate_scene_integrity(self) -> ObservableSceneState:
@@ -278,5 +281,21 @@ class ObservableSceneState(DomainModel):
                     "authorized dialogue target is not visible: "
                     f"{invalid_targets[0]}"
                 )
+
+        intimacy = self.authorized_intimacy_visual
+        if intimacy is not None:
+            action_request = self.resolved_action.action.intimacy_request
+            if action_request is None:
+                raise ValueError("authorized intimacy has no resolved player request")
+            if action_request.target_id != intimacy.npc_id:
+                raise ValueError("authorized intimacy target does not match player request")
+            if action_request.scope is not intimacy.authorization.scope:
+                raise ValueError("authorized intimacy scope does not match player request")
+            if action_request.visual_intent != intimacy.visual_intent:
+                raise ValueError("authorized intimacy visual does not match player request")
+            if intimacy.authorization.turn != self.time.turn_number:
+                raise ValueError("authorized intimacy is not valid for this scene turn")
+            if intimacy.player_id not in visible_ids or intimacy.npc_id not in visible_npc_ids:
+                raise ValueError("authorized intimacy participants must be visible")
 
         return self

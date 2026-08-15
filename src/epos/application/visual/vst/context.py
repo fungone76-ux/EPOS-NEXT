@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from epos.application.actions.models import CheckOutcome
+from epos.application.intimacy.models import ConsentScope
 from epos.application.visual.models import (
     ObservableSceneState,
     SceneLocation,
@@ -39,6 +40,15 @@ class VisualDirectorDialogueCue(DomainModel):
     target_ids: tuple[EntityId, ...] = ()
 
 
+class VisualDirectorIntimacyContext(DomainModel):
+    """Only the already-authorized adult semantic needed by visual direction."""
+
+    scope: ConsentScope
+    participant_ids: tuple[EntityId, EntityId]
+    visual_intent: str
+    visual_tags: tuple[str, ...] = ()
+
+
 class VisualDirectorContext(DomainModel):
     """Only data needed to choose visual semantics, never SD prompt material."""
 
@@ -50,6 +60,7 @@ class VisualDirectorContext(DomainModel):
     consequences: tuple[VisualDirectorConsequenceContext, ...] = ()
     focus_candidate: VisualFocusCandidate | None = None
     dialogue_cues: tuple[VisualDirectorDialogueCue, ...] = ()
+    authorized_intimacy: VisualDirectorIntimacyContext | None = None
 
 
 class VisualDirectorContextBuilder:
@@ -97,5 +108,18 @@ class VisualDirectorContextBuilder:
                     target_ids=line.target_ids,
                 )
                 for line in scene.authorized_dialogue
+            ),
+            authorized_intimacy=(
+                None
+                if scene.authorized_intimacy_visual is None
+                else VisualDirectorIntimacyContext(
+                    scope=scene.authorized_intimacy_visual.authorization.scope,
+                    participant_ids=(
+                        scene.authorized_intimacy_visual.player_id,
+                        scene.authorized_intimacy_visual.npc_id,
+                    ),
+                    visual_intent=scene.authorized_intimacy_visual.visual_intent,
+                    visual_tags=scene.authorized_intimacy_visual.visual_tags,
+                )
             ),
         )

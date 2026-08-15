@@ -6,6 +6,7 @@ from enum import StrEnum
 
 from pydantic import Field, field_validator, model_validator
 
+from epos.application.intimacy.models import ConsentScope
 from epos.domain.base import DomainModel
 from epos.domain.ids import EntityId, LocationId, SkillId
 from epos.domain.outfit import OutfitState
@@ -92,6 +93,39 @@ class ObservationIntent(DomainModel):
         return normalized
 
 
+class IntimacyRequestProposal(DomainModel):
+    """Explicit player request; it proposes no NPC consent or outcome."""
+
+    target_id: EntityId
+    scope: ConsentScope
+    visual_intent: str = Field(min_length=1, max_length=180)
+    visual_tags: tuple[str, ...] = ()
+
+    @field_validator("visual_intent")
+    @classmethod
+    def normalize_visual_intent(cls, value: str) -> str:
+        normalized = " ".join(value.strip().split())
+        if not normalized:
+            raise ValueError("intimacy visual intent must not be empty")
+        return normalized
+
+    @field_validator("visual_tags")
+    @classmethod
+    def normalize_visual_tags(cls, values: tuple[str, ...]) -> tuple[str, ...]:
+        normalized: list[str] = []
+        for value in values:
+            tag = value.strip().casefold()
+            if not tag or not all(part.isalnum() for part in tag.split("_")):
+                raise ValueError("intimacy visual tags must be stable semantic tokens")
+            if tag not in normalized:
+                normalized.append(tag)
+        return tuple(normalized)
+
+
+class ValidatedIntimacyRequest(IntimacyRequestProposal):
+    """Adult, present-target request authorized for NPC consideration by Python."""
+
+
 class ActionInterpretation(DomainModel):
     """LLM-produced semantic interpretation with no authoritative outcome fields."""
 
@@ -101,6 +135,7 @@ class ActionInterpretation(DomainModel):
     check: CheckProposal | None = None
     outfit_request: OutfitRequestProposal | None = None
     observation: ObservationIntent | None = None
+    intimacy_request: IntimacyRequestProposal | None = None
 
     @field_validator("intent")
     @classmethod
@@ -123,6 +158,7 @@ class ActionInterpreterContext(DomainModel):
     player_skill_ratings: dict[SkillId, int] = Field(default_factory=dict)
     wardrobe_options: tuple[OutfitOption, ...] = ()
     current_outfits: dict[EntityId, OutfitState] = Field(default_factory=dict)
+    adult_verified_entity_ids: tuple[EntityId, ...] = ()
 
     @classmethod
     def from_world_state(
@@ -177,6 +213,15 @@ class ActionInterpreterContext(DomainModel):
                     for npc_id in present_npcs
                 },
             },
+            adult_verified_entity_ids=tuple(
+                entity_id
+                for entity_id in (state.player.entity_id, *present_npcs)
+                if (
+                    state.player.adult_verified
+                    if entity_id == state.player.entity_id
+                    else state.npcs[entity_id].adult_verified
+                )
+            ),
         )
 
 
@@ -189,6 +234,7 @@ class ValidatedAction(DomainModel):
     check: CheckProposal | None = None
     outfit_request: ValidatedOutfitRequest | None = None
     observation: ObservationIntent | None = None
+    intimacy_request: ValidatedIntimacyRequest | None = None
     skill_rating: int | None = Field(default=None, ge=1)
 
     @model_validator(mode="after")

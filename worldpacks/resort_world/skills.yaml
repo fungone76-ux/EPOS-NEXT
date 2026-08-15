@@ -1,5 +1,30 @@
 skills:
-  - skill_id: negoziazione
-    name: Negoziazione
-    description: Social bargaining and persuasion.
-    check_intents: [persuasion, bargain]
+- skill_id: autorita
+  name: Autorita
+  check_intents:
+  - autorita
+  - authority
+  - intimidation
+- skill_id: carisma
+  name: Carisma
+  check_intents:
+  - carisma
+  - charm
+- skill_id: intuito
+  name: Intuito
+  check_intents:
+  - intuito
+  - insight
+  - observe
+- skill_id: negoziazione
+  name: Negoziazione
+  check_intents:
+  - negoziazione
+  - persuasion
+  - bargain
+- skill_id: prestanza
+  name: Prestanza
+  check_intents:
+  - prestanza
+  - athletics
+  - physical

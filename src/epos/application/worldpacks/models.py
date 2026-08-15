@@ -255,6 +255,7 @@ class WorldpackBundle(DomainModel):
         default_factory=SemanticLibraryDocument
     )
     style_library: SemanticLibraryDocument = Field(default_factory=SemanticLibraryDocument)
+    sex_library: AdultSemanticLibraryDocument | None = None
 
 
 class LoadedWorldpack(DomainModel):
@@ -270,3 +271,4 @@ class LoadedWorldpack(DomainModel):
         default_factory=SemanticLibraryDocument
     )
     style_library: SemanticLibraryDocument = Field(default_factory=SemanticLibraryDocument)
+    sex_library: AdultSemanticLibraryDocument | None = None

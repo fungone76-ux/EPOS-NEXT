@@ -13,6 +13,7 @@ from epos.application.actions.models import (
 )
 from epos.application.cognition.models import CognitionResult, CognitionScene
 from epos.application.conversation.models import NarrationResult
+from epos.application.intimacy.models import IntimacyTurnResolution
 from epos.application.memory import LongTermMemoryRecord
 from epos.application.psychology.models import PsychologyProfile
 from epos.application.state import MutationBatch
@@ -29,7 +30,7 @@ from epos.application.turn.models import (
 from epos.application.visual.bridge import VisualPipelineResources, VisualPipelineResult
 from epos.application.visual.models import ObservableSceneState
 from epos.domain.bond import BondState
-from epos.domain.ids import EntityId
+from epos.domain.ids import EntityId, TurnNumber
 from epos.domain.world_state import WorldState
 
 
@@ -97,6 +98,17 @@ class TurnCognitionPort(Protocol):
 
 class ReactionMutationPlannerPort(Protocol):
     def plan(self, reactions: tuple[CognitionResult, ...]) -> MutationBatch: ...
+
+
+class TurnIntimacyPort(Protocol):
+    def resolve(
+        self,
+        *,
+        state: WorldState,
+        action: ValidatedAction,
+        reactions: tuple[CognitionResult, ...],
+        turn: TurnNumber,
+    ) -> IntimacyTurnResolution | None: ...
 
 
 class NPCOutfitMutationPlannerPort(Protocol):

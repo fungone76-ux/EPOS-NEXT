@@ -6,6 +6,7 @@ from epos.application.visual.vst.context import (
     VisualDirectorContext,
     VisualDirectorContextBuilder,
     VisualDirectorDialogueCue,
+    VisualDirectorIntimacyContext,
     VisualDirectorSubjectContext,
 )
 from epos.application.visual.vst.models import (
@@ -45,6 +46,7 @@ __all__ = [
     "VisualDirectorContext",
     "VisualDirectorContextBuilder",
     "VisualDirectorDialogueCue",
+    "VisualDirectorIntimacyContext",
     "VisualDirectorService",
     "VisualDirectorSubjectContext",
 ]

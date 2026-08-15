@@ -3,8 +3,10 @@
 from epos.application.actions.models import (
     ActionInterpretation,
     ActionInterpreterContext,
+    IntimacyRequestProposal,
     OutfitRequestProposal,
     ValidatedAction,
+    ValidatedIntimacyRequest,
     ValidatedOutfitRequest,
 )
 from epos.domain.errors import EposValidationError
@@ -43,6 +45,12 @@ class ActionValidator:
             context=context,
             allowed_targets=allowed_targets,
         )
+        intimacy_request = self._validate_intimacy_request(
+            action.intimacy_request,
+            action=action,
+            context=context,
+            allowed_targets=allowed_targets,
+        )
 
         if (
             action.movement is not None
@@ -66,6 +74,7 @@ class ActionValidator:
                 movement=action.movement,
                 outfit_request=outfit_request,
                 observation=action.observation,
+                intimacy_request=intimacy_request,
             )
 
         skill = skills_by_id.get(action.check.skill_id)
@@ -87,8 +96,36 @@ class ActionValidator:
             check=action.check,
             outfit_request=outfit_request,
             observation=action.observation,
+            intimacy_request=intimacy_request,
             skill_rating=rating,
         )
+
+    @staticmethod
+    def _validate_intimacy_request(
+        request: IntimacyRequestProposal | None,
+        *,
+        action: ActionInterpretation,
+        context: ActionInterpreterContext,
+        allowed_targets: set[EntityId],
+    ) -> ValidatedIntimacyRequest | None:
+        if request is None:
+            return None
+        if request.target_id == context.player_id:
+            raise ActionValidationError("intimacy request must target another adult")
+        if request.target_id not in allowed_targets:
+            raise ActionValidationError(
+                f"intimacy target {request.target_id} is not present"
+            )
+        if request.target_id not in action.target_ids:
+            raise ActionValidationError("intimacy target must be included in target_ids")
+        adults = set(context.adult_verified_entity_ids)
+        if context.player_id not in adults:
+            raise ActionValidationError("player is not adult verified")
+        if request.target_id not in adults:
+            raise ActionValidationError(
+                f"intimacy target {request.target_id} is not adult verified"
+            )
+        return ValidatedIntimacyRequest.model_validate(request.model_dump(mode="python"))
 
     @staticmethod
     def _validate_outfit_request(

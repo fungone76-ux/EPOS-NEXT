@@ -1,6 +1,31 @@
 missions:
-  - mission_id: welcome
-    status: active
-    npc_ids: [victoria]
-    location_ids: [lobby]
-    required_skill_ids: [negoziazione]
+- mission_id: mission_resort_future
+  status: active
+  npc_ids:
+  - victoria
+  location_ids:
+  - loc_victoria_office
+- mission_id: mission_stella_promotion
+  status: locked
+  npc_ids:
+  - stella
+  location_ids:
+  - loc_lounge
+- mission_id: mission_maria_stability
+  status: locked
+  npc_ids:
+  - maria
+  location_ids:
+  - loc_suite
+- mission_id: mission_luna_letter
+  status: locked
+  npc_ids:
+  - luna
+  location_ids:
+  - loc_wild_beach
+- mission_id: mission_victoria_save_resort
+  status: locked
+  npc_ids:
+  - victoria
+  location_ids:
+  - loc_victoria_office

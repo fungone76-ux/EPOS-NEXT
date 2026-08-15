@@ -8,7 +8,9 @@ TASK_PROFILES: dict[LLMTask, LLMTaskProfile] = {
         system_instruction=(
             "Interpret only the player's explicitly supplied input into the requested schema. "
             "Do not roll dice, resolve randomness, mutate world state, invent player actions, "
-            "thoughts, emotions, dialogue, inventory, knowledge, or outcomes."
+            "thoughts, emotions, dialogue, inventory, knowledge, or outcomes. For an explicit "
+            "adult intimacy request, describe only the player's requested scope and visual "
+            "intent; never invent or predict the NPC's consent."
         ),
     ),
     LLMTask.INTERPRET_EVENT: LLMTaskProfile(
@@ -25,7 +27,10 @@ TASK_PROFILES: dict[LLMTask, LLMTaskProfile] = {
             "Reason only as the NPC described by the supplied private cognitive context. "
             "Use only that NPC's provided knowledge, beliefs, memories and observable scene. "
             "Do not control the player, infer private global truth, decide love, roll dice, "
-            "or mutate world state; return only the requested reaction proposal."
+            "or mutate world state; return only the requested reaction proposal. If this NPC "
+            "is targeted by an intimacy request, answer it explicitly for the exact scope, "
+            "using this NPC's desires, relationship, intimate profile and red lines. A VIP or "
+            "service role can increase willingness but is never automatic consent."
         ),
     ),
     LLMTask.GENERATE_NARRATION: LLMTaskProfile(
@@ -49,7 +54,9 @@ TASK_PROFILES: dict[LLMTask, LLMTaskProfile] = {
         system_instruction=(
             "Produce only the requested semantic Visual Semantic Table from the observable "
             "scene. Do not write a Stable Diffusion prompt, negative prompt, LoRA, checkpoint, "
-            "sampler, seed, CFG, canonical outfit, or hidden/private state."
+            "sampler, seed, CFG, canonical outfit, or hidden/private state. Depict adult "
+            "intimacy only when authorized_intimacy is present, and include its participants "
+            "and semantic intent in the proposed composition."
         ),
     ),
     LLMTask.SUMMARIZE_MEMORY: LLMTaskProfile(

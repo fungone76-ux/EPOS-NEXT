@@ -2,7 +2,7 @@
 
 from enum import StrEnum
 
-from pydantic import Field
+from pydantic import Field, model_validator
 
 from epos.domain.base import DomainModel
 from epos.domain.ids import EntityId, TurnNumber
@@ -44,6 +44,37 @@ class IntimacyAuthorization(DomainModel):
     scope: ConsentScope
     turn: TurnNumber
     reasons: tuple[str, ...] = ()
+
+
+class AuthorizedIntimacyVisual(DomainModel):
+    """Adult visual semantic authorized by two scoped, current-turn signals."""
+
+    authorization: IntimacyAuthorization
+    player_id: EntityId
+    npc_id: EntityId
+    visual_intent: str = Field(min_length=1, max_length=180)
+    visual_tags: tuple[str, ...] = ()
+
+    @model_validator(mode="after")
+    def validate_authorized(self) -> "AuthorizedIntimacyVisual":
+        if not self.authorization.allowed:
+            raise ValueError("adult visual requires an allowed intimacy authorization")
+        return self
+
+
+class IntimacyTurnResolution(DomainModel):
+    """Auditable result for one explicit player intimacy request."""
+
+    authorization: IntimacyAuthorization
+    visual: AuthorizedIntimacyVisual | None = None
+
+    @model_validator(mode="after")
+    def validate_visual_gate(self) -> "IntimacyTurnResolution":
+        if self.authorization.allowed != (self.visual is not None):
+            raise ValueError("authorized intimacy and adult visual must agree")
+        if self.visual is not None and self.visual.authorization != self.authorization:
+            raise ValueError("adult visual authorization does not match turn resolution")
+        return self
 
 
 class IntimacyEventType(StrEnum):

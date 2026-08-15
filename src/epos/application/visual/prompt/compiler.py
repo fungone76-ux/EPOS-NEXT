@@ -71,6 +71,8 @@ class SemanticPromptCompiler:
             fragments.extend(self._subject_fragments(subject, config.outfit_library))
 
         fragments.append(self._semantic_fragment(canonical_vst.action.semantic))
+        if canonical_vst.adult_action is not None:
+            fragments.append(self._semantic_fragment(canonical_vst.adult_action))
         fragments.extend(self._focus_fragments(canonical_vst))
         fragments.append(self._semantic_fragment(canonical_vst.camera.semantic))
         fragments.extend(self._lighting_fragments(canonical_vst, config))

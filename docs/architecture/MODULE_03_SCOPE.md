@@ -15,6 +15,12 @@ Implemented boundaries:
 - semantic intimacy events contain meaning and normalized intensity only;
 - Python maps semantic events to deterministic NPC intimacy deltas and clamps state to 0..10;
 - completed sexual activity can be recorded only from a valid authorization result;
+- an explicit player intimacy request and the targeted NPC's explicit response remain
+  separate typed signals until Python binds actor, partner, scope, adult status, and turn;
+- only an allowed authorization may create an `AuthorizedIntimacyVisual` for the current
+  observable scene; declined, withdrawn, missing, stale, or mismatched consent creates none;
+- the NPC's Worldpack profile, desires, relationship, and red lines guide her decision, but
+  professional role and high willingness never replace the explicit response;
 - `BondPhase` is a general emotional bond: none, forming, established, deep;
 - a later optional `LovePhase` remains separate from sexual intimacy and general bond depth.
 
@@ -26,3 +32,7 @@ Deliberately excluded:
 - off-screen NPC sexual cognition;
 - persistence/commit orchestration;
 - LLM provider calls.
+
+The visual bridge resolves the already-authorized semantic intent through the active
+Worldpack's separate `sex_library`. The Visual Director's safety label is descriptive only
+and cannot activate adult visual vocabulary by itself.

@@ -111,6 +111,7 @@ class WorldpackAssembler:
             lighting_library=bundle.lighting_library,
             location_visual_library=bundle.location_visual_library,
             style_library=bundle.style_library,
+            sex_library=bundle.sex_library,
         )
 
     @staticmethod
@@ -238,6 +239,19 @@ class WorldpackAssembler:
                     "semantic library world_id mismatch: "
                     f"{library.world_id} != {bundle.world.worldpack_id}"
                 )
+
+        adult = bundle.sex_library
+        if adult is None:
+            return
+        if adult.library_id != "sex_library":
+            raise WorldpackValidationError(
+                f"semantic library id mismatch: {adult.library_id} != sex_library"
+            )
+        if adult.world_id is not None and adult.world_id != bundle.world.worldpack_id:
+            raise WorldpackValidationError(
+                "semantic library world_id mismatch: "
+                f"{adult.world_id} != {bundle.world.worldpack_id}"
+            )
 
     @staticmethod
     def _resolve_outfit(

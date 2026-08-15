@@ -117,6 +117,11 @@ class ObservableSceneBuilder:
                 item.model_copy(deep=True) for item in observation.observable_consequences
             ),
             visual_focus_candidate=focus,
+            authorized_intimacy_visual=(
+                None
+                if observation.authorized_intimacy_visual is None
+                else observation.authorized_intimacy_visual.model_copy(deep=True)
+            ),
         )
 
     def attach_authorized_dialogue(

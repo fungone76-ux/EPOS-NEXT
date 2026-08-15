@@ -1,6 +1,52 @@
 events:
-  - event_id: arrival
-    status: pending
-    npc_ids: [victoria]
-    location_id: lobby
-    mission_id: welcome
+- event_id: event_bath_for_two
+  status: pending
+  npc_ids:
+  - maria
+  location_id: loc_suite
+- event_id: event_stella_vip_evening
+  status: pending
+  npc_ids:
+  - stella
+  - victoria
+  location_id: loc_lounge
+  mission_id: mission_stella_promotion
+- event_id: event_pool_outfit
+  status: pending
+  npc_ids:
+  - stella
+  - maria
+  - luna
+  location_id: loc_pool
+- event_id: event_contested_massage
+  status: pending
+  npc_ids:
+  - maria
+  - stella
+  location_id: loc_spa
+- event_id: event_luna_wild_beach
+  status: pending
+  npc_ids:
+  - luna
+  location_id: loc_wild_beach
+- event_id: event_victoria_private_review
+  status: pending
+  npc_ids:
+  - victoria
+  - stella
+  - maria
+  - luna
+  location_id: loc_lounge
+- event_id: event_night_service
+  status: pending
+  npc_ids:
+  - stella
+  - maria
+  - luna
+  - victoria
+  location_id: loc_suite
+- event_id: event_final_decision
+  status: pending
+  npc_ids:
+  - victoria
+  location_id: loc_victoria_office

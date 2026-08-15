@@ -276,6 +276,7 @@ class DefaultTurnSceneBuilder:
                 resolved_check=resolved_check,
                 subject_cues=resolution.subject_cues,
                 observable_consequences=resolution.observable_consequences,
+                authorized_intimacy_visual=resolution.authorized_intimacy_visual,
             ),
         )
 

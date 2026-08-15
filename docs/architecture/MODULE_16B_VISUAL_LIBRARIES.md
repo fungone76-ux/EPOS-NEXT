@@ -22,7 +22,8 @@ The LLM never writes Stable Diffusion prompt fragments directly.
 
 ## Runtime libraries
 
-The Resort Worldpack now contains seven standard visual libraries:
+The Resort Worldpack contains seven standard visual libraries plus the separately
+typed adult vocabulary:
 
 | Library | Runtime entries |
 |---|---:|
@@ -33,7 +34,8 @@ The Resort Worldpack now contains seven standard visual libraries:
 | location_visual | 9 |
 | outfit | 221 |
 | style | 8 |
-| **Total** | **592** |
+| sex (adult-only) | 151 |
+| **Total** | **743** |
 
 The repository packages the current authored payloads as deterministic `*.yaml.gz` files. `FileSystemWorldpackLoader` first checks for an uncompressed `*.yaml` file and, when none exists, falls back to `*.yaml.gz`.
 
@@ -101,9 +103,17 @@ The current Resort `victoria_jacket` remains intentionally unbound because the s
 
 ## Adult vocabulary isolation
 
-The supplied source package also contains an adult-only semantic vocabulary. Module 16B validates the concept through a separate `AdultSemanticLibraryDocument` schema with `content_rating: adult_18_plus`, but that vocabulary is deliberately **not** part of `LoadedWorldpack` and is not loaded by the standard visual pipeline.
+The supplied source package also contains an adult-only semantic vocabulary.
+`sex_library.yaml` is loaded through a separate `AdultSemanticLibraryDocument`
+field with `content_rating: adult_18_plus`; it is not merged into any of the seven
+standard visual libraries.
 
-Any future use requires a dedicated Python-authoritative intimacy/consent gate. A generic Visual Director intent, high attraction value, or `VSTSafetyIntent.INTIMATE_CONTEXT` alone can never authorize it.
+Runtime use now passes through a dedicated Python-authoritative intimacy/consent gate.
+The player must explicitly request a scoped adult action, the targeted NPC must explicitly
+grant that same scope for the current turn, and both actors must be adult-verified. Only then
+does canonicalization resolve the authorized semantic intent through `sex_library` and add its
+authored fragment to the prompt. A generic Visual Director intent, high attraction value,
+professional service role, or `VSTSafetyIntent.INTIMATE_CONTEXT` alone can never authorize it.
 
 ## Runtime verification
 
@@ -113,7 +123,9 @@ Integration tests load the real Resort Worldpack and verify:
 - exact alias uniqueness;
 - plain YAML precedence over packaged gzip;
 - rejection of a mismatched `world_id`;
-- adult vocabulary isolation from `LoadedWorldpack`;
+- adult vocabulary loading through its separate typed Worldpack field;
+- accepted consent resolving an adult semantic entry into the compiled prompt;
+- declined or missing NPC consent blocking adult visual activation even at maximum desire;
 - exact `visual_entry_id` outfit binding and fail-closed behavior;
 - resolution of common semantic intents such as `walking`, `standing relaxed`, `medium shot`, `golden hour`, `cinematic`, and `pool`;
 - actual deterministic prompt compilation from the real Resort libraries.

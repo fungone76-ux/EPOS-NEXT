@@ -10,6 +10,7 @@ from pydantic import BaseModel, ValidationError
 
 from epos.application.worldpacks.assembler import WorldpackAssembler, WorldpackValidationError
 from epos.application.worldpacks.models import (
+    AdultSemanticLibraryDocument,
     EventsDocument,
     LoadedWorldpack,
     LocationsDocument,
@@ -65,6 +66,7 @@ class FileSystemWorldpackLoader:
                 "location_visual_library.yaml",
             ),
             style_library=await self._semantic_library(root, "style_library.yaml"),
+            sex_library=await self._adult_semantic_library(root, "sex_library.yaml"),
         )
         return self._assembler.build(bundle, session_id=session_id)
 
@@ -80,6 +82,19 @@ class FileSystemWorldpackLoader:
         if await asyncio.to_thread(compressed.is_file):
             return await self._load_model(compressed, SemanticLibraryDocument)
         return SemanticLibraryDocument()
+
+    async def _adult_semantic_library(
+        self,
+        root: Path,
+        filename: str,
+    ) -> AdultSemanticLibraryDocument | None:
+        plain = root / filename
+        compressed = root / f"{filename}.gz"
+        if await asyncio.to_thread(plain.is_file):
+            return await self._load_model(plain, AdultSemanticLibraryDocument)
+        if await asyncio.to_thread(compressed.is_file):
+            return await self._load_model(compressed, AdultSemanticLibraryDocument)
+        return None
 
     async def _required(self, path: Path, model: type[ModelT]) -> ModelT:
         if not await asyncio.to_thread(path.is_file):
