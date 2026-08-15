@@ -32,6 +32,7 @@ from epos.application.turn.ports import (
     TurnPsychologyPort,
     TurnScenePort,
     TurnVisualPort,
+    TurnVisualResourcesPort,
 )
 from epos.application.turn.services import (
     DefaultReactionMutationPlanner,
@@ -40,6 +41,7 @@ from epos.application.turn.services import (
     DefaultTurnSceneBuilder,
     PythonTurnCheckResolver,
     PythonTurnPsychologyPlanner,
+    VisualTurnPipelineAdapter,
 )
 
 __all__ = [
@@ -76,4 +78,6 @@ __all__ = [
     "TurnPsychologyPort",
     "TurnScenePort",
     "TurnVisualPort",
+    "TurnVisualResourcesPort",
+    "VisualTurnPipelineAdapter",
 ]
