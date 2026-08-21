@@ -5,11 +5,7 @@ from __future__ import annotations
 from pydantic import Field
 
 from epos.application.actions.models import ResolvedCheck, ValidatedAction
-from epos.application.cognition.models import (
-    CognitionScene,
-    PrivateCognitiveContext,
-    SecretCognitiveState,
-)
+from epos.application.cognition.models import CognitionScene, PrivateCognitiveContext, SecretCognitiveState
 from epos.application.memory import MemoryRecallResult
 from epos.domain.base import DomainModel
 from epos.domain.errors import EposValidationError
@@ -35,17 +31,7 @@ class PrivateCognitiveContextBuilder:
     def __init__(self, policy: CognitionContextPolicy | None = None) -> None:
         self._policy = policy or CognitionContextPolicy()
 
-    def build(
-        self,
-        *,
-        state: WorldState,
-        npc_id: EntityId,
-        scene: CognitionScene,
-        player_input: str,
-        action: ValidatedAction,
-        recalled: MemoryRecallResult,
-        resolved_check: ResolvedCheck | None,
-    ) -> PrivateCognitiveContext:
+    def build(self, *, state: WorldState, npc_id: EntityId, scene: CognitionScene, player_input: str, action: ValidatedAction, recalled: MemoryRecallResult, resolved_check: ResolvedCheck | None) -> PrivateCognitiveContext:
         npc = state.npcs.get(npc_id)
         if npc is None:
             raise CognitionContextError(f"unknown NPC: {npc_id}")
@@ -62,6 +48,7 @@ class PrivateCognitiveContextBuilder:
             npc_name=npc.identity.name,
             role=npc.identity.role,
             player_id=state.player.entity_id,
+            character_definition=npc.character_definition.model_copy(deep=True),
             personality=npc.personality,
             speech_style=npc.speech_style,
             desires=npc.desires,
@@ -86,18 +73,11 @@ class PrivateCognitiveContextBuilder:
             action=action.model_copy(deep=True),
             resolved_check=None if resolved_check is None else resolved_check.model_copy(deep=True),
             current_outfit=npc.outfit.model_copy(deep=True),
-            available_outfit_ids=tuple(
-                outfit.outfit_id
-                for outfit in sorted(state.wardrobes.values(), key=lambda item: item.outfit_id)
-                if outfit.owner_id == npc_id
-            ),
+            available_outfit_ids=tuple(outfit.outfit_id for outfit in sorted(state.wardrobes.values(), key=lambda item: item.outfit_id) if outfit.owner_id == npc_id),
         )
 
     def _core_memories(self, npc: NPCState) -> tuple[MemoryEntryState, ...]:
-        ranked = sorted(
-            npc.core_memories,
-            key=lambda memory: (-memory.salience, -int(memory.turn), str(memory.memory_id)),
-        )
+        ranked = sorted(npc.core_memories, key=lambda memory: (-memory.salience, -int(memory.turn), str(memory.memory_id)))
         return tuple(ranked[: self._policy.core_limit])
 
     @staticmethod
@@ -106,35 +86,12 @@ class PrivateCognitiveContextBuilder:
         return None if value is None else value.model_copy(deep=True)
 
     @staticmethod
-    def _secrets(
-        npc: NPCState,
-        *,
-        state: WorldState,
-        relationship: RelationshipState,
-    ) -> tuple[SecretCognitiveState, ...]:
+    def _secrets(npc: NPCState, *, state: WorldState, relationship: RelationshipState) -> tuple[SecretCognitiveState, ...]:
         rules = {rule.secret_id: rule for rule in npc.disclosure_rules}
-        return tuple(
-            SecretCognitiveState(
-                secret_id=secret.secret_id,
-                fact=secret.fact,
-                disclosure_allowed=PrivateCognitiveContextBuilder._allowed(
-                    secret,
-                    rules.get(secret.secret_id),
-                    state=state,
-                    relationship=relationship,
-                ),
-            )
-            for secret in npc.secrets
-        )
+        return tuple(SecretCognitiveState(secret_id=secret.secret_id, fact=secret.fact, disclosure_allowed=PrivateCognitiveContextBuilder._allowed(secret, rules.get(secret.secret_id), state=state, relationship=relationship)) for secret in npc.secrets)
 
     @staticmethod
-    def _allowed(
-        secret: SecretState,
-        rule: DisclosureRule | None,
-        *,
-        state: WorldState,
-        relationship: RelationshipState,
-    ) -> bool:
+    def _allowed(secret: SecretState, rule: DisclosureRule | None, *, state: WorldState, relationship: RelationshipState) -> bool:
         del secret
         if rule is None:
             return False
