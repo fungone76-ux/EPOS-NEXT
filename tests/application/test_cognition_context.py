@@ -4,6 +4,7 @@ from epos.application.actions.models import ValidatedAction
 from epos.application.cognition.context import PrivateCognitiveContextBuilder
 from epos.application.cognition.models import CognitionScene
 from epos.application.memory import MemoryRecallResult, RankedMemory
+from epos.domain.character_definition import ConditionalBehavior, ExampleDialogue, NPCCharacterDefinition
 from epos.domain.ids import EntityId, LocationId, MemoryId, SessionId, TurnNumber, WorldpackId
 from epos.domain.knowledge import KnowledgeState
 from epos.domain.memory import MemoryEntryState, MemoryKind
@@ -38,6 +39,27 @@ def _state(*, trust: float = 6.0, unlocked: bool = False) -> WorldState:
     victoria = NPCState(
         identity=NPCIdentity(entity_id=victoria_id, name="Victoria", role="host"),
         location_id=lobby,
+        character_definition=NPCCharacterDefinition(
+            short_description="An elegant, controlled resort host.",
+            long_description="Victoria is strategic, observant, proud, and rarely impulsive.",
+            personality=("controlled", "observant", "strategic"),
+            speech_style="Precise, concise, dryly ironic; never chatty without reason.",
+            values=("self-control", "loyalty"),
+            relationship_tendencies=("Low trust makes her guarded rather than openly hostile.",),
+            conditional_behaviors=(
+                ConditionalBehavior(
+                    condition="angry",
+                    guidance=("becomes colder and shorter", "does not suddenly shout"),
+                ),
+            ),
+            example_dialogues=(
+                ExampleDialogue(
+                    player="Ti sono mancato?",
+                    npc="Non montarti la testa. Ho solo notato il silenzio.",
+                ),
+            ),
+            never_behaviors=("beg for approval",),
+        ),
         personality=("controlled", "observant"),
         speech_style="precise",
         goals=("protect the resort",),
@@ -116,6 +138,28 @@ def test_private_context_contains_only_target_npc_private_state() -> None:
     assert "Stella owns the hidden key" not in dumped
     assert context.secrets[0].secret_id == "letter"
     assert context.secrets[0].disclosure_allowed is False
+
+
+def test_character_definition_is_available_to_npc_reasoning() -> None:
+    context = PrivateCognitiveContextBuilder().build(
+        state=_state(),
+        npc_id=EntityId("victoria"),
+        scene=CognitionScene(
+            location_id=LocationId("lobby"),
+            present_entity_ids=(EntityId("player"), EntityId("victoria")),
+            summary="Lobby.",
+        ),
+        player_input="Ti sono mancato?",
+        action=ValidatedAction(intent="dialogue", target_ids=(EntityId("victoria"),)),
+        recalled=MemoryRecallResult(query_text="mancato", memories=()),
+        resolved_check=None,
+    )
+
+    definition = context.character_definition
+    assert definition.short_description == "An elegant, controlled resort host."
+    assert definition.example_dialogues[0].npc.startswith("Non montarti la testa")
+    assert definition.conditional_behaviors[0].condition == "angry"
+    assert definition.never_behaviors == ("beg for approval",)
 
 
 def test_disclosure_permission_is_python_derived_from_flags_and_relationship() -> None:
