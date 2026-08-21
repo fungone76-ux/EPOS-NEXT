@@ -12,6 +12,7 @@ from epos.application.intimacy.models import ConsentScope, ConsentStatus
 from epos.application.memory import RankedMemory
 from epos.domain.base import DomainModel
 from epos.domain.bond import BondState
+from epos.domain.character_definition import NPCCharacterDefinition
 from epos.domain.ids import EntityId, LocationId, MemoryId
 from epos.domain.intimacy import IntimacyState
 from epos.domain.knowledge import KnowledgeState
@@ -55,6 +56,7 @@ class PrivateCognitiveContext(DomainModel):
     npc_name: str
     role: str
     player_id: EntityId
+    character_definition: NPCCharacterDefinition = Field(default_factory=NPCCharacterDefinition)
     personality: tuple[str, ...] = ()
     speech_style: str = ""
     desires: tuple[str, ...] = ()
@@ -128,108 +130,31 @@ class GeneratedOutfitProposal(DomainModel):
     """Creative outfit draft that becomes canonical only after Python validation."""
 
     name: str = Field(min_length=1, max_length=100)
-    tags: tuple[SemanticToken, ...] = Field(default=(), max_length=12)
     items: tuple[GeneratedOutfitItemProposal, ...] = Field(min_length=1, max_length=12)
-
-    @field_validator("name")
-    @classmethod
-    def normalize_name(cls, value: str) -> str:
-        return " ".join(value.split())
-
-    @field_validator("tags")
-    @classmethod
-    def normalize_tags(cls, values: tuple[str, ...]) -> tuple[str, ...]:
-        return tuple(
-            dict.fromkeys(
-                _normalize_token(value, field_name="generated outfit tag") for value in values
-            )
-        )
-
-
-class NPCOutfitRequestResponse(DomainModel):
-    """NPC decision about a player request; it is not a state mutation."""
-
-    disposition: OutfitRequestDisposition
-    selected_outfit_id: str | None = None
-    generated_outfit: GeneratedOutfitProposal | None = None
-
-
-class NPCOutfitAction(DomainModel):
-    """Structured in-scene outfit action proposed by the NPC."""
-
-    requested_state: str
-    outfit_id: str | None = None
-    item_ids: tuple[str, ...] = ()
-
-    @field_validator("requested_state")
-    @classmethod
-    def normalize_requested_state(cls, value: str) -> str:
-        normalized = value.strip().casefold()
-        if normalized not in {"wear_outfit", "remove_items", "rewear_items"}:
-            raise ValueError("unsupported NPC outfit action")
-        return normalized
-
-
-class NPCIntimacyResponse(DomainModel):
-    """The NPC's explicit scoped answer; Python binds actors and turn later."""
-
-    scope: ConsentScope
-    status: ConsentStatus
+    rationale: str = Field(default="", max_length=300)
 
 
 class NPCReactionProposal(DomainModel):
-    """Token-only semantic LLM proposal; it has no player-facing prose channel."""
+    """Bounded semantic proposal from NPC reasoning; Python validates authority."""
 
     npc_id: EntityId
-    intent: SemanticToken
-    speech_act: SemanticToken
-    topic_tags: tuple[SemanticToken, ...] = ()
-    emotional_tone: tuple[SemanticToken, ...] = ()
-    action_intent: SemanticToken | None = None
-    target_ids: tuple[EntityId, ...] = ()
+    speech: str = ""
+    observable_behavior: tuple[str, ...] = ()
+    semantic_intents: tuple[SemanticToken, ...] = ()
     referenced_memory_ids: tuple[MemoryId, ...] = ()
-    requested_secret_disclosures: tuple[str, ...] = ()
-    outfit_request_response: NPCOutfitRequestResponse | None = None
-    autonomous_outfit_action: NPCOutfitAction | None = None
-    intimacy_response: NPCIntimacyResponse | None = None
+    referenced_secret_ids: tuple[str, ...] = ()
+    proposed_outfit_id: str | None = None
+    proposed_outfit: GeneratedOutfitProposal | None = None
+    outfit_request_disposition: OutfitRequestDisposition | None = None
+    consent_scope: ConsentScope | None = None
+    consent_status: ConsentStatus | None = None
+    consent_reason: str | None = None
 
-    @field_validator("intent", "speech_act")
+    @field_validator("semantic_intents")
     @classmethod
-    def semantic_token(cls, value: str) -> str:
-        return _normalize_token(value, field_name="reaction token")
-
-    @field_validator("action_intent")
-    @classmethod
-    def optional_semantic_token(cls, value: str | None) -> str | None:
-        if value is None:
-            return None
-        return _normalize_token(value, field_name="action_intent")
-
-    @field_validator("topic_tags", "emotional_tone")
-    @classmethod
-    def semantic_token_tuple(cls, values: tuple[str, ...]) -> tuple[str, ...]:
-        return tuple(_normalize_token(value, field_name="reaction tag") for value in values)
-
-
-class ValidatedNPCReaction(DomainModel):
-    """Python-authorized semantic reaction for later narration/mutation stages."""
-
-    npc_id: EntityId
-    intent: str
-    speech_act: str
-    topic_tags: tuple[str, ...] = ()
-    emotional_tone: tuple[str, ...] = ()
-    action_intent: str | None = None
-    target_ids: tuple[EntityId, ...] = ()
-    referenced_memory_ids: tuple[MemoryId, ...] = ()
-    authorized_secret_disclosures: tuple[str, ...] = ()
-    outfit_request_response: NPCOutfitRequestResponse | None = None
-    autonomous_outfit_action: NPCOutfitAction | None = None
-    intimacy_response: NPCIntimacyResponse | None = None
-
-
-class CognitionResult(DomainModel):
-    """Safe result leaving cognition; private context itself is deliberately not exposed."""
-
-    reaction: ValidatedNPCReaction
-    recalled_memory_ids: tuple[MemoryId, ...] = ()
+    def normalize_semantic_intents(cls, values: tuple[str, ...]) -> tuple[str, ...]:
+        return tuple(
+            dict.fromkeys(
+                _normalize_token(value, field_name="semantic intent") for value in values
+            )
+        )
