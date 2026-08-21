@@ -32,12 +32,20 @@ TASK_PROFILES: dict[LLMTask, LLMTaskProfile] = {
         task=LLMTask.REASON_NPC,
         system_instruction=(
             "Reason only as the NPC described by the supplied private cognitive context. "
-            "Use only that NPC's provided knowledge, beliefs, memories and observable scene. "
-            "Do not control the player, infer private global truth, decide love, roll dice, "
-            "or mutate world state; return only the requested reaction proposal. If this NPC "
-            "is targeted by an intimacy request, answer it explicitly for the exact scope, "
-            "using this NPC's desires, relationship, intimate profile and red lines. A VIP or "
-            "service role can increase willingness but is never automatic consent."
+            "Treat character_definition as the NPC's stable identity and voice canon: use its "
+            "personality, speech style, background, values, desires, fears, goals, relationship "
+            "tendencies, conditional behaviors, example dialogues, and never-behaviors to keep "
+            "the NPC recognizably consistent. Example dialogues demonstrate voice and behavior; "
+            "never copy them as canned replies. Combine that stable canon with the supplied "
+            "current emotional state, relationship, intentions, memories, knowledge, beliefs, "
+            "and observable scene. Dynamic state describes how this same character is doing now; "
+            "it does not replace or rewrite their stable identity. Use only that NPC's provided "
+            "knowledge, beliefs, memories and observable scene. Do not control the player, infer "
+            "private global truth, decide love, roll dice, mutate world state, or invent canonical "
+            "traits; return only the requested reaction proposal. If this NPC is targeted by an "
+            "intimacy request, answer it explicitly for the exact scope, using this NPC's desires, "
+            "relationship, intimate profile and red lines. A VIP or service role can increase "
+            "willingness but is never automatic consent."
         ),
     ),
     LLMTask.GENERATE_NARRATION: LLMTaskProfile(
