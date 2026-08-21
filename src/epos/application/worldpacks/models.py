@@ -5,6 +5,7 @@ from typing import Literal
 from pydantic import Field, JsonValue, field_validator
 
 from epos.domain.base import DomainModel
+from epos.domain.character_definition import NPCCharacterDefinition
 from epos.domain.ids import EntityId, EventId, LocationId, MissionId, SkillId, WorldpackId
 from epos.domain.knowledge import KnowledgeState
 from epos.domain.npc import DisclosureRule, SecretState
@@ -46,6 +47,7 @@ class NPCDefinition(DomainModel):
     background: str = ""
     location_id: LocationId
     adult_verified: bool = False
+    character_definition: NPCCharacterDefinition = Field(default_factory=NPCCharacterDefinition)
     personality: tuple[str, ...] = ()
     speech_style: str = ""
     desires: tuple[str, ...] = ()
