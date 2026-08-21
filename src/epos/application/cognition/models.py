@@ -34,6 +34,7 @@ def _normalize_token(value: str, *, field_name: str) -> str:
 
 class CognitionScene(DomainModel):
     """Only facts observable in the current local scene."""
+
     location_id: LocationId
     present_entity_ids: tuple[EntityId, ...] = ()
     observable_facts: tuple[str, ...] = ()
@@ -42,6 +43,7 @@ class CognitionScene(DomainModel):
 
 class SecretCognitiveState(DomainModel):
     """A secret known privately by the NPC plus Python-derived disclosure permission."""
+
     secret_id: str
     fact: str
     disclosure_allowed: bool
@@ -49,6 +51,7 @@ class SecretCognitiveState(DomainModel):
 
 class PrivateCognitiveContext(DomainModel):
     """Private NPC-only reasoning context; never a player-facing narration contract."""
+
     npc_id: EntityId
     npc_name: str
     role: str
@@ -89,6 +92,7 @@ class OutfitRequestDisposition(StrEnum):
 
 class GeneratedOutfitItemProposal(DomainModel):
     """One bounded visual garment proposed by cognition for a missing outfit."""
+
     name: str = Field(min_length=1, max_length=80)
     slot: SemanticToken
     layer: int = Field(ge=0, le=100)
@@ -114,11 +118,17 @@ class GeneratedOutfitItemProposal(DomainModel):
     @field_validator("coverage")
     @classmethod
     def normalize_coverage(cls, values: tuple[str, ...]) -> tuple[str, ...]:
-        return tuple(dict.fromkeys(_normalize_token(value, field_name="generated outfit coverage") for value in values))
+        return tuple(
+            dict.fromkeys(
+                _normalize_token(value, field_name="generated outfit coverage")
+                for value in values
+            )
+        )
 
 
 class GeneratedOutfitProposal(DomainModel):
     """Creative outfit draft that becomes canonical only after Python validation."""
+
     name: str = Field(min_length=1, max_length=100)
     tags: tuple[SemanticToken, ...] = Field(default=(), max_length=12)
     items: tuple[GeneratedOutfitItemProposal, ...] = Field(min_length=1, max_length=12)
@@ -131,11 +141,16 @@ class GeneratedOutfitProposal(DomainModel):
     @field_validator("tags")
     @classmethod
     def normalize_tags(cls, values: tuple[str, ...]) -> tuple[str, ...]:
-        return tuple(dict.fromkeys(_normalize_token(value, field_name="generated outfit tag") for value in values))
+        return tuple(
+            dict.fromkeys(
+                _normalize_token(value, field_name="generated outfit tag") for value in values
+            )
+        )
 
 
 class NPCOutfitRequestResponse(DomainModel):
     """NPC decision about a player request; it is not a state mutation."""
+
     disposition: OutfitRequestDisposition
     selected_outfit_id: str | None = None
     generated_outfit: GeneratedOutfitProposal | None = None
@@ -143,6 +158,7 @@ class NPCOutfitRequestResponse(DomainModel):
 
 class NPCOutfitAction(DomainModel):
     """Structured in-scene outfit action proposed by the NPC."""
+
     requested_state: str
     outfit_id: str | None = None
     item_ids: tuple[str, ...] = ()
@@ -158,12 +174,14 @@ class NPCOutfitAction(DomainModel):
 
 class NPCIntimacyResponse(DomainModel):
     """The NPC's explicit scoped answer; Python binds actors and turn later."""
+
     scope: ConsentScope
     status: ConsentStatus
 
 
 class NPCReactionProposal(DomainModel):
     """Token-only semantic LLM proposal; it has no player-facing prose channel."""
+
     npc_id: EntityId
     intent: SemanticToken
     speech_act: SemanticToken
@@ -197,6 +215,7 @@ class NPCReactionProposal(DomainModel):
 
 class ValidatedNPCReaction(DomainModel):
     """Python-authorized semantic reaction for later narration/mutation stages."""
+
     npc_id: EntityId
     intent: str
     speech_act: str
@@ -213,5 +232,6 @@ class ValidatedNPCReaction(DomainModel):
 
 class CognitionResult(DomainModel):
     """Safe result leaving cognition; private context itself is deliberately not exposed."""
+
     reaction: ValidatedNPCReaction
     recalled_memory_ids: tuple[MemoryId, ...] = ()
