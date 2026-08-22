@@ -23,6 +23,7 @@ _CAMERA_FALLBACK_PRIORITY = (
     "close_up",
     "wide_shot",
 )
+_NON_BLOCKING_LIBRARIES = frozenset({"style", "lighting"})
 
 
 class SemanticResolverProtocol(Protocol):
@@ -129,6 +130,9 @@ class SemanticLibraryResolver:
             scored.append((score, entry))
 
         if not scored:
+            aesthetic = self._aesthetic_fallback(library, library_name)
+            if aesthetic is not None:
+                return aesthetic
             raise SemanticLibraryResolutionError(
                 f"no match in {library_name} library for semantic intent"
             )
@@ -138,11 +142,34 @@ class SemanticLibraryResolver:
         if len(best) != 1:
             if library_name == "camera":
                 return self._resolved(self._camera_fallback(library.entries))
+            if library_name in _NON_BLOCKING_LIBRARIES:
+                return self._resolved(min(best, key=lambda entry: entry.entry_id.casefold()))
             ids = ", ".join(sorted(entry.entry_id for entry in best))
             raise SemanticLibraryResolutionError(
                 f"ambiguous {library_name} library match: {ids}"
             )
         return self._resolved(best[0])
+
+    def _aesthetic_fallback(
+        self,
+        library: SemanticLibraryDocument,
+        library_name: str,
+    ) -> ResolvedSemanticEntry | None:
+        if library_name not in _NON_BLOCKING_LIBRARIES or not library.entries:
+            return None
+        preferred_tokens = (
+            ("neutral", "natural", "cinematic", "realistic")
+            if library_name == "style"
+            else ("natural", "ambient", "soft", "neutral")
+        )
+        for token in preferred_tokens:
+            for entry in library.entries:
+                authored = " ".join(
+                    (entry.entry_id, entry.description, *entry.aliases, *entry.tags)
+                ).casefold()
+                if token in authored:
+                    return self._resolved(entry)
+        return self._resolved(min(library.entries, key=lambda entry: entry.entry_id.casefold()))
 
     @classmethod
     def _camera_fallback(
@@ -153,10 +180,7 @@ class SemanticLibraryResolver:
             raise SemanticLibraryResolutionError(
                 "cannot choose camera fallback from an empty library"
             )
-        normalized = {
-            entry.entry_id.strip().casefold(): entry
-            for entry in entries
-        }
+        normalized = {entry.entry_id.strip().casefold(): entry for entry in entries}
         for preferred in _CAMERA_FALLBACK_PRIORITY:
             entry = normalized.get(preferred)
             if entry is not None:
@@ -178,6 +202,10 @@ class SemanticLibraryResolver:
         match_kind: str,
     ) -> ResolvedSemanticEntry:
         if len(entries) != 1:
+            if library_name == "camera":
+                return self._resolved(self._camera_fallback(entries))
+            if library_name in _NON_BLOCKING_LIBRARIES:
+                return self._resolved(min(entries, key=lambda entry: entry.entry_id.casefold()))
             ids = ", ".join(sorted(entry.entry_id for entry in entries))
             raise SemanticLibraryResolutionError(
                 f"ambiguous {library_name} {match_kind} match: {ids}"
