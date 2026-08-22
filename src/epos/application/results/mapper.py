@@ -2,7 +2,11 @@
 
 from __future__ import annotations
 
-from epos.application.conversation.models import NPCDialogueDraft, WorldNarrationDraft
+from epos.application.conversation.models import (
+    NarrationResult,
+    NPCDialogueDraft,
+    WorldNarrationDraft,
+)
 from epos.application.results.models import (
     TurnCheckResult,
     TurnDiagnostics,
@@ -24,7 +28,7 @@ class TurnResultMapper:
         return TurnResult(
             session_id=result.committed_state.session_id,
             turn_number=result.committed_state.turn_number,
-            narration=TurnResultMapper._world_narration(result),
+            narration=TurnResultMapper._world_narration(result.narration),
             dialogues=tuple(
                 TurnDialogueLine(speaker_id=unit.speaker_id, text=unit.text)
                 for unit in result.narration.units
@@ -51,12 +55,12 @@ class TurnResultMapper:
         )
 
     @staticmethod
-    def _world_narration(result: TurnOrchestrationResult) -> str:
+    def _world_narration(narration: NarrationResult) -> str:
         """Expose world prose separately from NPC dialogue for presentation adapters."""
 
         return "\n".join(
             unit.text
-            for unit in result.narration.units
+            for unit in narration.units
             if isinstance(unit, WorldNarrationDraft)
         )
 
