@@ -52,7 +52,6 @@ class ObservableSceneBuilder:
         self._validate_resolved_check(observation)
 
         rendered_npc_ids = self._rendered_npc_ids(
-            state=state,
             observation=observation,
             local_npc_ids=local_npc_ids,
         )
@@ -169,7 +168,6 @@ class ObservableSceneBuilder:
     @staticmethod
     def _rendered_npc_ids(
         *,
-        state: WorldState,
         observation: SceneObservationInput,
         local_npc_ids: tuple[EntityId, ...],
     ) -> tuple[EntityId, ...]:
@@ -185,9 +183,17 @@ class ObservableSceneBuilder:
             observed = observation.action.observation.subject_id
             if observed in local:
                 relevant.add(observed)
-        relevant.update(cue.entity_id for cue in observation.subject_cues if cue.entity_id in local)
+        relevant.update(
+            cue.entity_id
+            for cue in observation.subject_cues
+            if cue.entity_id in local
+        )
         for consequence in observation.observable_consequences:
-            relevant.update(subject_id for subject_id in consequence.subject_ids if subject_id in local)
+            relevant.update(
+                subject_id
+                for subject_id in consequence.subject_ids
+                if subject_id in local
+            )
         intimacy = observation.authorized_intimacy_visual
         if intimacy is not None and intimacy.npc_id in local:
             relevant.add(intimacy.npc_id)
