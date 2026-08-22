@@ -24,7 +24,7 @@ from epos.application.conversation.models import (
     NarrationProposal,
     NPCNarrationVoice,
 )
-from epos.application.conversation.narration import NarrationService
+from epos.application.conversation.narration import NarrationComposer, NarrationOrderCanonicalizer
 from epos.application.conversation.validation import NarrationValidator
 from epos.application.visual.models import (
     ObservableSceneState,
@@ -254,12 +254,10 @@ async def _run() -> None:
         runtime=runtime,
     )
     reaction_validator = NPCReactionValidator()
-    narration_service = NarrationService(
-        port=narration_port,
-        audit_port=audit_port,
-        validator=NarrationValidator(),
-        audit_validator=NarrationAuditValidator(),
-    )
+    narration_validator = NarrationValidator()
+    audit_validator = NarrationAuditValidator()
+    canonicalizer = NarrationOrderCanonicalizer()
+    composer = NarrationComposer()
 
     for name, raw_id in (("Victoria", "victoria"), ("Stella", "stella")):
         npc_id = EntityId(raw_id)
@@ -271,21 +269,36 @@ async def _run() -> None:
             npc_id=npc_id,
             reaction=reaction,
         )
-        narration_result = await narration_service.generate(narration_context)
+        narration_proposal = await narration_port.invoke(narration_context)
+        canonical = canonicalizer.canonicalize(narration_proposal, narration_context)
+        validated_narration = narration_validator.validate(canonical, narration_context)
+        audit_context = NarrationAuditContext(
+            narration_context=narration_context,
+            candidate=validated_narration,
+        )
+        audit = await audit_port.invoke(audit_context)
 
         print(f"\n=== {name} ===")
         print("Reaction proposal JSON:")
         print(reaction_proposal.model_dump_json(indent=2))
         print("Validated reaction JSON:")
         print(reaction.model_dump_json(indent=2))
-        print("Validated narration units JSON:")
-        print(
-            "[\n"
-            + ",\n".join(unit.model_dump_json(indent=2) for unit in narration_result.units)
-            + "\n]"
-        )
+        print("Narration proposal JSON:")
+        print(narration_proposal.model_dump_json(indent=2))
+        print("Canonical narration JSON:")
+        print(canonical.model_dump_json(indent=2))
+        print("Audit JSON:")
+        print(audit.model_dump_json(indent=2))
+
+        try:
+            audit_validator.validate(audit, validated_narration)
+        except Exception as exc:
+            print("AUDIT REJECTED:")
+            print(str(exc))
+            continue
+
         print("FINAL TEXT:")
-        print(narration_result.text)
+        print(composer.compose(validated_narration, narration_context))
 
 
 if __name__ == "__main__":
