@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
-from epos.application.visual.canonical.errors import VisualCanonicalizationError
+from epos.application.visual.canonical.errors import (
+    SemanticLibraryResolutionError,
+    VisualCanonicalizationError,
+)
 from epos.application.visual.canonical.library import (
     SemanticLibraryResolver,
     SemanticResolverProtocol,
@@ -27,6 +30,22 @@ from epos.application.worldpacks.models import (
 )
 from epos.domain.ids import EntityId
 
+_SOCIAL_ACTION_INTENTS = frozenset(
+    {
+        "answer",
+        "ask",
+        "brief_social",
+        "conversation",
+        "dialogue",
+        "greet",
+        "greeting",
+        "small_talk",
+        "social",
+        "speak",
+        "talk",
+    }
+)
+
 
 class VisualCanonicalizer:
     """Replace LLM visual proposals with current scene and Worldpack truth."""
@@ -50,6 +69,7 @@ class VisualCanonicalizer:
         player_observation = (
             requested_focus is not None and requested_focus.reason == "player_observation"
         )
+        social_turn = self._is_social_action(scene.resolved_action.action.intent)
         self._validate_subject_references(
             raw_vst=raw_vst,
             visible_ids=set(visible_by_id),
@@ -72,6 +92,7 @@ class VisualCanonicalizer:
                 observable=observable,
                 proposed=raw_by_id[observable.entity_id],
                 worldpack=worldpack,
+                allow_social_action_fallback=social_turn,
             )
             for observable in scene.visible_subjects
             if observable.entity_id in rendered_ids
@@ -80,10 +101,10 @@ class VisualCanonicalizer:
 
         action = CanonicalAction(
             participants=self._order_ids(raw_vst.action.participants, subject_order),
-            semantic=self._resolver.resolve(
+            semantic=self._resolve_scene_action(
                 raw_vst.action.intent,
                 worldpack.action_library,
-                library_name="action",
+                allow_social_fallback=social_turn,
             ),
             shared=raw_vst.action.shared,
         )
@@ -159,6 +180,49 @@ class VisualCanonicalizer:
             style=raw_vst.style.model_copy(deep=True),
             safety=raw_vst.safety.model_copy(deep=True),
         )
+
+    def _resolve_scene_action(
+        self,
+        intent: SemanticIntent,
+        library: SemanticLibraryDocument,
+        *,
+        allow_social_fallback: bool,
+    ) -> ResolvedSemanticEntry:
+        try:
+            return self._resolver.resolve(intent, library, library_name="action")
+        except SemanticLibraryResolutionError:
+            if not allow_social_fallback:
+                raise
+            return self._neutral_social_action()
+
+    def _resolve_optional_action(
+        self,
+        intent: SemanticIntent | None,
+        library: SemanticLibraryDocument,
+        *,
+        allow_social_fallback: bool,
+    ) -> ResolvedSemanticEntry | None:
+        if intent is None:
+            return None
+        try:
+            return self._resolver.resolve(intent, library, library_name="action")
+        except SemanticLibraryResolutionError:
+            if not allow_social_fallback:
+                raise
+            return None
+
+    @staticmethod
+    def _neutral_social_action() -> ResolvedSemanticEntry:
+        return ResolvedSemanticEntry(
+            entry_id="no_specific_physical_action",
+            description="",
+            tags=("social", "neutral"),
+            positive_fragment="",
+        )
+
+    @staticmethod
+    def _is_social_action(intent: str) -> bool:
+        return intent.strip().casefold() in _SOCIAL_ACTION_INTENTS
 
     def _authorized_adult_action(
         self,
@@ -262,6 +326,7 @@ class VisualCanonicalizer:
         observable: ObservableSubject,
         proposed: VSTSubjectIntent,
         worldpack: LoadedWorldpack,
+        allow_social_action_fallback: bool,
     ) -> CanonicalSubject:
         visual = worldpack.visual.characters.get(observable.entity_id)
         if visual is None:
@@ -284,10 +349,10 @@ class VisualCanonicalizer:
                 worldpack.pose_library,
                 library_name="pose",
             ),
-            action=self._resolve_optional(
+            action=self._resolve_optional_action(
                 proposed.action,
                 worldpack.action_library,
-                library_name="action",
+                allow_social_fallback=allow_social_action_fallback,
             ),
             body_orientation=self._resolve_optional(
                 proposed.body_orientation,
