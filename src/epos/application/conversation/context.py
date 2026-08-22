@@ -154,7 +154,7 @@ class NarrationContextBuilder:
             raise NarrationContextError("narration scene does not match player location")
 
         subjects = {subject.entity_id: subject for subject in scene.visible_subjects}
-        expected_ids = {
+        local_ids = {
             state.player.entity_id,
             *(
                 npc_id
@@ -162,26 +162,37 @@ class NarrationContextBuilder:
                 if npc.location_id == state.player.location_id
             ),
         }
-        if set(subjects) != expected_ids:
+        subject_ids = set(subjects)
+        if state.player.entity_id not in subject_ids:
+            raise NarrationContextError("player is missing from narration scene")
+        invalid_subject_ids = subject_ids - local_ids
+        if invalid_subject_ids:
+            invalid_id = min(invalid_subject_ids, key=str)
             raise NarrationContextError(
-                "narration scene visible subjects do not match authoritative local presence"
+                f"narration scene contains subject outside authoritative local presence: {invalid_id}"
             )
 
         player_subject = subjects[state.player.entity_id]
         if player_subject.kind is not SubjectKind.PLAYER:
             raise NarrationContextError("player is not marked as player in narration scene")
+        expected_player_name = state.player.name.strip()
+        if expected_player_name.casefold() in {"protagonista", "player", "giocatore"}:
+            expected_player_name = "player"
         if (
-            player_subject.name != state.player.name
+            player_subject.name != expected_player_name
             or player_subject.outfit != state.player.outfit
             or player_subject.visual_state != state.player.visual_state
         ):
             raise NarrationContextError("player observable state is not authoritative")
 
-        for npc_id in sorted(state.npcs, key=str):
-            npc = state.npcs[npc_id]
-            if npc.location_id != state.player.location_id:
+        for npc_id, subject in subjects.items():
+            if npc_id == state.player.entity_id:
                 continue
-            subject = subjects[npc_id]
+            npc = state.npcs.get(npc_id)
+            if npc is None or npc.location_id != state.player.location_id:
+                raise NarrationContextError(
+                    f"visible NPC {npc_id} is not in authoritative local presence"
+                )
             if subject.kind is not SubjectKind.NPC:
                 raise NarrationContextError(f"visible NPC {npc_id} has invalid subject kind")
             if (
@@ -262,8 +273,7 @@ class NarrationContextBuilder:
             evidence.append(
                 NarrationEvidence(
                     evidence_id=(
-                        "scene:consequence:"
-                        f"{NarrationContextBuilder._part(consequence.consequence_id)}"
+                        f"scene:consequence:{NarrationContextBuilder._part(consequence.consequence_id)}"
                     ),
                     kind=NarrationEvidenceKind.OBSERVABLE,
                     text=consequence.fact,
@@ -276,34 +286,36 @@ class NarrationContextBuilder:
         state: WorldState,
         reaction: ValidatedNPCReaction,
     ) -> list[NarrationEvidence]:
-        result = [
+        evidence = [
             NarrationEvidence(
                 evidence_id=f"reaction:{NarrationContextBuilder._part(reaction.npc_id)}",
                 kind=NarrationEvidenceKind.NPC_REACTION,
+                text=reaction.model_dump_json(),
                 owner_id=reaction.npc_id,
-                text=NarrationContextBuilder._reaction_text(reaction),
             )
         ]
-        npc = state.npcs[reaction.npc_id]
-        secrets = {secret.secret_id: secret for secret in npc.secrets}
         for secret_id in reaction.authorized_secret_disclosures:
-            secret = secrets.get(secret_id)
+            npc = state.npcs[reaction.npc_id]
+            secret = next(
+                (item for item in npc.secrets if item.secret_id == secret_id),
+                None,
+            )
             if secret is None:
                 raise NarrationContextError(
-                    f"authorized disclosure references unknown secret {secret_id}"
+                    f"authorized secret is missing from NPC state: {secret_id}"
                 )
-            result.append(
+            evidence.append(
                 NarrationEvidence(
                     evidence_id=(
                         f"npc:{NarrationContextBuilder._part(reaction.npc_id)}:secret:"
                         f"{NarrationContextBuilder._part(secret_id)}"
                     ),
                     kind=NarrationEvidenceKind.AUTHORIZED_SECRET,
-                    owner_id=reaction.npc_id,
                     text=secret.fact,
+                    owner_id=reaction.npc_id,
                 )
             )
-        return result
+        return evidence
 
     @staticmethod
     def _knowledge_evidence(
@@ -312,35 +324,41 @@ class NarrationContextBuilder:
         reactions_by_npc: dict[EntityId, ValidatedNPCReaction],
         selections: tuple[NarrationKnowledgeSelection, ...],
     ) -> list[NarrationEvidence]:
-        result: list[NarrationEvidence] = []
+        evidence: list[NarrationEvidence] = []
         for selection in selections:
             if selection.npc_id not in reactions_by_npc:
                 raise NarrationContextError(
-                    f"knowledge selection owner {selection.npc_id} has no authorized reaction"
+                    f"knowledge selection has no authorized reaction: {selection.npc_id}"
                 )
             npc = state.npcs[selection.npc_id]
-            container = NarrationContextBuilder._knowledge_container(
-                npc,
-                selection.source,
+            source = (
+                npc.knowledge
+                if selection.source is NarrationKnowledgeSource.KNOWLEDGE
+                else npc.beliefs
             )
-            kind = NarrationContextBuilder._knowledge_kind(selection.source)
+            kind = (
+                NarrationEvidenceKind.NPC_KNOWLEDGE
+                if selection.source is NarrationKnowledgeSource.KNOWLEDGE
+                else NarrationEvidenceKind.NPC_BELIEF
+            )
             for key in selection.keys:
-                if key not in container.facts:
+                value = source.facts.get(key)
+                if value is None:
                     raise NarrationContextError(
-                        f"unknown {selection.source} key {key} for NPC {selection.npc_id}"
+                        f"selected NPC knowledge is missing: {selection.npc_id}:{key}"
                     )
-                result.append(
+                evidence.append(
                     NarrationEvidence(
                         evidence_id=(
                             f"npc:{NarrationContextBuilder._part(selection.npc_id)}:"
                             f"{selection.source.value}:{NarrationContextBuilder._part(key)}"
                         ),
                         kind=kind,
+                        text=value,
                         owner_id=selection.npc_id,
-                        text=NarrationContextBuilder._json_text(container.facts[key]),
                     )
                 )
-        return result
+        return evidence
 
     @staticmethod
     def _memory_evidence(
@@ -348,91 +366,41 @@ class NarrationContextBuilder:
         reactions_by_npc: dict[EntityId, ValidatedNPCReaction],
         memories: tuple[NarratableMemory, ...],
     ) -> list[NarrationEvidence]:
-        result: list[NarrationEvidence] = []
+        evidence: list[NarrationEvidence] = []
         for item in memories:
             reaction = reactions_by_npc.get(item.owner_id)
-            if reaction is None:
+            if reaction is None or item.memory.memory_id not in reaction.referenced_memory_ids:
                 raise NarrationContextError(
-                    f"memory owner {item.owner_id} has no authorized reaction"
+                    f"narratable memory is not authorized by reaction: {item.owner_id}"
                 )
-            if item.memory.memory_id not in reaction.referenced_memory_ids:
-                raise NarrationContextError(
-                    f"memory {item.memory.memory_id} is not referenced by the authorized reaction"
-                )
-            result.append(
+            evidence.append(
                 NarrationEvidence(
                     evidence_id=(
                         f"npc:{NarrationContextBuilder._part(item.owner_id)}:memory:"
                         f"{NarrationContextBuilder._part(item.memory.memory_id)}"
                     ),
                     kind=NarrationEvidenceKind.NPC_MEMORY,
-                    owner_id=item.owner_id,
                     text=item.memory.summary,
+                    owner_id=item.owner_id,
                 )
             )
-        return result
+        return evidence
 
     @staticmethod
     def _voice(npc: NPCState, player_id: EntityId) -> NPCNarrationVoice:
         relationship = npc.relationships.get(player_id, RelationshipState())
-        definition = npc.character_definition
-        personality = definition.personality or npc.personality
-        speech_style = definition.speech_style or npc.speech_style
         return NPCNarrationVoice(
             npc_id=npc.identity.entity_id,
             name=npc.identity.name,
-            personality=personality,
-            speech_style=speech_style,
+            personality=npc.personality,
+            speech_style=npc.speech_style,
             emotional_state=npc.emotional_state.model_copy(deep=True),
             relationship_with_player=relationship.model_copy(deep=True),
-        )
-
-    @staticmethod
-    def _knowledge_container(
-        npc: NPCState,
-        source: NarrationKnowledgeSource,
-    ) -> KnowledgeState:
-        if source is NarrationKnowledgeSource.KNOWLEDGE:
-            return npc.knowledge
-        if source is NarrationKnowledgeSource.BELIEF:
-            return npc.beliefs
-        if source is NarrationKnowledgeSource.FALSE_BELIEF:
-            return npc.false_beliefs
-        return npc.discoveries
-
-    @staticmethod
-    def _knowledge_kind(source: NarrationKnowledgeSource) -> NarrationEvidenceKind:
-        if source is NarrationKnowledgeSource.KNOWLEDGE:
-            return NarrationEvidenceKind.NPC_KNOWLEDGE
-        if source is NarrationKnowledgeSource.BELIEF:
-            return NarrationEvidenceKind.NPC_BELIEF
-        if source is NarrationKnowledgeSource.FALSE_BELIEF:
-            return NarrationEvidenceKind.NPC_FALSE_BELIEF
-        return NarrationEvidenceKind.NPC_DISCOVERY
-
-    @staticmethod
-    def _reaction_text(reaction: ValidatedNPCReaction) -> str:
-        parts = [
-            f"intent={reaction.intent}",
-            f"speech_act={reaction.speech_act}",
-        ]
-        if reaction.topic_tags:
-            parts.append(f"topics={','.join(reaction.topic_tags)}")
-        if reaction.emotional_tone:
-            parts.append(f"tone={','.join(reaction.emotional_tone)}")
-        if reaction.action_intent is not None:
-            parts.append(f"action_intent={reaction.action_intent}")
-        return "; ".join(parts)
-
-    @staticmethod
-    def _json_text(value: JsonValue) -> str:
-        if isinstance(value, str):
-            return value
-        return json.dumps(
-            value,
-            ensure_ascii=False,
-            sort_keys=True,
-            separators=(",", ":"),
+            character_definition=(
+                None
+                if npc.character_definition is None
+                else npc.character_definition.model_copy(deep=True)
+            ),
         )
 
     @staticmethod
