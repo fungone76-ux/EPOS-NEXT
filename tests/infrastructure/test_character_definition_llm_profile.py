@@ -22,3 +22,20 @@ def test_narration_profile_keeps_private_npc_evidence_out_of_world_narration() -
     assert "WorldNarrationDraft" in instruction
     assert "observable, player-declaration, action-result, or check-result evidence" in instruction
     assert "target NPC dialogue must be the first unit" in instruction
+
+
+def test_narration_profile_forbids_unsupported_autobiographical_claims() -> None:
+    instruction = TASK_PROFILES[LLMTask.GENERATE_NARRATION].system_instruction
+
+    assert "rhetorical questions" in instruction
+    assert "unsupported past events" in instruction
+    assert "personal history" in instruction
+
+
+def test_audit_profile_distinguishes_rhetoric_from_unsupported_facts() -> None:
+    instruction = TASK_PROFILES[LLMTask.AUDIT_NARRATION].system_instruction
+
+    assert "rhetorical questions" in instruction
+    assert "do not classify" in instruction
+    assert "unsupported factual assertion" in instruction
+    assert "unsupported_world_claim" in instruction
