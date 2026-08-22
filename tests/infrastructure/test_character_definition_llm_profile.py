@@ -28,8 +28,10 @@ def test_narration_profile_forbids_unsupported_autobiographical_claims() -> None
     instruction = TASK_PROFILES[LLMTask.GENERATE_NARRATION].system_instruction
 
     assert "rhetorical questions" in instruction
-    assert "unsupported past events" in instruction
+    assert "past conduct" in instruction
     assert "personal history" in instruction
+    assert "autobiographical" in instruction
+    assert "general principles" in instruction
 
 
 def test_audit_profile_distinguishes_rhetoric_from_unsupported_facts() -> None:
@@ -37,7 +39,8 @@ def test_audit_profile_distinguishes_rhetoric_from_unsupported_facts() -> None:
 
     assert "rhetorical questions" in instruction
     assert "normative statements" in instruction
-    assert "Non possiamo permetterci ambiguità" in instruction
-    assert "Perché mai dovresti fidarti di me?" in instruction
-    assert "Ho sempre agito con trasparenza" in instruction
+    assert "aphorisms" in instruction
+    assert "general principles" in instruction
+    assert "unsupported_npc_fact" in instruction
     assert "unsupported_world_claim" in instruction
+    assert "past conduct" in instruction
