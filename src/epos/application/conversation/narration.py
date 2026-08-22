@@ -11,6 +11,7 @@ from epos.application.conversation.models import (
     NarrationProposal,
     NarrationRepairFeedback,
     NarrationResult,
+    NarrationViolationKind,
     NPCDialogueDraft,
     ValidatedNarration,
     WorldNarrationDraft,
@@ -143,6 +144,11 @@ class NarrationService:
                     candidate=validated.model_copy(deep=True),
                 )
                 audit = await self._audit_port.invoke(audit_context)
+                if (
+                    attempt + 1 == _MAX_NARRATION_ATTEMPTS
+                    and self._only_soft_npc_fact_findings(audit)
+                ):
+                    return self._result(validated, context)
                 self._audit_validator.validate(audit, validated)
             except NarrationValidationError as exc:
                 last_error = exc
@@ -171,6 +177,13 @@ class NarrationService:
         if last_error is None:
             raise RuntimeError("narration recovery exhausted without a result")
         return self._fallback_or_raise(context, last_error)
+
+    @staticmethod
+    def _only_soft_npc_fact_findings(audit: NarrationAuditProposal) -> bool:
+        return bool(audit.findings) and all(
+            finding.kind is NarrationViolationKind.UNSUPPORTED_NPC_FACT
+            for finding in audit.findings
+        )
 
     def _fallback_or_raise(
         self,
