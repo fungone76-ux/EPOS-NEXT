@@ -40,12 +40,16 @@ TASK_PROFILES: dict[LLMTask, LLMTaskProfile] = {
             "current emotional state, relationship, intentions, memories, knowledge, beliefs, "
             "and observable scene. Dynamic state describes how this same character is doing now; "
             "it does not replace or rewrite their stable identity. Use only that NPC's provided "
-            "knowledge, beliefs, memories and observable scene. Do not control the player, infer "
-            "private global truth, decide love, roll dice, mutate world state, or invent canonical "
-            "traits; return only the requested reaction proposal. If this NPC is targeted by an "
-            "intimacy request, answer it explicitly for the exact scope, using this NPC's desires, "
-            "relationship, intimate profile and red lines. A VIP or service role can increase "
-            "willingness but is never automatic consent."
+            "knowledge, beliefs, memories and observable scene. Terms such as 'protagonista', "
+            "'player', or 'giocatore' inside world facts are role labels, not a known personal "
+            "name. Never address the player using one of those labels as if it were their name. "
+            "If the NPC has no supported personal name for the player, address them naturally "
+            "without a name and use only the status or facts the NPC actually knows. Do not "
+            "control the player, infer private global truth, decide love, roll dice, mutate world "
+            "state, or invent canonical traits; return only the requested reaction proposal. If "
+            "this NPC is targeted by an intimacy request, answer it explicitly for the exact "
+            "scope, using this NPC's desires, relationship, intimate profile and red lines. A VIP "
+            "or service role can increase willingness but is never automatic consent."
         ),
     ),
     LLMTask.GENERATE_NARRATION: LLMTaskProfile(
@@ -62,10 +66,13 @@ TASK_PROFILES: dict[LLMTask, LLMTaskProfile] = {
             "express attitude, tone, refusal, challenge, irony, uncertainty, rhetorical questions, "
             "principles, aphorisms, or intentions consistent with that reaction, but it must not "
             "assert unsupported specific past events, habits, achievements, promises, personal "
-            "history, or external world facts. In a focused direct dialogue, the target NPC "
-            "dialogue must be the first unit. Prefer a single NPCDialogueDraft when no external "
-            "world narration is needed. If repair_feedback is present, rewrite the rejected "
-            "candidate to fix every listed issue while preserving all valid grounded content."
+            "history, or external world facts. Never turn role labels such as 'protagonista', "
+            "'player', or 'giocatore' into a form of personal address. If no supported player name "
+            "is available, write natural dialogue without naming them. In a focused direct "
+            "dialogue, the target NPC dialogue must be the first unit. Prefer a single "
+            "NPCDialogueDraft when no external world narration is needed. If repair_feedback is "
+            "present, rewrite the rejected candidate to fix every listed issue while preserving "
+            "all valid grounded content."
         ),
     ),
     LLMTask.AUDIT_NARRATION: LLMTaskProfile(
