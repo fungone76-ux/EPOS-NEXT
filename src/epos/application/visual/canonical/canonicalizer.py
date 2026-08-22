@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
-from epos.application.visual.canonical.errors import VisualCanonicalizationError
+from epos.application.visual.canonical.errors import (
+    SemanticLibraryResolutionError,
+    VisualCanonicalizationError,
+)
 from epos.application.visual.canonical.library import (
     SemanticLibraryResolver,
     SemanticResolverProtocol,
@@ -187,7 +190,12 @@ class VisualCanonicalizer:
     ) -> ResolvedSemanticEntry:
         if allow_social_fallback:
             return self._neutral_social_action()
-        return self._resolver.resolve(intent, library, library_name="action")
+        try:
+            return self._resolver.resolve(intent, library, library_name="action")
+        except SemanticLibraryResolutionError as exc:
+            if self._is_no_match_error(exc):
+                return self._neutral_social_action()
+            raise
 
     def _resolve_optional_action(
         self,
@@ -198,7 +206,16 @@ class VisualCanonicalizer:
     ) -> ResolvedSemanticEntry | None:
         if intent is None or allow_social_fallback:
             return None
-        return self._resolver.resolve(intent, library, library_name="action")
+        try:
+            return self._resolver.resolve(intent, library, library_name="action")
+        except SemanticLibraryResolutionError as exc:
+            if self._is_no_match_error(exc):
+                return None
+            raise
+
+    @staticmethod
+    def _is_no_match_error(error: SemanticLibraryResolutionError) -> bool:
+        return str(error).startswith("no match in action library")
 
     @staticmethod
     def _neutral_social_action() -> ResolvedSemanticEntry:
