@@ -25,6 +25,18 @@ class _AmbiguousActionResolver:
         )
 
 
+class _NoMatchActionResolver:
+    def resolve(self, intent, library, *, library_name):
+        del intent, library
+        raise SemanticLibraryResolutionError(
+            f"no match in {library_name} library for semantic intent"
+        )
+
+    def resolve_components(self, intents, library, *, library_name):
+        del intents, library
+        raise AssertionError(f"unexpected {library_name} component resolution")
+
+
 class _HandshakeResolver:
     def resolve(self, intent, library, *, library_name):
         del intent, library, library_name
@@ -73,6 +85,19 @@ def test_social_greeting_does_not_resolve_to_handshake_even_when_library_can_mat
     assert resolved.positive_fragment == ""
 
 
+def test_unmatched_scene_action_keeps_rendering_with_neutral_visual_action() -> None:
+    canonicalizer = VisualCanonicalizer(resolver=_NoMatchActionResolver())
+
+    resolved = canonicalizer._resolve_scene_action(
+        SemanticIntent(description="player says they hope to relax at the resort"),
+        SemanticLibraryDocument(),
+        allow_social_fallback=False,
+    )
+
+    assert resolved.entry_id == "no_specific_physical_action"
+    assert resolved.positive_fragment == ""
+
+
 def test_ambiguous_social_subject_action_is_dropped() -> None:
     canonicalizer = VisualCanonicalizer(resolver=_AmbiguousActionResolver())
 
@@ -92,6 +117,18 @@ def test_social_subject_action_is_dropped_even_when_it_matches_physical_library(
         SemanticIntent(description="shakes the player's hand"),
         SemanticLibraryDocument(),
         allow_social_fallback=True,
+    )
+
+    assert resolved is None
+
+
+def test_unmatched_subject_action_is_dropped_instead_of_blocking_render() -> None:
+    canonicalizer = VisualCanonicalizer(resolver=_NoMatchActionResolver())
+
+    resolved = canonicalizer._resolve_optional_action(
+        SemanticIntent(description="Luna listens to the guest"),
+        SemanticLibraryDocument(),
+        allow_social_fallback=False,
     )
 
     assert resolved is None
