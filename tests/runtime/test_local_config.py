@@ -43,8 +43,8 @@ def test_local_settings_use_canonical_image_defaults(tmp_path: Path) -> None:
     settings = load_local_settings(root, environ={})
 
     profile = settings.prompt_profile
-    assert profile.width == 896
-    assert profile.height == 1152
+    assert profile.width == 768
+    assert profile.height == 1024
     assert profile.sampler == "DPM++ 2M"
     assert profile.scheduler == "Karras"
     assert profile.steps == 24
@@ -57,6 +57,8 @@ def test_local_settings_allow_explicit_image_profile_overrides(tmp_path: Path) -
     settings = load_local_settings(
         root,
         environ={
+            "EPOS_IMAGE_WIDTH": "832",
+            "EPOS_IMAGE_HEIGHT": "1088",
             "EPOS_IMAGE_SAMPLER": "Euler a",
             "EPOS_IMAGE_SCHEDULER": "Automatic",
             "EPOS_IMAGE_STEPS": "30",
@@ -65,6 +67,8 @@ def test_local_settings_allow_explicit_image_profile_overrides(tmp_path: Path) -
     )
 
     profile = settings.prompt_profile
+    assert profile.width == 832
+    assert profile.height == 1088
     assert profile.sampler == "Euler a"
     assert profile.scheduler == "Automatic"
     assert profile.steps == 30
