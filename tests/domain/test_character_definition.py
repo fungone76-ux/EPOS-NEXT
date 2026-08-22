@@ -1,7 +1,11 @@
 import pytest
 from pydantic import ValidationError
 
-from epos.domain.character_definition import ConditionalBehavior, ExampleDialogue, NPCCharacterDefinition
+from epos.domain.character_definition import (
+    ConditionalBehavior,
+    ExampleDialogue,
+    NPCCharacterDefinition,
+)
 
 
 def test_character_definition_keeps_voice_examples_and_behavior_rules() -> None:
@@ -9,8 +13,18 @@ def test_character_definition_keeps_voice_examples_and_behavior_rules() -> None:
         short_description="Controlled and incisive resort executive.",
         personality=("controlled", "strategic"),
         speech_style="Concise, dry, never melodramatic.",
-        conditional_behaviors=(ConditionalBehavior(condition="angry", guidance=("becomes colder", "does not shout")),),
-        example_dialogues=(ExampleDialogue(player="Are you angry?", npc="No. Don't make me reconsider."),),
+        conditional_behaviors=(
+            ConditionalBehavior(
+                condition="angry",
+                guidance=("becomes colder", "does not shout"),
+            ),
+        ),
+        example_dialogues=(
+            ExampleDialogue(
+                player="Are you angry?",
+                npc="No. Don't make me reconsider.",
+            ),
+        ),
         never_behaviors=("beg for approval",),
     )
 
