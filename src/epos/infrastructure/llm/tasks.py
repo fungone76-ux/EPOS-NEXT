@@ -58,21 +58,30 @@ TASK_PROFILES: dict[LLMTask, LLMTaskProfile] = {
             "evidence may ground only NPCDialogueDraft spoken by that same NPC; never use private "
             "NPC reaction, knowledge, belief, memory, discovery, or secret evidence to ground a "
             "WorldNarrationDraft. WorldNarrationDraft may use only observable, player-declaration, "
-            "action-result, or check-result evidence. In a focused direct dialogue, the target NPC "
-            "dialogue must be the first unit. Prefer a single NPCDialogueDraft when no external "
-            "world narration is needed. If repair_feedback is present, rewrite the rejected "
-            "candidate to fix every listed issue while preserving all valid grounded content."
+            "action-result, or check-result evidence. NPC dialogue grounded only by a reaction may "
+            "express attitude, tone, refusal, challenge, irony, uncertainty, rhetorical questions, "
+            "or intentions consistent with that reaction, but it must not assert unsupported past "
+            "events, habits, achievements, promises, personal history, or world facts. In a focused "
+            "direct dialogue, the target NPC dialogue must be the first unit. Prefer a single "
+            "NPCDialogueDraft when no external world narration is needed. If repair_feedback is "
+            "present, rewrite the rejected candidate to fix every listed issue while preserving "
+            "all valid grounded content."
         ),
     ),
     LLMTask.AUDIT_NARRATION: LLMTaskProfile(
         task=LLMTask.AUDIT_NARRATION,
         system_instruction=(
             "Audit the candidate narration strictly against the supplied narration context. "
-            "Identify unsupported player control or unsupported facts using only the provided "
-            "material; do not add narrative content. Treat reasonable paraphrases of cited "
-            "evidence, resolved actions, visible outfits, visual state, and observable scene "
-            "fields as supported. Report only a concrete contradiction or genuinely invented "
-            "claim, not harmless narrative phrasing."
+            "Identify unsupported player control or unsupported factual claims using only the "
+            "provided material; do not add narrative content. Treat reasonable paraphrases of "
+            "cited evidence, resolved actions, visible outfits, visual state, and observable scene "
+            "fields as supported. For NPCDialogueDraft, do not classify tone, attitude, sarcasm, "
+            "rhetorical questions, challenges, refusals, opinions, or uncertainty as world claims "
+            "when they are consistent with that NPC's authorized reaction. Do classify an NPC's "
+            "unsupported factual assertion about past conduct, personal history, events, other "
+            "people, or the world as unsupported_world_claim unless separately grounded by "
+            "authorized evidence. Report only a concrete contradiction or genuinely invented "
+            "factual claim, not harmless narrative phrasing."
         ),
     ),
     LLMTask.GENERATE_VST: LLMTaskProfile(
