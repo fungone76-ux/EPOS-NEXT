@@ -12,3 +12,13 @@ def test_reason_npc_profile_treats_character_definition_as_stable_canon() -> Non
     assert "does not replace or rewrite their stable identity" in instruction
     assert "Do not control the player" in instruction
     assert "decide love" in instruction
+
+
+def test_narration_profile_keeps_private_npc_evidence_out_of_world_narration() -> None:
+    instruction = TASK_PROFILES[LLMTask.GENERATE_NARRATION].system_instruction
+
+    assert "NPC_REACTION evidence may ground only NPCDialogueDraft" in instruction
+    assert "same NPC" in instruction
+    assert "WorldNarrationDraft" in instruction
+    assert "observable, player-declaration, action-result, or check-result evidence" in instruction
+    assert "target NPC dialogue must be the first unit" in instruction
