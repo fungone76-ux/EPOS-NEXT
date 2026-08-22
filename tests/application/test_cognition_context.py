@@ -4,7 +4,11 @@ from epos.application.actions.models import ValidatedAction
 from epos.application.cognition.context import PrivateCognitiveContextBuilder
 from epos.application.cognition.models import CognitionScene
 from epos.application.memory import MemoryRecallResult, RankedMemory
-from epos.domain.character_definition import ConditionalBehavior, ExampleDialogue, NPCCharacterDefinition
+from epos.domain.character_definition import (
+    ConditionalBehavior,
+    ExampleDialogue,
+    NPCCharacterDefinition,
+)
 from epos.domain.ids import EntityId, LocationId, MemoryId, SessionId, TurnNumber, WorldpackId
 from epos.domain.knowledge import KnowledgeState
 from epos.domain.memory import MemoryEntryState, MemoryKind
