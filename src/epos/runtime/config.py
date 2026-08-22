@@ -13,6 +13,8 @@ from epos.application.visual.prompt import PromptCompilerProfile
 from epos.domain.base import DomainModel
 from epos.domain.errors import ConfigurationError
 
+_CANONICAL_IMAGE_WIDTH = 768
+_CANONICAL_IMAGE_HEIGHT = 1024
 _CANONICAL_IMAGE_SAMPLER = "DPM++ 2M"
 _CANONICAL_IMAGE_SCHEDULER = "Karras"
 _CANONICAL_IMAGE_STEPS = 24
@@ -57,8 +59,18 @@ def load_local_settings(
     profile = PromptCompilerProfile(
         quality_layer=_csv(merged.get("EPOS_IMAGE_QUALITY_LAYER", "masterpiece,best quality")),
         checkpoint=_optional(merged.get("EPOS_IMAGE_CHECKPOINT")),
-        width=_integer(merged, "EPOS_IMAGE_WIDTH", 896, minimum=64),
-        height=_integer(merged, "EPOS_IMAGE_HEIGHT", 1152, minimum=64),
+        width=_integer(
+            merged,
+            "EPOS_IMAGE_WIDTH",
+            _CANONICAL_IMAGE_WIDTH,
+            minimum=64,
+        ),
+        height=_integer(
+            merged,
+            "EPOS_IMAGE_HEIGHT",
+            _CANONICAL_IMAGE_HEIGHT,
+            minimum=64,
+        ),
         sampler=_optional(merged.get("EPOS_IMAGE_SAMPLER")) or _CANONICAL_IMAGE_SAMPLER,
         scheduler=(
             _optional(merged.get("EPOS_IMAGE_SCHEDULER")) or _CANONICAL_IMAGE_SCHEDULER
