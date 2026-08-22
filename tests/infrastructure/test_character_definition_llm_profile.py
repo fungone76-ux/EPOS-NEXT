@@ -14,6 +14,15 @@ def test_reason_npc_profile_treats_character_definition_as_stable_canon() -> Non
     assert "decide love" in instruction
 
 
+def test_reason_npc_profile_never_turns_role_labels_into_player_names() -> None:
+    instruction = TASK_PROFILES[LLMTask.REASON_NPC].system_instruction
+
+    assert "role labels" in instruction
+    assert "protagonista" in instruction
+    assert "not a known personal name" in instruction
+    assert "without a name" in instruction
+
+
 def test_narration_profile_keeps_private_npc_evidence_out_of_world_narration() -> None:
     instruction = TASK_PROFILES[LLMTask.GENERATE_NARRATION].system_instruction
 
@@ -33,6 +42,15 @@ def test_narration_profile_forbids_unsupported_autobiographical_claims() -> None
     assert "unsupported specific past events" in instruction
     assert "personal history" in instruction
     assert "external world facts" in instruction
+
+
+def test_narration_profile_never_uses_role_label_as_direct_address() -> None:
+    instruction = TASK_PROFILES[LLMTask.GENERATE_NARRATION].system_instruction
+
+    assert "role labels" in instruction
+    assert "protagonista" in instruction
+    assert "personal address" in instruction
+    assert "without naming them" in instruction
 
 
 def test_audit_profile_distinguishes_rhetoric_from_unsupported_facts() -> None:
