@@ -24,7 +24,7 @@ from epos.application.conversation.models import (
     NarrationProposal,
     NPCNarrationVoice,
 )
-from epos.application.conversation.narration import NarrationComposer
+from epos.application.conversation.narration import NarrationService
 from epos.application.conversation.validation import NarrationValidator
 from epos.application.visual.models import (
     ObservableSceneState,
@@ -254,9 +254,12 @@ async def _run() -> None:
         runtime=runtime,
     )
     reaction_validator = NPCReactionValidator()
-    narration_validator = NarrationValidator()
-    audit_validator = NarrationAuditValidator()
-    composer = NarrationComposer()
+    narration_service = NarrationService(
+        port=narration_port,
+        audit_port=audit_port,
+        validator=NarrationValidator(),
+        audit_validator=NarrationAuditValidator(),
+    )
 
     for name, raw_id in (("Victoria", "victoria"), ("Stella", "stella")):
         npc_id = EntityId(raw_id)
@@ -268,30 +271,21 @@ async def _run() -> None:
             npc_id=npc_id,
             reaction=reaction,
         )
-        narration_proposal = await narration_port.invoke(narration_context)
-        validated_narration = narration_validator.validate(
-            narration_proposal,
-            narration_context,
-        )
-        audit_context = NarrationAuditContext(
-            narration_context=narration_context,
-            candidate=validated_narration,
-        )
-        audit = await audit_port.invoke(audit_context)
-        audit_validator.validate(audit, validated_narration)
-        text = composer.compose(validated_narration, narration_context)
+        narration_result = await narration_service.generate(narration_context)
 
         print(f"\n=== {name} ===")
         print("Reaction proposal JSON:")
         print(reaction_proposal.model_dump_json(indent=2))
         print("Validated reaction JSON:")
         print(reaction.model_dump_json(indent=2))
-        print("Narration proposal JSON:")
-        print(narration_proposal.model_dump_json(indent=2))
-        print("Audit JSON:")
-        print(audit.model_dump_json(indent=2))
+        print("Validated narration units JSON:")
+        print(
+            "[\n"
+            + ",\n".join(unit.model_dump_json(indent=2) for unit in narration_result.units)
+            + "\n]"
+        )
         print("FINAL TEXT:")
-        print(text)
+        print(narration_result.text)
 
 
 if __name__ == "__main__":
