@@ -375,11 +375,14 @@ class NarrationContextBuilder:
     @staticmethod
     def _voice(npc: NPCState, player_id: EntityId) -> NPCNarrationVoice:
         relationship = npc.relationships.get(player_id, RelationshipState())
+        definition = npc.character_definition
+        personality = definition.personality or npc.personality
+        speech_style = definition.speech_style or npc.speech_style
         return NPCNarrationVoice(
             npc_id=npc.identity.entity_id,
             name=npc.identity.name,
-            personality=npc.personality,
-            speech_style=npc.speech_style,
+            personality=personality,
+            speech_style=speech_style,
             emotional_state=npc.emotional_state.model_copy(deep=True),
             relationship_with_player=relationship.model_copy(deep=True),
         )
@@ -433,11 +436,11 @@ class NarrationContextBuilder:
         )
 
     @staticmethod
-    def _part(value: object) -> str:
-        return quote(str(value), safe="._-")
-
-    @staticmethod
     def _ensure_unique_evidence(evidence: list[NarrationEvidence]) -> None:
         ids = [item.evidence_id for item in evidence]
         if len(ids) != len(set(ids)):
-            raise NarrationContextError("duplicate narration evidence id")
+            raise NarrationContextError("narration evidence ids must be unique")
+
+    @staticmethod
+    def _part(value: object) -> str:
+        return quote(str(value), safe="")
