@@ -15,6 +15,14 @@ from epos.application.worldpacks.models import (
 )
 
 _WORD = re.compile(r"[a-z0-9]+")
+_CAMERA_FALLBACK_PRIORITY = (
+    "medium_eye_level",
+    "medium_shot",
+    "medium",
+    "waist_up",
+    "close_up",
+    "wide_shot",
+)
 
 
 class SemanticResolverProtocol(Protocol):
@@ -128,11 +136,32 @@ class SemanticLibraryResolver:
         best_score = max(score for score, _entry in scored)
         best = [entry for score, entry in scored if score == best_score]
         if len(best) != 1:
+            if library_name == "camera":
+                return self._resolved(self._camera_fallback(library.entries))
             ids = ", ".join(sorted(entry.entry_id for entry in best))
             raise SemanticLibraryResolutionError(
                 f"ambiguous {library_name} library match: {ids}"
             )
         return self._resolved(best[0])
+
+    @classmethod
+    def _camera_fallback(
+        cls,
+        entries: Sequence[SemanticLibraryEntry],
+    ) -> SemanticLibraryEntry:
+        if not entries:
+            raise SemanticLibraryResolutionError(
+                "cannot choose camera fallback from an empty library"
+            )
+        normalized = {
+            entry.entry_id.strip().casefold(): entry
+            for entry in entries
+        }
+        for preferred in _CAMERA_FALLBACK_PRIORITY:
+            entry = normalized.get(preferred)
+            if entry is not None:
+                return entry
+        return min(entries, key=lambda entry: entry.entry_id.strip().casefold())
 
     @classmethod
     def _words(cls, value: str) -> set[str]:
