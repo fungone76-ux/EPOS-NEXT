@@ -54,9 +54,14 @@ TASK_PROFILES: dict[LLMTask, LLMTaskProfile] = {
             "Generate narration only from the validated facts and authorized NPC material in "
             "the supplied context. Do not invent player thoughts, emotions, dialogue, actions "
             "or decisions, and do not introduce new authoritative world facts. A reasonable "
-            "paraphrase of cited evidence or observable scene fields is allowed. If "
-            "repair_feedback is present, rewrite the rejected candidate to fix every listed "
-            "issue while preserving all valid grounded content."
+            "paraphrase of cited evidence or observable scene fields is allowed. NPC_REACTION "
+            "evidence may ground only NPCDialogueDraft spoken by that same NPC; never use private "
+            "NPC reaction, knowledge, belief, memory, discovery, or secret evidence to ground a "
+            "WorldNarrationDraft. WorldNarrationDraft may use only observable, player-declaration, "
+            "action-result, or check-result evidence. In a focused direct dialogue, the target NPC "
+            "dialogue must be the first unit. Prefer a single NPCDialogueDraft when no external "
+            "world narration is needed. If repair_feedback is present, rewrite the rejected "
+            "candidate to fix every listed issue while preserving all valid grounded content."
         ),
     ),
     LLMTask.AUDIT_NARRATION: LLMTaskProfile(
