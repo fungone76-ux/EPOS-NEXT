@@ -39,10 +39,11 @@ npcs:
     negoziazione: 4
   knowledge:
     facts:
-      knowledge_1: Il debito bancario scade durante il settimo giorno.
-      knowledge_2: Stella vuole una promozione internazionale.
-      knowledge_3: Maria desidera un contratto stabile.
-      knowledge_4: Luna conserva qualcosa che non ha ancora mostrato.
+      knowledge_1: Il protagonista è un cliente VIP eccezionalmente importante.
+      knowledge_2: Il debito bancario scade durante il settimo giorno.
+      knowledge_3: Stella vuole una promozione internazionale.
+      knowledge_4: Maria desidera un contratto stabile.
+      knowledge_5: Luna conserva qualcosa che non ha ancora mostrato.
       age: 39
       disclosure_policy: Non rivelare il debito prima del relativo evento; non dichiarare desideri o consenso degli altri
         NPC.

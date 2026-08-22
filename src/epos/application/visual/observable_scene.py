@@ -18,6 +18,8 @@ from epos.application.visual.models import (
 from epos.domain.ids import EntityId, SceneId
 from epos.domain.world_state import WorldState
 
+_PLAYER_ROLE_LABELS = frozenset({"protagonista", "player", "giocatore"})
+
 
 class ObservableSceneBuilder:
     """Build one local scene without exposing private WorldState information."""
@@ -34,7 +36,7 @@ class ObservableSceneBuilder:
                 f"player location is not defined: {state.player.location_id}"
             )
 
-        visible_npc_ids = tuple(
+        local_npc_ids = tuple(
             sorted(
                 (
                     npc_id
@@ -44,10 +46,16 @@ class ObservableSceneBuilder:
                 key=str,
             )
         )
-        visible_ids = {state.player.entity_id, *visible_npc_ids}
-        cues = self._validate_cues(observation=observation, visible_ids=visible_ids)
-        self._validate_consequences(observation=observation, visible_ids=visible_ids)
+        local_ids = {state.player.entity_id, *local_npc_ids}
+        cues = self._validate_cues(observation=observation, visible_ids=local_ids)
+        self._validate_consequences(observation=observation, visible_ids=local_ids)
         self._validate_resolved_check(observation)
+
+        rendered_npc_ids = self._rendered_npc_ids(
+            observation=observation,
+            local_npc_ids=local_npc_ids,
+        )
+        rendered_ids = {state.player.entity_id, *rendered_npc_ids}
 
         subjects = [
             self._player_subject(
@@ -55,7 +63,7 @@ class ObservableSceneBuilder:
                 cue=cues.get(state.player.entity_id),
             )
         ]
-        for npc_id in visible_npc_ids:
+        for npc_id in rendered_npc_ids:
             npc = state.npcs[npc_id]
             cue = cues.get(npc_id)
             subjects.append(
@@ -83,7 +91,7 @@ class ObservableSceneBuilder:
             focus_ids = tuple(
                 target_id
                 for target_id in observation.action.target_ids
-                if target_id in visible_ids
+                if target_id in rendered_ids
             )
             focus = (
                 VisualFocusCandidate(subject_ids=focus_ids, reason="action_target")
@@ -158,15 +166,55 @@ class ObservableSceneBuilder:
         return ObservableSceneState.model_validate(payload)
 
     @staticmethod
+    def _rendered_npc_ids(
+        *,
+        observation: SceneObservationInput,
+        local_npc_ids: tuple[EntityId, ...],
+    ) -> tuple[EntityId, ...]:
+        """Choose image subjects without confusing co-location with composition relevance."""
+
+        local = set(local_npc_ids)
+        relevant: set[EntityId] = {
+            target_id
+            for target_id in observation.action.target_ids
+            if target_id in local
+        }
+        if observation.action.observation is not None:
+            observed = observation.action.observation.subject_id
+            if observed in local:
+                relevant.add(observed)
+        relevant.update(
+            cue.entity_id
+            for cue in observation.subject_cues
+            if cue.entity_id in local
+        )
+        for consequence in observation.observable_consequences:
+            relevant.update(
+                subject_id
+                for subject_id in consequence.subject_ids
+                if subject_id in local
+            )
+        intimacy = observation.authorized_intimacy_visual
+        if intimacy is not None and intimacy.npc_id in local:
+            relevant.add(intimacy.npc_id)
+
+        if not relevant:
+            return local_npc_ids
+        return tuple(npc_id for npc_id in local_npc_ids if npc_id in relevant)
+
+    @staticmethod
     def _player_subject(
         *,
         state: WorldState,
         cue: SceneSubjectCue | None,
     ) -> ObservableSubject:
+        player_name = state.player.name.strip()
+        if player_name.casefold() in _PLAYER_ROLE_LABELS or not player_name:
+            player_name = "player"
         return ObservableSubject(
             entity_id=state.player.entity_id,
             kind=SubjectKind.PLAYER,
-            name=state.player.name,
+            name=player_name,
             role="player",
             outfit=state.player.outfit.model_copy(deep=True),
             visual_state=state.player.visual_state.model_copy(deep=True),

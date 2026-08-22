@@ -62,6 +62,7 @@ class PrivateCognitiveContextBuilder:
             npc_name=npc.identity.name,
             role=npc.identity.role,
             player_id=state.player.entity_id,
+            character_definition=npc.character_definition.model_copy(deep=True),
             personality=npc.personality,
             speech_style=npc.speech_style,
             desires=npc.desires,

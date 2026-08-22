@@ -13,6 +13,13 @@ from epos.application.visual.prompt import PromptCompilerProfile
 from epos.domain.base import DomainModel
 from epos.domain.errors import ConfigurationError
 
+_CANONICAL_IMAGE_WIDTH = 768
+_CANONICAL_IMAGE_HEIGHT = 1024
+_CANONICAL_IMAGE_SAMPLER = "DPM++ 2M"
+_CANONICAL_IMAGE_SCHEDULER = "Karras"
+_CANONICAL_IMAGE_STEPS = 24
+_CANONICAL_IMAGE_CFG = 7.0
+
 
 class LocalRuntimeSettings(DomainModel):
     project_root: Path
@@ -52,12 +59,34 @@ def load_local_settings(
     profile = PromptCompilerProfile(
         quality_layer=_csv(merged.get("EPOS_IMAGE_QUALITY_LAYER", "masterpiece,best quality")),
         checkpoint=_optional(merged.get("EPOS_IMAGE_CHECKPOINT")),
-        width=_integer(merged, "EPOS_IMAGE_WIDTH", 896, minimum=64),
-        height=_integer(merged, "EPOS_IMAGE_HEIGHT", 1152, minimum=64),
-        sampler=_optional(merged.get("EPOS_IMAGE_SAMPLER")),
-        scheduler=_optional(merged.get("EPOS_IMAGE_SCHEDULER")),
-        steps=_optional_integer(merged, "EPOS_IMAGE_STEPS", minimum=1),
-        cfg=_optional_float(merged, "EPOS_IMAGE_CFG", minimum=0.0),
+        width=_integer(
+            merged,
+            "EPOS_IMAGE_WIDTH",
+            _CANONICAL_IMAGE_WIDTH,
+            minimum=64,
+        ),
+        height=_integer(
+            merged,
+            "EPOS_IMAGE_HEIGHT",
+            _CANONICAL_IMAGE_HEIGHT,
+            minimum=64,
+        ),
+        sampler=_optional(merged.get("EPOS_IMAGE_SAMPLER")) or _CANONICAL_IMAGE_SAMPLER,
+        scheduler=(
+            _optional(merged.get("EPOS_IMAGE_SCHEDULER")) or _CANONICAL_IMAGE_SCHEDULER
+        ),
+        steps=_integer(
+            merged,
+            "EPOS_IMAGE_STEPS",
+            _CANONICAL_IMAGE_STEPS,
+            minimum=1,
+        ),
+        cfg=_float(
+            merged,
+            "EPOS_IMAGE_CFG",
+            _CANONICAL_IMAGE_CFG,
+            minimum=0.0,
+        ),
     )
     try:
         return LocalRuntimeSettings(
@@ -107,26 +136,16 @@ def _integer(
     return value
 
 
-def _optional_integer(
+def _float(
     values: Mapping[str, str],
     name: str,
-    *,
-    minimum: int,
-) -> int | None:
-    if _optional(values.get(name)) is None:
-        return None
-    return _integer(values, name, minimum, minimum=minimum)
-
-
-def _optional_float(
-    values: Mapping[str, str],
-    name: str,
+    default: float,
     *,
     minimum: float,
-) -> float | None:
+) -> float:
     raw = _optional(values.get(name))
     if raw is None:
-        return None
+        return default
     try:
         value = float(raw)
     except ValueError as exc:

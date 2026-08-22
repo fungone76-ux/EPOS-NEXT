@@ -123,6 +123,10 @@ class TurnOrchestrator:
             base_state=pre_state,
         )
         present_npc_ids = self._present_npc_ids(psychological_state)
+        cognitive_npc_ids = self._cognitive_npc_ids(
+            action=action,
+            present_npc_ids=present_npc_ids,
+        )
 
         cognition_scene = self._cognition_scene(
             psychological_state,
@@ -130,7 +134,7 @@ class TurnOrchestrator:
         )
         cognition_results = await self._process_present_npcs(
             state=psychological_state,
-            npc_ids=present_npc_ids,
+            npc_ids=cognitive_npc_ids,
             scene=cognition_scene,
             player_input=command.player_input,
             action=action,
@@ -363,6 +367,23 @@ class TurnOrchestrator:
                 key=str,
             )
         )
+
+    @staticmethod
+    def _cognitive_npc_ids(
+        *,
+        action: ValidatedAction,
+        present_npc_ids: tuple[EntityId, ...],
+    ) -> tuple[EntityId, ...]:
+        """Select NPCs allowed to reason for this turn without waking unrelated bystanders."""
+        present = set(present_npc_ids)
+        targeted = tuple(
+            npc_id
+            for npc_id in action.target_ids
+            if npc_id in present
+        )
+        if targeted:
+            return tuple(dict.fromkeys(targeted))
+        return present_npc_ids
 
     @staticmethod
     def _cognition_scene(

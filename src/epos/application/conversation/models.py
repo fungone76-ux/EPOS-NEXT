@@ -12,6 +12,7 @@ from epos.application.actions.models import ValidatedAction
 from epos.application.cognition.models import ValidatedNPCReaction
 from epos.application.visual.models import ObservableSceneState
 from epos.domain.base import DomainModel
+from epos.domain.character_definition import NPCCharacterDefinition
 from epos.domain.ids import EntityId, LocationId
 from epos.domain.memory import MemoryEntryState
 from epos.domain.psychology import EmotionalState
@@ -191,6 +192,7 @@ class NPCNarrationVoice(DomainModel):
     speech_style: str = ""
     emotional_state: EmotionalState
     relationship_with_player: RelationshipState
+    character_definition: NPCCharacterDefinition | None = None
 
 
 class NarrationRepairFeedback(DomainModel):
@@ -262,6 +264,7 @@ class ValidatedNarration(DomainModel):
 class NarrationViolationKind(StrEnum):
     PLAYER_CONTROL = "player_control"
     UNSUPPORTED_WORLD_CLAIM = "unsupported_world_claim"
+    UNSUPPORTED_NPC_FACT = "unsupported_npc_fact"
     UNAUTHORIZED_PRIVATE_INFO = "unauthorized_private_info"
     FOCUS_VIOLATION = "focus_violation"
 

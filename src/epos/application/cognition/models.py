@@ -12,6 +12,7 @@ from epos.application.intimacy.models import ConsentScope, ConsentStatus
 from epos.application.memory import RankedMemory
 from epos.domain.base import DomainModel
 from epos.domain.bond import BondState
+from epos.domain.character_definition import NPCCharacterDefinition
 from epos.domain.ids import EntityId, LocationId, MemoryId
 from epos.domain.intimacy import IntimacyState
 from epos.domain.knowledge import KnowledgeState
@@ -55,6 +56,7 @@ class PrivateCognitiveContext(DomainModel):
     npc_name: str
     role: str
     player_id: EntityId
+    character_definition: NPCCharacterDefinition = Field(default_factory=NPCCharacterDefinition)
     personality: tuple[str, ...] = ()
     speech_style: str = ""
     desires: tuple[str, ...] = ()

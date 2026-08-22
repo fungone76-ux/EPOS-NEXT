@@ -11,6 +11,7 @@ from epos.application.conversation.models import (
     NarrationProposal,
     NarrationRepairFeedback,
     NarrationResult,
+    NarrationViolationKind,
     NPCDialogueDraft,
     ValidatedNarration,
     WorldNarrationDraft,
@@ -92,6 +93,44 @@ class ObservationNarrationFallback:
         )
 
 
+class BriefSocialNarrationFallback:
+    """Keep a completed brief social turn alive when LLM narration stays invalid."""
+
+    def build(self, context: NarrationContext) -> NarrationProposal | None:
+        if context.focus.mode is not NarrationMode.BRIEF_SOCIAL:
+            return None
+
+        evidence_ids = {item.evidence_id for item in context.evidence}
+        target = context.focus.target_npc_id
+        if target is None:
+            target = next(
+                (
+                    voice.npc_id
+                    for voice in context.voices
+                    if f"reaction:{voice.npc_id}" in evidence_ids
+                ),
+                None,
+            )
+        if target is None:
+            return None
+
+        reaction_id = f"reaction:{target}"
+        if reaction_id not in evidence_ids:
+            return None
+
+        topic = context.focus.topic.casefold()
+        text = "Ciao." if "greet" in topic or "salut" in topic else "Ti ascolto."
+        return NarrationProposal(
+            units=(
+                NPCDialogueDraft(
+                    speaker_id=target,
+                    text=text,
+                    evidence_ids=(reaction_id,),
+                ),
+            )
+        )
+
+
 class NarrationComposer:
     """Deterministically format validated units without inventing new content."""
 
@@ -120,6 +159,7 @@ class NarrationService:
         composer: NarrationComposer | None = None,
         order_canonicalizer: NarrationOrderCanonicalizer | None = None,
         observation_fallback: ObservationNarrationFallback | None = None,
+        brief_social_fallback: BriefSocialNarrationFallback | None = None,
     ) -> None:
         self._port = port
         self._audit_port = audit_port
@@ -128,6 +168,7 @@ class NarrationService:
         self._composer = composer or NarrationComposer()
         self._order_canonicalizer = order_canonicalizer or NarrationOrderCanonicalizer()
         self._observation_fallback = observation_fallback or ObservationNarrationFallback()
+        self._brief_social_fallback = brief_social_fallback or BriefSocialNarrationFallback()
 
     async def generate(self, context: NarrationContext) -> NarrationResult:
         attempt_context = context
@@ -143,6 +184,11 @@ class NarrationService:
                     candidate=validated.model_copy(deep=True),
                 )
                 audit = await self._audit_port.invoke(audit_context)
+                if (
+                    attempt + 1 == _MAX_NARRATION_ATTEMPTS
+                    and self._only_soft_npc_fact_findings(audit)
+                ):
+                    return self._result(validated, context)
                 self._audit_validator.validate(audit, validated)
             except NarrationValidationError as exc:
                 last_error = exc
@@ -172,12 +218,21 @@ class NarrationService:
             raise RuntimeError("narration recovery exhausted without a result")
         return self._fallback_or_raise(context, last_error)
 
+    @staticmethod
+    def _only_soft_npc_fact_findings(audit: NarrationAuditProposal) -> bool:
+        return bool(audit.findings) and all(
+            finding.kind is NarrationViolationKind.UNSUPPORTED_NPC_FACT
+            for finding in audit.findings
+        )
+
     def _fallback_or_raise(
         self,
         context: NarrationContext,
         error: NarrationValidationError,
     ) -> NarrationResult:
         proposal = self._observation_fallback.build(context)
+        if proposal is None:
+            proposal = self._brief_social_fallback.build(context)
         if proposal is None:
             raise error
         validated = self._validator.validate(proposal, context)

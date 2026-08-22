@@ -71,7 +71,9 @@ def test_local_runtime_reports_missing_openai_secret_as_configuration_error(
     tmp_path: Path,
 ) -> None:
     environment = _environment(tmp_path)
-    del environment["OPENAI_API_KEY"]
+    # Explicitly blank the secret so this test remains deterministic even when
+    # the developer worktree has a real uncommitted .env file.
+    environment["OPENAI_API_KEY"] = ""
 
     with pytest.raises(ConfigurationError, match="missing secret environment variable"):
         build_local_runtime(Path.cwd(), environ=environment)

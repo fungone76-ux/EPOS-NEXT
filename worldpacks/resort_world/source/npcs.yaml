@@ -22,6 +22,7 @@ npcs:
     secrets:
       - Conosce fin dall'inizio il possibile interesse del protagonista per l'acquisto.
     knowledge:
+      - Il protagonista è un cliente VIP eccezionalmente importante.
       - Il debito bancario scade durante il settimo giorno.
       - Stella vuole una promozione internazionale.
       - Maria desidera un contratto stabile.

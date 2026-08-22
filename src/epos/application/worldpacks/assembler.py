@@ -300,6 +300,7 @@ class WorldpackAssembler:
             ),
             location_id=definition.location_id,
             adult_verified=definition.adult_verified,
+            character_definition=definition.character_definition.model_copy(deep=True),
             personality=definition.personality,
             speech_style=definition.speech_style,
             desires=definition.desires,
