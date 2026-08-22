@@ -103,11 +103,11 @@ def test_single_generic_word_overlap_is_below_confidence_threshold() -> None:
         )
 
 
-def test_equal_best_matches_are_ambiguous() -> None:
+def test_equal_best_non_camera_matches_are_ambiguous() -> None:
     library = SemanticLibraryDocument(
         entries=(
-            _entry("camera_a", "medium shot", "medium"),
-            _entry("camera_b", "medium framing", "medium"),
+            _entry("pose_a", "medium stance", "medium"),
+            _entry("pose_b", "medium posture", "medium"),
         )
     )
 
@@ -115,8 +115,26 @@ def test_equal_best_matches_are_ambiguous() -> None:
         SemanticLibraryResolver().resolve(
             SemanticIntent(description="medium view", tags=("medium",)),
             library,
-            library_name="camera",
+            library_name="pose",
         )
+
+
+def test_ambiguous_camera_prefers_worldpack_medium_shot_fallback() -> None:
+    library = SemanticLibraryDocument(
+        entries=(
+            _entry("extreme_wide_shot", "extreme wide shot", "wide"),
+            _entry("wide_shot", "wide shot", "wide"),
+            _entry("medium_shot", "medium shot", "medium"),
+        )
+    )
+
+    resolved = SemanticLibraryResolver().resolve(
+        SemanticIntent(description="wide view", tags=("wide",)),
+        library,
+        library_name="camera",
+    )
+
+    assert resolved.entry_id == "medium_shot"
 
 
 def test_semantic_library_rejects_normalized_duplicate_entry_ids() -> None:
