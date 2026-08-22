@@ -137,6 +137,40 @@ def test_ambiguous_camera_prefers_worldpack_medium_shot_fallback() -> None:
     assert resolved.entry_id == "medium_shot"
 
 
+def test_unknown_style_uses_authored_worldpack_fallback() -> None:
+    library = SemanticLibraryDocument(
+        entries=(
+            _entry("cinematic_realism", "cinematic realistic image", "cinematic"),
+            _entry("editorial", "editorial photography", "editorial"),
+        )
+    )
+
+    resolved = SemanticLibraryResolver().resolve(
+        SemanticIntent(description="luxury conversational portrait"),
+        library,
+        library_name="style",
+    )
+
+    assert resolved.entry_id == "cinematic_realism"
+
+
+def test_unknown_lighting_uses_authored_worldpack_fallback() -> None:
+    library = SemanticLibraryDocument(
+        entries=(
+            _entry("soft_ambient", "soft ambient light", "soft", "ambient"),
+            _entry("hard_flash", "hard flash", "flash"),
+        )
+    )
+
+    resolved = SemanticLibraryResolver().resolve(
+        SemanticIntent(description="pleasant lobby illumination"),
+        library,
+        library_name="lighting",
+    )
+
+    assert resolved.entry_id == "soft_ambient"
+
+
 def test_semantic_library_rejects_normalized_duplicate_entry_ids() -> None:
     with pytest.raises(ValidationError, match="duplicate semantic library entry"):
         SemanticLibraryDocument(
