@@ -2,10 +2,7 @@
 
 from __future__ import annotations
 
-from epos.application.visual.canonical.errors import (
-    SemanticLibraryResolutionError,
-    VisualCanonicalizationError,
-)
+from epos.application.visual.canonical.errors import VisualCanonicalizationError
 from epos.application.visual.canonical.library import (
     SemanticLibraryResolver,
     SemanticResolverProtocol,
