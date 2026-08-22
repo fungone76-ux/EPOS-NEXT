@@ -36,6 +36,8 @@ def test_audit_profile_distinguishes_rhetoric_from_unsupported_facts() -> None:
     instruction = TASK_PROFILES[LLMTask.AUDIT_NARRATION].system_instruction
 
     assert "rhetorical questions" in instruction
-    assert "do not classify" in instruction
-    assert "unsupported factual assertion" in instruction
+    assert "normative statements" in instruction
+    assert "Non possiamo permetterci ambiguità" in instruction
+    assert "Perché mai dovresti fidarti di me?" in instruction
+    assert "Ho sempre agito con trasparenza" in instruction
     assert "unsupported_world_claim" in instruction
