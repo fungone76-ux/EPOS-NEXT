@@ -166,6 +166,82 @@ def test_character_definition_is_available_to_npc_reasoning() -> None:
     assert definition.never_behaviors == ("beg for approval",)
 
 
+def test_same_dynamic_state_preserves_distinct_character_identity() -> None:
+    state = _state(trust=4.0)
+    player_id = state.player.entity_id
+    victoria_id = EntityId("victoria")
+    stella_id = EntityId("stella")
+
+    shared_relationship = state.npcs[victoria_id].relationships[player_id].model_copy(deep=True)
+    shared_emotion = state.npcs[victoria_id].emotional_state.model_copy(deep=True)
+
+    stella = state.npcs[stella_id]
+    stella.character_definition = NPCCharacterDefinition(
+        short_description="A quick-witted, expressive resort guest.",
+        long_description="Stella is impulsive, proud, playful, and emotionally transparent.",
+        personality=("impulsive", "sarcastic", "expressive"),
+        speech_style="Fast, informal, ironic, and openly reactive.",
+        values=("freedom", "honesty"),
+        relationship_tendencies=("Low trust makes her provocative and defensive.",),
+        conditional_behaviors=(
+            ConditionalBehavior(
+                condition="angry",
+                guidance=("reacts immediately", "uses sarcasm", "shows irritation openly"),
+            ),
+        ),
+        example_dialogues=(
+            ExampleDialogue(
+                player="Non mi fido di te.",
+                npc="Fantastico. E adesso dovrei convincerti del contrario?",
+            ),
+        ),
+        never_behaviors=("speak like a corporate executive",),
+    )
+    stella.relationships[player_id] = shared_relationship.model_copy(deep=True)
+    stella.emotional_state = shared_emotion.model_copy(deep=True)
+
+    scene = CognitionScene(
+        location_id=LocationId("lobby"),
+        present_entity_ids=(player_id, victoria_id, stella_id),
+        observable_facts=("The player says the same line to each NPC separately.",),
+        summary="Evening in the lobby.",
+    )
+    builder = PrivateCognitiveContextBuilder()
+
+    victoria_context = builder.build(
+        state=state,
+        npc_id=victoria_id,
+        scene=scene,
+        player_input="Non mi fido di te.",
+        action=ValidatedAction(intent="dialogue", target_ids=(victoria_id,)),
+        recalled=MemoryRecallResult(query_text="fiducia", memories=()),
+        resolved_check=None,
+    )
+    stella_context = builder.build(
+        state=state,
+        npc_id=stella_id,
+        scene=scene,
+        player_input="Non mi fido di te.",
+        action=ValidatedAction(intent="dialogue", target_ids=(stella_id,)),
+        recalled=MemoryRecallResult(query_text="fiducia", memories=()),
+        resolved_check=None,
+    )
+
+    assert victoria_context.player_input == stella_context.player_input
+    assert victoria_context.scene == stella_context.scene
+    assert victoria_context.relationship_with_player == stella_context.relationship_with_player
+    assert victoria_context.emotional_state == stella_context.emotional_state
+    assert victoria_context.character_definition != stella_context.character_definition
+    assert "controlled" in victoria_context.character_definition.personality
+    assert "sarcastic" in stella_context.character_definition.personality
+    assert victoria_context.character_definition.speech_style != (
+        stella_context.character_definition.speech_style
+    )
+    assert victoria_context.character_definition.example_dialogues[0].npc != (
+        stella_context.character_definition.example_dialogues[0].npc
+    )
+
+
 def test_disclosure_permission_is_python_derived_from_flags_and_relationship() -> None:
     context = PrivateCognitiveContextBuilder().build(
         state=_state(trust=8.0, unlocked=True),
