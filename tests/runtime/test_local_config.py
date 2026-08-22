@@ -37,6 +37,40 @@ def test_local_settings_resolve_project_relative_data_directory(tmp_path: Path) 
     assert settings.worldpacks_directory == root / "worldpacks"
 
 
+def test_local_settings_use_canonical_image_defaults(tmp_path: Path) -> None:
+    root = _project(tmp_path)
+
+    settings = load_local_settings(root, environ={})
+
+    profile = settings.prompt_profile
+    assert profile.width == 896
+    assert profile.height == 1152
+    assert profile.sampler == "DPM++ 2M"
+    assert profile.scheduler == "Karras"
+    assert profile.steps == 24
+    assert profile.cfg == 7.0
+
+
+def test_local_settings_allow_explicit_image_profile_overrides(tmp_path: Path) -> None:
+    root = _project(tmp_path)
+
+    settings = load_local_settings(
+        root,
+        environ={
+            "EPOS_IMAGE_SAMPLER": "Euler a",
+            "EPOS_IMAGE_SCHEDULER": "Automatic",
+            "EPOS_IMAGE_STEPS": "30",
+            "EPOS_IMAGE_CFG": "5.5",
+        },
+    )
+
+    profile = settings.prompt_profile
+    assert profile.sampler == "Euler a"
+    assert profile.scheduler == "Automatic"
+    assert profile.steps == 30
+    assert profile.cfg == 5.5
+
+
 def test_local_settings_reject_invalid_numeric_image_configuration(tmp_path: Path) -> None:
     root = _project(tmp_path)
 
