@@ -7,7 +7,11 @@ import asyncio
 from dotenv import load_dotenv
 
 from epos.application.actions.models import ValidatedAction
-from epos.application.cognition.models import CognitionScene, NPCReactionProposal, PrivateCognitiveContext
+from epos.application.cognition.models import (
+    CognitionScene,
+    NPCReactionProposal,
+    PrivateCognitiveContext,
+)
 from epos.domain.bond import BondState
 from epos.domain.character_definition import (
     ConditionalBehavior,
