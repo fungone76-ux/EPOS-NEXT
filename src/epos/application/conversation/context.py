@@ -2,10 +2,7 @@
 
 from __future__ import annotations
 
-import json
 from urllib.parse import quote
-
-from pydantic import JsonValue
 
 from epos.application.cognition.models import ValidatedNPCReaction
 from epos.application.conversation.models import (
@@ -22,7 +19,6 @@ from epos.application.conversation.models import (
 from epos.application.visual.models import ObservableSceneState, SubjectKind
 from epos.domain.errors import EposValidationError
 from epos.domain.ids import EntityId, SceneId
-from epos.domain.knowledge import KnowledgeState
 from epos.domain.npc import NPCState
 from epos.domain.relationships import RelationshipState
 from epos.domain.world_state import WorldState
@@ -169,7 +165,8 @@ class NarrationContextBuilder:
         if invalid_subject_ids:
             invalid_id = min(invalid_subject_ids, key=str)
             raise NarrationContextError(
-                f"narration scene contains subject outside authoritative local presence: {invalid_id}"
+                "narration scene contains subject outside authoritative local presence: "
+                f"{invalid_id}"
             )
 
         player_subject = subjects[state.player.entity_id]
@@ -205,10 +202,7 @@ class NarrationContextBuilder:
                     f"visible NPC {npc_id} observable state is not authoritative"
                 )
 
-        if (
-            focus.target_npc_id is not None
-            and focus.target_npc_id not in subjects
-        ):
+        if focus.target_npc_id is not None and focus.target_npc_id not in subjects:
             raise NarrationContextError(
                 "conversation focus target is not present in narration scene"
             )
