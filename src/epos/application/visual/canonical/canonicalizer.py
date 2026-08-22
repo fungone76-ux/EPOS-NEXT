@@ -188,12 +188,9 @@ class VisualCanonicalizer:
         *,
         allow_social_fallback: bool,
     ) -> ResolvedSemanticEntry:
-        try:
-            return self._resolver.resolve(intent, library, library_name="action")
-        except SemanticLibraryResolutionError:
-            if not allow_social_fallback:
-                raise
+        if allow_social_fallback:
             return self._neutral_social_action()
+        return self._resolver.resolve(intent, library, library_name="action")
 
     def _resolve_optional_action(
         self,
@@ -202,14 +199,9 @@ class VisualCanonicalizer:
         *,
         allow_social_fallback: bool,
     ) -> ResolvedSemanticEntry | None:
-        if intent is None:
+        if intent is None or allow_social_fallback:
             return None
-        try:
-            return self._resolver.resolve(intent, library, library_name="action")
-        except SemanticLibraryResolutionError:
-            if not allow_social_fallback:
-                raise
-            return None
+        return self._resolver.resolve(intent, library, library_name="action")
 
     @staticmethod
     def _neutral_social_action() -> ResolvedSemanticEntry:
